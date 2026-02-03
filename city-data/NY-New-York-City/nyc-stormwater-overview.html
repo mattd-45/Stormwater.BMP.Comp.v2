@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NYC Stormwater Compliance for Purple-Roof® (USWR)</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <style>
+    body { background: #f8fafc; color: #0f172a; }
+    .pill { border-radius: 9999px; font-size: 0.75rem; padding: 0.1rem 0.6rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #e2e8f0; padding: 0.5rem 0.6rem; vertical-align: top; }
+    th { background: #f1f5f9; text-align: left; font-weight: 600; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-3xl mx-auto px-4 py-6 md:py-10">
+    <header class="flex items-start justify-between mb-6 md:mb-8">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-500 mb-1">City Playbook</p>
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">
+          Summary: NYC Stormwater Compliance<br class="hidden md:block" />
+          for Purple-Roof<sup>&reg;</sup>
+        </h1>
+        <p class="mt-2 text-sm text-slate-600">
+          This guide summarizes the NYC Unified Stormwater Rule (USWR) and how Purple-Roof<sup>&reg;</sup> can support compliance for covered development projects.
+        </p>
+      </div>
+      <div class="ml-4 hidden md:block">
+        <img src="images/LBG_Logo.png" alt="LBG Logo" class="h-12 w-auto" onerror="this.style.display='none'" />
+      </div>
+    </header>
+
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 mb-5">
+      <h2 class="text-lg font-semibold mb-2 text-slate-900">1. Regulatory Scope: Covered Development Projects</h2>
+      <p class="text-sm text-slate-700 mb-3">
+        NYC’s USWR generally applies to projects that meet one or more of the following triggers:
+      </p>
+      <ul class="list-disc pl-5 text-sm text-slate-700 space-y-1">
+        <li>Disturb <span class="font-semibold">&ge; 20,000 sq. ft.</span> of soil.</li>
+        <li>Create <span class="font-semibold">&ge; 5,000 sq. ft.</span> of new impervious surface.</li>
+        <li>Are subject to <span class="font-semibold">Local Law 92/94</span> (Sustainable Roofing Zone: solar or green roof).</li>
+      </ul>
+      <p class="mt-3 text-sm text-slate-700">
+        The USWR emphasizes a retention-first hierarchy:
+        <span class="pill bg-blue-100 text-blue-800 ml-1">Retention</span>
+        <span class="pill bg-purple-100 text-purple-800 ml-1">Detention / Rate Control</span>
+      </p>
+    </section>
+
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 mb-5">
+      <h2 class="text-lg font-semibold mb-2 text-slate-900">2. Performance Standards (High-Level)</h2>
+      <p class="text-sm text-slate-700 mb-4">
+        NYC uses a tiered hierarchy that prioritizes retention (infiltration and evapotranspiration) before detention.
+        Final criteria vary by drainage area and project context; confirm requirements in DEP’s published guidance.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
+          <div class="text-xs uppercase tracking-[0.18em] text-blue-800 mb-1">Water Quality / Runoff Reduction</div>
+          <ul class="list-disc pl-5 text-sm text-slate-800 space-y-1">
+            <li><span class="font-semibold">Water Quality Volume:</span> retain or treat runoff from a <span class="font-semibold">1.5-inch</span> rainfall event.</li>
+            <li><span class="font-semibold">Runoff Reduction:</span> high-priority retention; Purple-Roof’s soil + NMW support evapotranspiration pathways.</li>
+          </ul>
+        </div>
+        <div class="border border-purple-200 rounded-lg p-4 bg-purple-50">
+          <div class="text-xs uppercase tracking-[0.18em] text-purple-800 mb-1">Sewer Operations / Peak Flow</div>
+          <ul class="list-disc pl-5 text-sm text-slate-800 space-y-1">
+            <li><span class="font-semibold">Sewer Operations Volume (CSS areas):</span> manage runoff from a <span class="font-semibold">1.85-inch</span> storm event.</li>
+            <li><span class="font-semibold">Peak flow:</span> release rates are formula-based and may use a weighted coefficient as low as <span class="font-semibold">0.10</span>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 mb-5">
+      <h2 class="text-lg font-semibold mb-2 text-slate-900">3. Technical Modeling Data (HydroCAD / SWMM Submittals)</h2>
+      <p class="text-sm text-slate-700 mb-4">
+        For DEP modeling packages, the following parameters are commonly used for Purple-Roof<sup>&reg;</sup> assemblies.
+        Treat these as starting points and confirm with the project’s engineer-of-record and the latest DEP guidance.
+      </p>
+      <div class="overflow-x-auto">
+        <table class="text-sm">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Available Porosity</th>
+              <th>NYC Specific Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-semibold">Engineered Soil Media</td>
+              <td>0.20 cf/cf</td>
+              <td>Standard DEP value</td>
+            </tr>
+            <tr>
+              <td class="font-semibold">Needled Mineral Wool (NMW)</td>
+              <td>0.40 cf/cf</td>
+              <td>Previously approved DEP value</td>
+            </tr>
+            <tr>
+              <td class="font-semibold">Honeycomb Reservoir</td>
+              <td>0.93 cf/cf</td>
+              <td>Used for detention credit</td>
+            </tr>
+            <tr>
+              <td class="font-semibold">Drain Box Orifice (refined)</td>
+              <td>—</td>
+              <td><span class="font-semibold">0.07</span> (refined for Purple-Roof drain gates)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 mb-6">
+      <h2 class="text-lg font-semibold mb-2 text-slate-900">4. NYC Value Proposition</h2>
+      <ul class="list-disc pl-5 text-sm text-slate-800 space-y-2">
+        <li>
+          <span class="font-semibold">LL92/94 synergy:</span>
+          Can satisfy sustainable roofing zone requirements while supporting stormwater compliance in the same footprint.
+        </li>
+        <li>
+          <span class="font-semibold">Tax abatement:</span>
+          Priority areas may be eligible for up to <span class="font-semibold">$15/sq. ft.</span> in green roof tax abatements (confirm eligibility and current program status).
+        </li>
+        <li>
+          <span class="font-semibold">Space salvage:</span>
+          Rooftop-based management can reduce or eliminate underground detention needs for zero-lot-line urban infill projects.
+        </li>
+      </ul>
+    </section>
+
+    <footer class="text-xs text-slate-500">
+      Sales/conceptual reference only. Confirm final requirements against NYC DEP’s published materials:
+      <a href="https://www.nyc.gov/site/dep/water/unified-stormwater-rule.page" target="_blank" rel="noopener noreferrer" class="underline">
+        Unified Stormwater Rule page
+      </a>
+      and the
+      <a href="https://www.nyc.gov/assets/dep/downloads/pdf/water/stormwater/unified-stormwater-rule/uswr_nyc_stormwater_manual.pdf" target="_blank" rel="noopener noreferrer" class="underline">
+        NYC Stormwater Manual (PDF)
+      </a>.
+    </footer>
+  </div>
+</body>
+</html>
+

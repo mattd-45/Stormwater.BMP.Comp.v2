@@ -1,0 +1,3191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Stormwater BMP Comparison - Sales Mode</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
+    body { font-family: 'Open Sans', 'Calibri', sans-serif; background: #F2F2F2; margin: 0; color: #262626; }
+    
+    .card { background: white; border: 1px solid #999999; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08); margin-bottom: 24px; }
+    .card h2 { font-size: 24px; font-weight: 600; margin: 0 0 16px 0; color: #5D5D5D; }
+    .card h3 { font-size: 18px; font-weight: 600; margin: 0 0 12px 0; color: #5D5D5D; }
+    
+    .progress-bar { width: 100%; height: 24px; background: #F2F2F2; border-radius: 12px; overflow: hidden; position: relative; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #96D8F5 0%, #26A3DF 100%); transition: width 0.3s ease; }
+    .progress-fill.retention { background: linear-gradient(90deg, #96D8F5 0%, #26A3DF 100%); }
+    .progress-fill.detention { background: linear-gradient(90deg, #C5B2E2 0%, #8A48B5 100%); }
+    .progress-fill.partial { background: linear-gradient(90deg, #F9D864 0%, #D4AF37 100%); }
+    .progress-fill.fail { background: linear-gradient(90deg, #F37D7D 0%, #EE2B2B 100%); }
+    
+    .badge { display: inline-block; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge.meets { background: #87D292; color: #378D4D; }
+    .badge.partial { background: #F9D864; color: #A6872B; }
+    .badge.fails { background: #F37D7D; color: #A83838; }
+    
+    .sticky-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 2px solid #999999; padding: 12px 24px; box-shadow: 0 -4px 12px rgba(0,0,0,0.1); z-index: 100; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    
+    .city-marker { cursor: pointer; transition: transform 0.2s; }
+    .city-marker:hover { transform: scale(1.2); }
+
+    /* City header icon (local per-city image) */
+    #city-icon {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    
+    /* Leaflet tooltip styling for city names - LBG dark */
+    .leaflet-tooltip.city-tooltip {
+      background: #262626;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      white-space: nowrap;
+    }
+    .leaflet-tooltip-top.city-tooltip::before {
+      border-top-color: #262626;
+    }
+
+    /* Subtle hover animation for City Rules cards - LBG palette */
+    #retention-card,
+    #detention-card,
+    #pv-card {
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    #retention-card:hover {
+      transform: translateY(-4px) scale(1.015);
+      box-shadow: 0 10px 25px rgba(38, 163, 223, 0.3);
+      border-color: #26A3DF;
+    }
+    #detention-card:hover {
+      transform: translateY(-4px) scale(1.015);
+      box-shadow: 0 10px 25px rgba(138, 72, 181, 0.3);
+      border-color: #8A48B5;
+    }
+    #pv-card:hover {
+      transform: translateY(-4px) scale(1.015);
+      box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+      border-color: #D4AF37;
+    }
+    
+    details summary { cursor: pointer; user-select: none; font-weight: 600; padding: 12px; background: #F2F2F2; border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    details summary:hover { background: #999999; color: white; }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::marker { content: none; }
+    details summary .expand-icon { flex-shrink: 0; color: inherit; transition: transform 0.2s; }
+    details[open]:not(.result-item) summary .expand-icon { transform: rotate(90deg); }
+    details[open] summary { margin-bottom: 0; }
+    /* Shaded border around expanded details content (e.g. At-Grade, On-Structure) */
+    details[open]:not(.result-item) summary {
+      border: 1px solid #999999;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      box-shadow: none;
+    }
+    details[open]:not(.result-item) > div {
+      background: #F8FAFA;
+      border: 1px solid #999999;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      padding: 1rem 1rem 1.25rem;
+      margin-top: 0;
+      margin-bottom: 12px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .site-dimensions-group {
+      border: 1px solid #999999;
+      border-radius: 8px;
+      background: #FAFAFA;
+      padding: 0;
+      margin-bottom: 12px;
+    }
+    .site-dimensions-group details {
+      margin-bottom: 0;
+    }
+    .site-dimensions-group details summary {
+      margin-bottom: 8px;
+    }
+    .site-dimensions-group details[open] summary {
+      margin-bottom: 0;
+    }
+    .site-dimensions-group details[open] > div {
+      margin-bottom: 0;
+    }
+    /* Concentric boxes: outer → at-grade/on-structure boxes → input cells */
+    .site-dimensions-concentric {
+      border: 2px solid #5D5D5D;
+      border-radius: 12px;
+      padding: 14px;
+      background: #F8FAFA;
+    }
+    .site-dimensions-inner-box {
+      border: 2px solid #999999;
+      border-radius: 10px;
+      padding: 12px;
+      background: white;
+      margin-bottom: 12px;
+    }
+    .site-dimensions-inner-box:last-child { margin-bottom: 0; }
+    .site-dimensions-cell {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      background: transparent;
+    }
+    .site-dimensions-cell:last-child { margin-bottom: 0; }
+    /* Results: one-line summary per system, expandable to full details */
+    .result-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; background: #F2F2F2; border-radius: 8px; border: 1px solid #999999; margin-bottom: 6px; list-style: none; }
+    .result-summary-row::-webkit-details-marker { display: none; }
+    .result-summary-row::marker { content: none; }
+    details.result-item { margin-bottom: 8px; }
+    details.result-item[open] .result-summary-row { margin-bottom: 0; border-radius: 8px 8px 0 0; border-bottom: none; }
+    .result-detail-body { padding: 16px; border: 1px solid #999999; border-top: none; border-radius: 0 0 8px 8px; background: white; }
+    .result-summary-row .expand-icon { flex-shrink: 0; color: #5D5D5D; transition: transform 0.2s; }
+    details.result-item[open] .result-summary-row .expand-icon { transform: rotate(90deg); }
+    .results-group { margin-bottom: 1.25rem; }
+    .results-group:last-child { margin-bottom: 0; }
+    .results-group-header { font-weight: 600; font-size: 0.9375rem; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; }
+    .results-group-meets { background: #87D292; color: #378D4D; }
+    .results-group-partial { background: #F9D864; color: #A6872B; }
+    .results-group-fails { background: #F37D7D; color: #A83838; }
+    .results-group-items { display: flex; flex-direction: column; gap: 8px; }
+    .site-area-bar { width: 100%; }
+    .site-area-bar-wide { min-height: 80px; aspect-ratio: 2.2 / 1; max-height: 180px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.15); overflow: hidden; }
+    .site-area-seg { min-width: 2px; position: relative; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); border-right: 1px solid rgba(255,255,255,0.25); transition: width 0.35s ease; }
+    .site-area-seg:last-child { border-right: none; }
+    .site-area-seg-label { position: absolute; left: 4px; right: 4px; top: 50%; transform: translateY(-50%); text-align: center; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: white; text-shadow: 0 0 3px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.9); pointer-events: none; white-space: nowrap; overflow: hidden; }
+    .site-area-legend-swatch { width: 14px; height: 14px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.12); box-shadow: 0 1px 3px rgba(0,0,0,0.12); flex-shrink: 0; }
+    #site-area-graphic-wrap { border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.06); background: linear-gradient(180deg, #fafbfc 0%, #f1f5f9 100%); padding: 1.25rem 1.25rem 1rem; }
+    #site-area-graphic-wrap .site-area-title { font-size: 0.8125rem; font-weight: 600; color: #475569; letter-spacing: 0.02em; margin-bottom: 0.75rem; }
+    .site-area-legend-item { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.75rem; border-radius: 9999px; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 1px 2px rgba(0,0,0,0.04); font-size: 0.75rem; margin: 0.2rem; }
+    .site-area-legend-item .legend-name { color: #334155; font-weight: 500; }
+    .site-area-legend-item .legend-val { color: #64748b; font-variant-numeric: tabular-nums; margin-left: 0.15rem; }
+    
+    input[type="number"], input[type="text"], select { width: 100%; padding: 12px; border: 2px solid #999999; border-radius: 8px; font-size: 16px; }
+    input:focus, select:focus { outline: none; border-color: #26A3DF; }
+    
+    button { padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-primary { background: #26A3DF; color: white; }
+    .btn-primary:hover { background: #26629F; }
+    .btn-secondary { background: #F2F2F2; color: #5D5D5D; border: 1px solid #999999; }
+    .btn-secondary:hover { background: #999999; color: white; }
+    
+    @media (max-width: 640px) {
+      .card { padding: 16px; margin-bottom: 16px; }
+      .card h2 { font-size: 20px; }
+      .sticky-bar { padding: 8px 16px; font-size: 14px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+    }
+
+    /* Result system name hover – show BMP image tooltip - LBG blue */
+    .result-name-with-tooltip { position: relative; display: inline-block; cursor: help; border-bottom: 1px dotted #5D5D5D; }
+    .image-tooltip-container { position: relative; display: inline-block; cursor: help; }
+    .image-tooltip { visibility: hidden; opacity: 0; position: fixed; z-index: 1001; background-color: white; border: 2px solid #26A3DF; border-radius: 8px; padding: 8px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); transition: opacity 0.2s, visibility 0.2s; pointer-events: none; max-width: 800px; }
+    .image-tooltip img { max-width: 720px; max-height: 720px; display: block; border-radius: 4px; }
+    .image-tooltip.show { visibility: visible !important; opacity: 1 !important; }
+
+    /* Mobile: reliable touch targets and tap response */
+    @media (hover: none) and (pointer: coarse) {
+      #us-map-container, #city-mini-map { touch-action: manipulation; }
+      #city-select { min-height: 48px; font-size: 16px; padding: 12px 16px; -webkit-appearance: none; appearance: none; }
+      .city-marker .leaflet-marker-icon { min-width: 44px !important; min-height: 44px !important; }
+      input:not([type="checkbox"]):not([type="radio"]), select { font-size: 16px !important; min-height: 44px; }
+      textarea { font-size: 16px !important; }
+      input[type="checkbox"], input[type="radio"] { min-width: 24px; min-height: 24px; }
+      button, .btn-primary, .btn-secondary { min-height: 44px; padding: 12px 20px; touch-action: manipulation; }
+      details summary { min-height: 44px; padding: 12px 16px; display: flex; align-items: center; touch-action: manipulation; }
+      .result-summary-row { min-height: 44px; padding: 12px 16px; touch-action: manipulation; }
+      label.flex.items-center { min-height: 44px; padding: 4px 0; }
+      .sticky-bar { padding-bottom: max(12px, env(safe-area-inset-bottom)); padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+      .sticky-bar button { min-height: 44px; }
+      #retention-link, #detention-link, #pv-link { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 0; }
+    }
+
+    html, body { overflow-x: hidden; }
+    body { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+    @media (max-width: 640px) {
+      .deep-dive-iframe-wrap { max-height: 70vh; }
+    }
+
+    /* Homepage / Landing */
+    #landing-page {
+      background: linear-gradient(180deg, #F2F2F2 0%, #E8EEF2 40%, #F2F2F2 100%);
+      min-height: 100vh;
+    }
+    .landing-hero {
+      background: linear-gradient(135deg, #26A3DF 0%, #26629F 100%);
+      color: white;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 24px rgba(38, 99, 159, 0.25);
+      text-align: center;
+    }
+    .landing-hero h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      letter-spacing: -0.02em;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .landing-hero p {
+      font-size: 1.125rem;
+      opacity: 0.95;
+      margin: 0;
+    }
+    .landing-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border: 1px solid rgba(38, 163, 223, 0.2);
+      margin-bottom: 1.5rem;
+    }
+    .landing-card.map-card {
+      padding: 0;
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      border: 2px solid #26A3DF;
+    }
+    .landing-card.map-card h2 {
+      padding: 1.25rem 1.75rem;
+      margin: 0;
+      background: linear-gradient(90deg, #96D8F5 0%, rgba(150, 216, 245, 0.5) 100%);
+      color: #26629F;
+      font-size: 1.25rem;
+    }
+    #us-map-container.landing-map {
+      border-radius: 0 0 14px 14px;
+      border: none;
+    }
+    .landing-select-wrap label {
+      color: #5D5D5D;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    #city-select.landing-select {
+      border: 2px solid #26A3DF;
+      border-radius: 10px;
+      font-size: 1rem;
+      background: white;
+    }
+    .landing-tab { background: #E8F4FC; border-color: #96D8F5; color: #26629F; }
+    .landing-tab:hover { background: #cce9f9; color: #26629F; }
+    .landing-tab.active { background: #26A3DF !important; border-color: #26A3DF; border-bottom-color: white; color: white; }
+    .landing-tab.active:hover { background: #26629F !important; border-color: #26629F; color: white; }
+    .landing-tabs-wrap { border-bottom-color: #26A3DF; }
+    .bmpdb-table td, .bmpdb-table th { border: 1px solid #cbd5e1; padding: 8px 10px; vertical-align: middle; }
+    .bmpdb-table tbody tr:nth-child(even) { background: #f8fafc; }
+    .bmpdb-table tbody tr:hover { background: #f1f5f9; }
+    .bmpdb-table input, .bmpdb-table select { width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #94a3b8; border-radius: 4px; font-size: 13px; }
+    .bmpdb-table .bmpdb-specs-btn { padding: 4px 10px; font-size: 12px; white-space: nowrap; }
+    .bmpdb-table .bmpdb-specs-btn.specs-active { background: #26A3DF; color: white; border-color: #26A3DF; font-weight: 600; }
+    #city-select.landing-select:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(38, 163, 223, 0.25);
+    }
+    .landing-hint {
+      color: #5D5D5D;
+      font-size: 0.875rem;
+      margin-top: 0.75rem;
+    }
+    .landing-logo-wrap {
+      padding: 0.5rem 0;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 640px) {
+      .landing-hero { padding: 1.75rem 1.25rem; margin-bottom: 1.5rem; }
+      .landing-hero h1 { font-size: 1.75rem; }
+      .landing-hero p { font-size: 1rem; }
+      .landing-card { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Landing Page: US Map -->
+<div id="landing-page" class="min-h-screen p-4 md:p-8" style="padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right));">
+  <div class="max-w-4xl mx-auto">
+    <!-- Logo -->
+    <div class="landing-logo-wrap flex justify-end">
+      <img src="images/LBG_Logo.png" alt="LBG Logo" class="h-12 md:h-16 w-auto" onerror="this.style.display='none'" />
+    </div>
+
+    <!-- Hero -->
+    <div class="landing-hero">
+      <h1>Stormwater BMP Comparison</h1>
+      <p>Compare roof and BMP options for stormwater management in your city</p>
+    </div>
+
+    <!-- Tabs: Select City | BMP Database (non–city-specific data) -->
+    <div class="landing-tabs-wrap flex border-b-2 mb-4 gap-0">
+      <button type="button" id="landing-tab-select" class="landing-tab active px-4 py-2 text-sm font-medium rounded-t border-2 border-b-0 -mb-px">Select City</button>
+      <button type="button" id="landing-tab-bmpdb" class="landing-tab px-4 py-2 text-sm font-medium rounded-t border-2 border-b-0 -mb-px border-l-0">BMP Database</button>
+    </div>
+
+    <!-- Tab: Select City -->
+    <div id="landing-select-tab" class="landing-tab-panel">
+      <div class="landing-card landing-select-wrap">
+        <label class="block mb-3">Search or pick a city</label>
+        <select id="city-select" class="landing-select w-full min-h-[48px] px-4 py-3 touch-manipulation">
+          <option value="">Select a city...</option>
+        </select>
+        <p class="landing-hint">On mobile, use this list to choose a city. You can also tap a city on the map below.</p>
+      </div>
+      <div class="landing-card map-card">
+        <h2>Select your city on the map</h2>
+        <div id="us-map-container" class="landing-map touch-manipulation" style="height: 500px; width: 100%; overflow: hidden;"></div>
+      </div>
+    </div>
+
+    <!-- Tab: BMP Database (view/edit non–city-specific: regulation profiles + BMP options) -->
+    <div id="landing-bmpdb-tab" class="landing-tab-panel hidden">
+      <div class="card mb-6">
+        <h2>BMP Database (project-specific parameters)</h2>
+        <p class="text-sm text-slate-600 mb-4">View and edit all BMPs in the table. Change name, area type, or unit price in the row; click <strong>Specs</strong> to edit depths and porosity (in., %). Changes apply for this session.</p>
+        <div class="overflow-x-auto">
+          <table class="bmpdb-table w-full border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-100 border-b-2 border-slate-300">
+                <th class="text-left py-2 px-3 font-semibold text-slate-700 w-8">#</th>
+                <th class="text-left py-2 px-3 font-semibold text-slate-700">Name</th>
+                <th class="text-left py-2 px-3 font-semibold text-slate-700">Area type</th>
+                <th class="text-left py-2 px-3 font-semibold text-slate-700 w-28">Unit price ($/SF)</th>
+                <th class="text-left py-2 px-3 font-semibold text-slate-700 w-24">Specs</th>
+              </tr>
+            </thead>
+            <tbody id="bmpdb-tbody">
+              <!-- Rows filled by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div id="bmpdb-specs-panel" class="hidden mt-4 pt-4 border-t border-slate-200">
+          <h3 id="bmpdb-specs-panel-title" class="text-sm font-semibold mb-2" style="color: #5D5D5D;">Specs — <span id="bmpdb-specs-panel-name"></span></h3>
+          <p class="text-xs text-slate-500 mb-2">Depths in inches; porosity and void ratios in percent (0–100).</p>
+          <div id="bmpdb-specs-fields" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-3"></div>
+          <div class="flex gap-2">
+            <button type="button" id="bmpdb-apply-one" class="btn-primary text-sm">Apply to this BMP</button>
+            <button type="button" id="bmpdb-reset-one" class="btn-secondary text-sm">Reset this BMP to default</button>
+          </div>
+        </div>
+      </div>
+      <details class="card">
+        <summary class="cursor-pointer font-medium text-slate-700">Advanced: Regulation profiles &amp; raw JSON</summary>
+        <div class="mt-4 space-y-4">
+          <div>
+            <label for="bmpdb-profiles-json" class="block text-sm font-medium mb-1">REGULATION_PROFILES</label>
+            <textarea id="bmpdb-profiles-json" rows="10" class="w-full font-mono text-sm border rounded px-3 py-2" style="border-color: #999999;"></textarea>
+            <div class="flex gap-2 mt-2">
+              <button type="button" id="bmpdb-apply-profiles" class="btn-primary text-sm">Apply to session</button>
+              <button type="button" id="bmpdb-copy-profiles" class="btn-secondary text-sm">Copy JSON</button>
+            </div>
+          </div>
+          <div>
+            <label for="bmpdb-options-json" class="block text-sm font-medium mb-1">BMP_OPTIONS (all BMPs)</label>
+            <textarea id="bmpdb-options-json" rows="14" class="w-full font-mono text-sm border rounded px-3 py-2" style="border-color: #999999;"></textarea>
+            <div class="flex gap-2 mt-2">
+              <button type="button" id="bmpdb-apply-options" class="btn-primary text-sm">Apply to session</button>
+              <button type="button" id="bmpdb-copy-options" class="btn-secondary text-sm">Copy JSON</button>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-200">
+            <button type="button" id="bmpdb-reset" class="btn-secondary text-sm">Reset all to defaults</button>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- City Page: Main Content -->
+<div id="city-page" class="hidden min-h-screen p-4 md:p-8 pb-32" style="padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right));">
+  <div class="max-w-4xl mx-auto">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <!-- Logo in top right -->
+      <div class="flex justify-end mb-4">
+        <img src="images/LBG_Logo.png" alt="LBG Logo" class="h-12 md:h-16 w-auto" onerror="this.style.display='none'" />
+      </div>
+      
+      <div class="text-center">
+        <button onclick="showLanding()" class="mb-4 btn-secondary text-sm">← Back to Cities</button>
+        <div class="flex items-center justify-center gap-4 mb-2">
+          <!-- Placeholder: rectangular city image (widescreen format) -->
+          <div id="city-icon" class="w-32 h-16 md:w-40 md:h-20 rounded-lg shadow-sm border border-slate-300 bg-white"></div>
+          <h1 id="city-name" class="text-4xl md:text-5xl font-bold text-slate-800"></h1>
+        </div>
+        <p class="text-xl text-slate-600">Comparing roof and BMP options for stormwater management</p>
+      </div>
+    </div>
+    
+    <!-- Mini City Map -->
+    <div class="card">
+      <h2>City Overview</h2>
+      <div id="city-mini-map" style="height: 300px; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid #999999; background: linear-gradient(to bottom, #96D8F5 0%, #26A3DF 100%);">
+        <!-- City map will be rendered here by Leaflet -->
+      </div>
+    </div>
+    
+    <!-- Climate Data -->
+    <div class="card">
+      <h2>Rainfall Time Series (1990–2019)</h2>
+      <p class="text-sm text-slate-600 mb-3">Illustrative rainfall time series based on a 30-year record.</p>
+      <div id="climate-data-container" class="grid grid-cols-1 md:grid-cols-1 gap-4">
+        <!-- Climate data graphic will be rendered here -->
+      </div>
+    </div>
+    
+    <!-- City Rules -->
+    <div class="card">
+      <h2>City Regulation &amp; Requirements</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div id="retention-card" class="p-4 rounded-lg border" style="background: #96D8F5; border-color: #26A3DF;">
+          <h3 class="mb-2" style="color: #26629F;">Retention</h3>
+          <ul id="retention-rules" class="text-sm space-y-1 mb-3" style="color: #26629F;"></ul>
+          <a id="retention-link" href="#" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold underline" style="color: #26A3DF;">View Regulations →</a>
+        </div>
+        <div id="detention-card" class="p-4 rounded-lg border" style="background: #C5B2E2; border-color: #8A48B5;">
+          <h3 class="mb-2" style="color: #674296;">Detention</h3>
+          <ul id="detention-rules" class="text-sm space-y-1 mb-3" style="color: #674296;"></ul>
+          <a id="detention-link" href="#" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold underline" style="color: #8A48B5;">View Regulations →</a>
+        </div>
+        <div id="pv-card" class="p-4 rounded-lg border" style="background: #F9D864; border-color: #D4AF37;">
+          <h3 class="mb-2" style="color: #A6872B;">PV (Bare Roof / Vegetated Roof)</h3>
+          <ul id="pv-rules" class="text-sm space-y-1 mb-3" style="color: #A6872B;"></ul>
+          <a id="pv-link" href="#" class="text-xs font-semibold underline" style="color: #A6872B;">View Regulations →</a>
+        </div>
+      </div>
+      <div class="pt-4 border-t border-slate-200">
+        <p class="text-sm text-slate-600 mb-2">Official Documents:</p>
+        <div class="flex flex-wrap gap-3">
+          <a id="stormwater-manual-link" href="#" target="_blank" rel="noopener noreferrer" class="text-sm font-medium underline" style="color: #26A3DF;">Stormwater Management Manual</a>
+          <a id="stormwater-regs-link" href="#" target="_blank" rel="noopener noreferrer" class="text-sm font-medium underline" style="color: #26A3DF;">Stormwater Regulations</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Site Inputs -->
+    <div class="card">
+      <h2>Project Inputs</h2>
+      
+      <!-- Project Details -->
+      <details open>
+        <summary class="flex items-center justify-between gap-2">
+          <span class="flex items-center gap-2"><span class="expand-icon" aria-hidden="true">▶</span>Project Details</span>
+          <button type="button" id="project-details-clear-all" class="text-xs px-2 py-1 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">Clear all</button>
+        </summary>
+        <div class="mt-4 space-y-3">
+          <div>
+            <label class="block mb-1 text-sm font-medium text-slate-700">Project Name</label>
+            <input type="text" id="input-project-name" placeholder="Project Name" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-medium text-slate-700">Address</label>
+            <input type="text" id="input-project-address" placeholder="Address" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-medium text-slate-700">Client Name</label>
+            <input type="text" id="input-client-name" placeholder="Client Name" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+          </div>
+        </div>
+      </details>
+      
+      <!-- Targets -->
+      <details open>
+        <summary><span class="expand-icon" aria-hidden="true">▶</span>Targets (Cubic Feet)</summary>
+        <div class="mt-4 grid grid-cols-2 gap-4">
+          <div>
+            <label class="flex items-center gap-2 mb-2">
+              <input type="checkbox" id="input-detention-needed" checked class="w-4 h-4 rounded focus:ring-2" style="color: #8A48B5; border-color: #C5B2E2; accent-color: #8A48B5;" />
+              <span class="text-sm font-semibold" style="color: #674296;">Detention</span>
+            </label>
+            <input type="number" id="input-target-detention" min="0" step="1" value="100" class="w-full px-3 py-2 border-2 rounded-lg text-sm bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-500" style="border-color: #C5B2E2; background: #F2F2F2;" />
+          </div>
+          <div>
+            <label class="flex items-center gap-2 mb-2">
+              <input type="checkbox" id="input-retention-needed" checked class="w-4 h-4 rounded focus:ring-2" style="color: #26A3DF; border-color: #96D8F5; accent-color: #26A3DF;" />
+              <span class="text-sm font-semibold" style="color: #26629F;">Retention</span>
+            </label>
+            <input type="number" id="input-target-retention" min="0" step="1" value="100" class="w-full px-3 py-2 border-2 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-500" style="border-color: #96D8F5; background: #F2F2F2;" />
+          </div>
+        </div>
+      </details>
+      
+      <!-- Site Dimensions (At-Grade & On-Structure) — grouped in one bordered cell -->
+      <div class="site-dimensions-group">
+      <details>
+        <summary><span class="expand-icon" aria-hidden="true">▶</span>Site Dimensions</summary>
+        <div class="mt-4">
+          <div class="site-dimensions-concentric">
+            <div class="site-dimensions-inner-box">
+              <h3 class="text-sm font-semibold mb-3" style="color: #378D4D;">At-Grade — Underground Systems</h3>
+              <div class="site-dimensions-cell">
+                <label class="block mb-1 text-sm font-medium" style="color: #378D4D;">Usable Landscape – grass and planting areas (pond/cell/tank eligible)</label>
+                <input type="number" id="input-pervious-landscaping" min="0" step="100" value="1000" class="w-full px-3 py-2 border-2 rounded-lg text-sm focus:ring-2 focus:ring-green-200 focus:border-green-600" style="border-color: #378D4D; background: #e2f0e2;" />
+              </div>
+              <div class="site-dimensions-cell">
+                <label class="block mb-1 text-sm font-medium" style="color: #5D5D5D;">Vehicular Pavement- parking lots and roadways (cell/tank eligible)</label>
+                <input type="number" id="input-vehicular-pavement" min="0" step="100" value="1000" class="w-full px-3 py-2 border-2 rounded-lg text-sm focus:ring-2 focus:ring-slate-300 focus:border-slate-500" style="border-color: #999999; background: #f2f2f2;" />
+              </div>
+              <div class="site-dimensions-cell">
+                <label class="block mb-1 text-sm font-medium" style="color: #A6872B;">Pedestrian Pavement- concrete and paver walkways (paver/cell/tank eligible)</label>
+                <input type="number" id="input-pedestrian-pavement" min="0" step="100" value="1000" class="w-full px-3 py-2 border-2 rounded-lg text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-600" style="border-color: #A6872B; background: #f9f5eb;" />
+              </div>
+            </div>
+            <div class="site-dimensions-inner-box">
+              <h3 class="text-sm font-semibold mb-3" style="color: #378D4D;">On-Structure — Green Roof Systems</h3>
+              <div class="site-dimensions-cell">
+                <label class="block mb-1 text-sm font-medium" style="color: #26629F;">Flat Deck/Plaza- pedestrian/vehicular paving over waterproofing (blue/tank/purple eligible)</label>
+                <input type="number" id="input-flat-deck" min="0" step="100" value="1000" class="w-full px-3 py-2 border-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500" style="border-color: #26A3DF; background: #e3f4fc;" />
+              </div>
+              <div class="site-dimensions-cell">
+                <label class="block mb-1 text-sm font-medium" style="color: #674296;">Sloped Roof- available roof area (green/purple/sponge eligible)</label>
+                <input type="number" id="input-sloped-roof" min="0" step="100" value="1000" class="w-full px-3 py-2 border-2 rounded-lg text-sm focus:ring-2 focus:ring-purple-200 focus:border-purple-500" style="border-color: #C5B2E2; background: #ede9f5;" />
+              </div>
+              <div class="site-dimensions-cell">
+                <label class="block mb-1 text-sm font-medium" style="color: #A6872B;">Pavers on Structure- pedestrian pavers on pedestal areas (purple-paver eligible)</label>
+                <input type="number" id="input-pavers-structure" min="0" step="100" value="0" class="w-full px-3 py-2 border-2 rounded-lg text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-500" style="border-color: #D4AF37; background: #fdf8ed;" />
+              </div>
+              <div class="site-dimensions-cell">
+                <label class="block mb-1 text-sm font-medium" style="color: #5D5D5D;">CA/Untreated – bare roof/untreated areas (eligible as CA only)</label>
+                <input type="number" id="input-ca-untreated" min="0" step="100" value="0" class="w-full px-3 py-2 border-2 rounded-lg text-sm focus:ring-2 focus:ring-gray-300 focus:border-gray-600" style="border-color: #5D5D5D; background: #ebebeb;" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+      </div>
+      
+      <!-- Site Conditions -->
+      <details>
+        <summary><span class="expand-icon" aria-hidden="true">▶</span>Site Conditions</summary>
+        <div class="mt-4 space-y-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="input-green-roof-scope" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
+            <span class="text-sm text-slate-700">Green Roof in Scope</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="input-utilities" class="w-4 h-4 text-red-500 border-slate-300 rounded focus:ring-red-500" />
+            <span class="text-sm text-slate-700">Utilities Conflict</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="input-water-table" class="w-4 h-4 text-red-500 border-slate-300 rounded focus:ring-red-500" />
+            <span class="text-sm text-slate-700">High Water Table</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="input-contaminated-soil" class="w-4 h-4 text-red-500 border-slate-300 rounded focus:ring-red-500" />
+            <span class="text-sm text-slate-700">Contaminated Soil</span>
+          </label>
+        </div>
+      </details>
+      
+      <!-- Site area graphic: proportional bar + legend (collapsible) -->
+      <details open>
+        <summary><span class="expand-icon" aria-hidden="true">▶</span>Site area (SF)</summary>
+        <div class="mt-4">
+          <div id="site-area-graphic-wrap">
+            <div id="site-area-graphic-bar" class="site-area-bar site-area-bar-wide flex">
+              <div id="site-area-pervious" class="site-area-seg" style="width: 14%; background: #378D4D;" title="Pervious landscaping"><span class="site-area-seg-label">Pervious</span></div>
+              <div id="site-area-vehicular" class="site-area-seg" style="width: 14%; background: #999999;" title="Vehicular pavement"><span class="site-area-seg-label">Veh pave</span></div>
+              <div id="site-area-pedestrian" class="site-area-seg" style="width: 14%; background: #A6872B;" title="Pedestrian pavement"><span class="site-area-seg-label">Ped pave</span></div>
+              <div id="site-area-flatdeck" class="site-area-seg" style="width: 14%; background: #26A3DF;" title="Flat deck"><span class="site-area-seg-label">Flat deck</span></div>
+              <div id="site-area-sloped" class="site-area-seg" style="width: 14%; background: #C5B2E2;" title="Sloped roof / green roof"><span class="site-area-seg-label">Sloped</span></div>
+              <div id="site-area-pavers" class="site-area-seg" style="width: 14%; background: #D4AF37;" title="Pavers on structure"><span class="site-area-seg-label">Pavers</span></div>
+              <div id="site-area-ca" class="site-area-seg" style="width: 16%; background: #5D5D5D;" title="Impervious CA untreated"><span class="site-area-seg-label">CA untrt</span></div>
+            </div>
+            <div id="site-area-legend" class="mt-4 flex flex-wrap gap-1">
+              <div id="site-area-legend-0" class="site-area-legend-item" title="Pervious landscaping"><span class="site-area-legend-swatch" style="background: #378D4D;"></span><span class="legend-name">Pervious</span><span id="site-area-legend-val-0" class="legend-val">0 SF</span></div>
+              <div id="site-area-legend-1" class="site-area-legend-item" title="Vehicular pavement"><span class="site-area-legend-swatch" style="background: #999999;"></span><span class="legend-name">Veh pave</span><span id="site-area-legend-val-1" class="legend-val">0 SF</span></div>
+              <div id="site-area-legend-2" class="site-area-legend-item" title="Pedestrian pavement"><span class="site-area-legend-swatch" style="background: #A6872B;"></span><span class="legend-name">Ped pave</span><span id="site-area-legend-val-2" class="legend-val">0 SF</span></div>
+              <div id="site-area-legend-3" class="site-area-legend-item" title="Flat deck"><span class="site-area-legend-swatch" style="background: #26A3DF;"></span><span class="legend-name">Flat deck</span><span id="site-area-legend-val-3" class="legend-val">0 SF</span></div>
+              <div id="site-area-legend-4" class="site-area-legend-item" title="Sloped roof"><span class="site-area-legend-swatch" style="background: #C5B2E2;"></span><span class="legend-name">Sloped</span><span id="site-area-legend-val-4" class="legend-val">0 SF</span></div>
+              <div id="site-area-legend-5" class="site-area-legend-item" title="Pavers on structure"><span class="site-area-legend-swatch" style="background: #D4AF37;"></span><span class="legend-name">Pavers</span><span id="site-area-legend-val-5" class="legend-val">0 SF</span></div>
+              <div id="site-area-legend-6" class="site-area-legend-item" title="CA untreated"><span class="site-area-legend-swatch" style="background: #5D5D5D;"></span><span class="legend-name">CA untrt</span><span id="site-area-legend-val-6" class="legend-val">0 SF</span></div>
+            </div>
+            <div id="site-area-total-label" class="text-xs text-slate-500 mt-3 font-medium" style="color: #64748b;">Total: 0 SF</div>
+          </div>
+        </div>
+      </details>
+      
+      <button onclick="runComparison()" class="mt-6 btn-primary w-full">Run Comparison</button>
+    </div>
+    
+    <!-- Results -->
+    <div id="results-section" class="hidden">
+      <div class="card">
+        <h2>Results</h2>
+        <label class="flex items-center gap-2 mb-4 cursor-pointer select-none">
+          <input type="checkbox" id="results-expand-all" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+          <span class="text-sm font-medium text-slate-700">Expand all</span>
+        </label>
+        <div id="results-container" class="space-y-4"></div>
+      </div>
+      
+      <div class="card">
+        <h2>Recommendation</h2>
+        <div id="recommendation-container"></div>
+      </div>
+    </div>
+    
+    <!-- City Data Admin (internal configuration helper) -->
+    <details class="card">
+      <summary>City Data Admin (Internal)</summary>
+      <div class="mt-4 space-y-4">
+        <p class="text-sm text-gray-600">
+          Edit the plain-English city rules text and retention/detention credit values. Changes apply immediately in this session but are not saved to a server.
+        </p>
+        <div>
+          <label for="city-admin-select" class="block text-sm font-medium mb-1">City</label>
+          <select id="city-admin-select" class="w-full border rounded px-3 py-2">
+            <!-- Populated by initCityAdminPanel() -->
+          </select>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="admin-retention-text" class="block text-sm font-medium mb-1">Retention rules (one bullet per line)</label>
+            <textarea id="admin-retention-text" rows="5" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+          </div>
+          <div>
+            <label for="admin-detention-text" class="block text-sm font-medium mb-1">Detention rules (one bullet per line)</label>
+            <textarea id="admin-detention-text" rows="5" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+          </div>
+        </div>
+        <div>
+          <label for="admin-pv-text" class="block text-sm font-medium mb-1">PV / Green roof notes (one bullet per line)</label>
+          <textarea id="admin-pv-text" rows="4" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="admin-soil-retention" class="block text-sm font-medium mb-1">Soil retention credit (fraction, e.g. 0.20)</label>
+            <input id="admin-soil-retention" type="number" step="0.01" class="w-full border rounded px-3 py-2" />
+          </div>
+          <div>
+            <label for="admin-mw-retention" class="block text-sm font-medium mb-1">Mineral wool retention credit (fraction, e.g. 0.40)</label>
+            <input id="admin-mw-retention" type="number" step="0.01" class="w-full border rounded px-3 py-2" />
+          </div>
+          <div>
+            <label for="admin-honeycomb-void" class="block text-sm font-medium mb-1">Honeycomb void ratio (fraction, e.g. 0.95)</label>
+            <input id="admin-honeycomb-void" type="number" step="0.01" class="w-full border rounded px-3 py-2" />
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" id="admin-apply-btn" class="btn-primary">Apply to CITY_DATA</button>
+          <button type="button" id="admin-copy-json-btn" class="btn-secondary">Copy CITY_DATA JSON to clipboard</button>
+        </div>
+        <p class="text-xs text-gray-500">
+          Tip: after editing, run a comparison for the selected city to see the updated rules and credits reflected in the Sales Mode UI. To make permanent changes to the codebase, paste the copied JSON back into the `CITY_DATA` definition in `index.html` (or a shared data file, if extracted).
+        </p>
+      </div>
+    </details>
+    
+    <!-- Deep Dive -->
+    <details class="card">
+      <summary>Deep Dive (Estimator View)</summary>
+      <div class="mt-4 deep-dive-iframe-wrap" style="height: 800px;">
+        <iframe src="legacy.html" style="width: 100%; height: 100%; border: 1px solid #999999; border-radius: 8px;"></iframe>
+      </div>
+    </details>
+    
+  </div>
+</div>
+
+<!-- Sticky Summary Bar -->
+<div id="sticky-bar" class="sticky-bar hidden">
+  <div class="flex-1">
+    <div class="text-sm">
+      <span id="sticky-city" class="font-semibold"></span> • 
+      <span id="sticky-target"></span> • 
+      <span id="sticky-recommendation" class="font-semibold" style="color: #8A48B5;"></span>
+    </div>
+  </div>
+  <button onclick="scrollToDeepDive()" class="btn-secondary">Deep Dive</button>
+  <button onclick="copyShareLink()" class="btn-primary">Share Link</button>
+</div>
+
+<script>
+// Import calculation engine from legacy
+// We'll load it dynamically or inline the key functions
+
+// CITY DATA
+const CITY_DATA = {
+  nyc: {
+    name: "New York City, NY",
+    coords: { lat: 40.7128, lon: -74.0060 },
+    mapX: 850,
+    mapY: 220,
+    climate: {
+      precip: 1320.893, // inches (30-year cumulative)
+      evap: 649.331,    // inches (30-year cumulative)
+      storage: 0.200    // inches
+    },
+    links: {
+      stormwater: "https://www.nyc.gov/site/dep/water/unified-stormwater-rule.page",
+      stormwaterManual: "https://www.nyc.gov/assets/dep/downloads/pdf/water/stormwater/unified-stormwater-rule/uswr_nyc_stormwater_manual.pdf",
+      pv: "https://www.nyc.gov/site/buildings/codes/ll92-solar-green-roofs.page",
+      stormwaterSummary: "nyc-stormwater-overview.html",
+      incentives: [
+        "https://www.nyc.gov/site/buildings/codes/ll92-solar-green-roofs.page",
+        "https://www.nyc.gov/site/buildings/codes/solar-faq.page",
+        "https://nysolarmap.com/incentives/",
+        "https://programs.dsireusa.org/system/program/detail/1027" // NYC property tax abatement
+      ]
+    },
+    regs: {
+      retention: [
+        "Mandatory capture of the 1.5\" Water Quality Volume (WQv) with the hierarchy Infiltration → Evapotranspiration → Reuse.",
+        "Purple‑roof‑type assemblies use soil + mineral wool to support evapotranspiration pathways."
+      ],
+      detention: [
+        "Detention sized to control a 10‑year, 6‑minute storm in combined sewer areas.",
+        "Release rates (Q_all) often restricted to ~0.10 cfs/acre in CSS drainage zones."
+      ],
+      pv: [
+        "Local Laws 92/94: 100% of available roof area must be solar PV or compliant green roof.",
+        "Bio‑solar roofs are common for meeting both WQv and local renewable energy goals."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.20,
+      mineralWoolRetentionPct: 0.40,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'nyc_dep',
+    icon: "images/IMAGE-new-york.jpg"
+  },
+  dc: {
+    name: "Washington, DC",
+    coords: { lat: 38.9072, lon: -77.0369 },
+    mapX: 800,
+    mapY: 250,
+    climate: {
+      precip: 1200.0, // inches (30-year cumulative) - placeholder
+      evap: 600.0,     // inches (30-year cumulative) - placeholder
+      storage: 0.200
+    },
+    links: {
+      stormwater: "https://doee.dc.gov/swregs",
+      stormwaterManual: "https://doee.dc.gov/swguidebook",
+      pv: "https://doee.dc.gov/service/solar-district",
+      incentives: [
+        "https://doee.dc.gov/service/solar-district",
+        "https://doee.dc.gov/solarforall",
+        "https://doee.dc.gov/fr/service/commercial-green-incentives",
+        "https://programs.dsireusa.org/system/program/dc"
+      ]
+    },
+    regs: {
+      retention: [
+        "New development: maintain a 1.2\" Stormwater Retention Volume (SWRv); major renovations: 0.8\".",
+        "Retention can generate tradable Stormwater Retention Credits (SRCs)."
+      ],
+      detention: [
+        "Peak flow control typically required for the 2‑year and 15‑year storm events.",
+        "Detention design must prevent downstream surcharging in DC’s combined and MS4 systems."
+      ],
+      pv: [
+        "Clean Energy DC Omnibus Act effectively drives rooftop solar on many buildings.",
+        "Roofs can earn both SRCs and Solar Renewable Energy Credits (SRECs) when designed as bio‑solar systems."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general'
+  },
+  chicago: {
+    name: "Chicago, IL",
+    coords: { lat: 41.8781, lon: -87.6298 },
+    mapX: 550,
+    mapY: 200,
+    climate: {
+      precip: 1055.042, // inches (30-year cumulative)
+      evap: 645.944,     // inches (30-year cumulative)
+      storage: 0.200
+    },
+    links: {
+      stormwater: "https://www.chicago.gov/content/dam/city/depts/water/general/Engineering/SewerConstStormReq/2024Regulations.pdf",
+      stormwaterManual: "https://www.chicago.gov/content/dam/city/depts/water/general/Engineering/SewerConstStormReq/2024StormwaterManual.pdf",
+      pv: "https://www.chicago.gov/city/en/progs/env/solar_in_chicago.html",
+      incentives: [
+        "https://www.chicago.gov/city/en/progs/env/solar_in_chicago.html",
+        "https://www.chicago.gov/city/en/depts/bldgs/provdrs/permits/svcs/green-permits.html",
+        "https://illinoisshines.com/",
+        "https://programs.dsireusa.org/system/program/il"
+      ],
+      summary: "chicago-stormwater-overview.html"
+    },
+    regs: {
+      retention: [
+        "Capture the first 0.5\" of runoff from all impervious surfaces with approved BMPs (2024 DWM Regulations).",
+        "Alternative: provide ≥15% reduction in total impervious area compared to existing conditions.",
+        "Green roofs are explicitly recognized as Volume Control BMPs for this depth."
+      ],
+      detention: [
+        "Provide detention to manage the 100‑year storm without surcharge.",
+        "Standard release rate cap of 0.15 cfs for sites ≤0.5 acres (with interpolation to 0.25 cfs up to ~1.75 acres)."
+      ],
+      pv: [
+        "No blanket solar mandate, but FAR bonuses may apply when ≥50% of roof is green roof.",
+        "Solar is often integrated into remaining roof zones to maximize LEED and local incentives."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general',
+    icon: "images/IMAGE-chicago.jpg"
+  },
+  boston: {
+    name: "Boston, MA",
+    coords: { lat: 42.3601, lon: -71.0589 },
+    mapX: 900,
+    mapY: 180,
+    climate: {
+      precip: 1265.409, // inches (30-year cumulative)
+      evap: 603.197,     // inches (30-year cumulative)
+      storage: 0.200
+    },
+    links: {
+      stormwater: "https://www.bwsc.org/builders-contractors/site-plan-requirements/storm-drain-requirements",
+      stormwaterManual: "https://www.bwsc.org/sites/default/files/2019-01/stormwater_bmp_guidance_2013.pdf",
+      pv: "https://www.boston.gov/boston-permitting/install-or-replace/install-or-replace-solar-panels",
+      incentives: [
+        "https://www.boston.gov/boston-permitting/install-or-replace/install-or-replace-solar-panels",
+        "https://www.mass.gov/solar-information-programs",
+        "https://www.masssave.com/",
+        "https://programs.dsireusa.org/system/program/ma"
+      ]
+    },
+    regs: {
+      retention: [
+        "Soil retention: 40% of media depth",
+        "NMW retention: 80%",
+        "Typical requirement: 1.5-2 inches retention"
+      ],
+      detention: [
+        "Detention storage: 95% void ratio",
+        "Typical requirement: 2-3 inches detention",
+        "Blue roof systems eligible"
+      ],
+      pv: [
+        "Green infrastructure preferred",
+        "Permeable surfaces required in some zones"
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general',
+    flag: {
+      background: 'linear-gradient(to right, #0369a1 0 20%, #e0f2fe 20% 100%)'
+    }
+  },
+  philadelphia: {
+    name: "Philadelphia, PA",
+    coords: { lat: 39.9526, lon: -75.1652 },
+    mapX: 820,
+    mapY: 230,
+    climate: {
+      precip: 1150.0, // inches (30-year cumulative) - placeholder
+      evap: 580.0,     // inches (30-year cumulative) - placeholder
+      storage: 0.200
+    },
+    links: {
+      stormwater: "https://water.phila.gov/development/stormwater-plan-review/manual/",
+      stormwaterManual: "https://water.phila.gov/development/stormwater-plan-review/manual/appendices/c-pwd-stormwater-regulations/",
+      pv: "https://www.phila.gov/services/permits-violations-licenses/apply-for-a-permit/building-and-repair-permits/get-a-permit-to-install-solar-panels/",
+      incentives: [
+        "https://www.phila.gov/programs/solar-rebate-program/",
+        "https://www.phila.gov/programs/solar-rebate-program/resources/",
+        "https://programs.dsireusa.org/system/program/pa"
+      ],
+      stormwaterSummary: "philadelphia-stormwater-overview.html"
+    },
+    regs: {
+      retention: [
+        "Primary requirement: retain the first 1.5\" of runoff (WQv) from all Directly Connected Impervious Areas (DCIA).",
+        "Retention can be via infiltration, evapotranspiration, or reuse per PWD Manual v3.1."
+      ],
+      detention: [
+        "Control post‑development peaks for the 1‑year (Channel Protection), 10‑year, and 100‑year storms.",
+        "Channel Protection ensures no increase in erosive flows to local waterways."
+      ],
+      pv: [
+        "No explicit solar mandate, but C‑PACE and local programs favor projects that combine solar PV with high‑performance green roofs.",
+        "Green roofs can support both stormwater compliance and energy performance targets."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general',
+    icon: "images/IMAGE-philadelphia.jpg"
+  },
+  nashville: {
+    name: "Nashville, TN",
+    coords: { lat: 36.1627, lon: -86.7816 },
+    mapX: 600,
+    mapY: 280,
+    climate: {
+      precip: 1100.0, // inches (30-year cumulative) - placeholder
+      evap: 620.0,     // inches (30-year cumulative) - placeholder
+      storage: 0.200
+    },
+    links: {
+      stormwater: "https://www.nashville.gov/departments/water/developers/stormwater-review/stormwater-management-manual/regulations",
+      stormwaterManual: "https://www.nashville.gov/departments/water/developers/stormwater-review/stormwater-management-manual",
+      pv: "https://www.nashville.gov/departments/codes/construction-and-permits/trades-permits/solar-panel-photovoltaic-permits",
+      incentives: [
+        "https://www.nashville.gov/departments/codes/construction-and-permits/trades-permits/solar-panel-photovoltaic-permits",
+        "https://programs.dsireusa.org/system/program/tn",
+        "https://www.tva.com/energy/blue-switch"
+      ],
+      stormwaterSummary: "nashville-stormwater-overview.html"
+    },
+    regs: {
+      retention: [
+        "Runoff Reduction Volume (RRv): capture and manage the first 1.1\" of rainfall with LID practices.",
+        "RRv must be met to the maximum extent practicable before considering waivers."
+      ],
+      detention: [
+        "Control post‑development peaks for the 2, 10, 25, 50, and 100‑year 24‑hour storms.",
+        "LID Waiver required when site constraints prevent full 1.1\" RRv compliance."
+      ],
+      pv: [
+        "No municipal solar mandate, but a green roof rebate (up to ~$10/sf) can pair with Federal ITC for bio‑solar roofs.",
+        "Green roofs often serve as the primary LID tool for zero‑lot‑line downtown projects."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general',
+    icon: "images/IMAGE-nashville.jpg"
+  },
+  seattle: {
+    name: "Seattle, WA",
+    coords: { lat: 47.6062, lon: -122.3321 },
+    mapX: 150,
+    mapY: 120,
+    climate: {
+      precip: 1200.0,
+      evap: 500.0,
+      storage: 0.200
+    },
+    links: {
+      stormwater: "#",
+      stormwaterManual: "#",
+      pv: "#",
+      incentives: []
+    },
+    regs: {
+      retention: [
+        "Green Stormwater Infrastructure (GSI) required to the Maximum Extent Feasible (MEF).",
+        "Design aims to mimic pre‑development or \"pasture\" hydrology where practicable."
+      ],
+      detention: [
+        "Peak flow control generally matched to Pasture standards for the 2‑year and 10‑year storms (2021 Manual)."
+      ],
+      pv: [
+        "Seattle Energy Code requires \"solar‑ready\" zones on ~40% of roof area.",
+        "Bio‑solar roofs often used so Green Factor points and solar share the same footprint."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general',
+    icon: "images/IMAGE-seattle-wa.jpg"
+  },
+  san_francisco: {
+    name: "San Francisco, CA",
+    coords: { lat: 37.7749, lon: -122.4194 },
+    mapX: 120,
+    mapY: 220,
+    climate: {
+      precip: 900.0,
+      evap: 550.0,
+      storage: 0.200
+    },
+    links: {
+      stormwater: "#",
+      stormwaterManual: "#",
+      pv: "#",
+      incentives: []
+    },
+    regs: {
+      retention: [
+        "Separate sewers: capture 0.75\" of runoff.",
+        "Combined sewers: reduce total runoff volume/rate by ~25% from pre‑development conditions."
+      ],
+      detention: [
+        "Control the 1‑year and 2‑year, 24‑hour design storms to pre‑development flow rates."
+      ],
+      pv: [
+        "Better Roof Ordinance: 15–30% of new roof area must be Living Roof (vegetated) or Solar PV.",
+        "Hybrid living + PV roofs are increasingly common on larger buildings."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general'
+  },
+  toronto: {
+    name: "Toronto, ON (Canada)",
+    coords: { lat: 43.6532, lon: -79.3832 },
+    mapX: 780,
+    mapY: 120,
+    climate: {
+      precip: 1100.0,
+      evap: 550.0,
+      storage: 0.200
+    },
+    links: {
+      stormwater: "#",
+      stormwaterManual: "#",
+      pv: "#",
+      incentives: []
+    },
+    regs: {
+      retention: [
+        "Toronto Green Standard v4 Water Balance: capture and retain the first 5 mm of every rainfall event.",
+        "Green roofs play a major role in meeting water balance targets on tall buildings."
+      ],
+      detention: [
+        "Peak flows for 2‑ through 100‑year storms controlled to TRCA‑defined pre‑development targets."
+      ],
+      pv: [
+        "Green Roof Bylaw mandates vegetated roofs on most new buildings >2,000 m².",
+        "Developers frequently integrate PV to satisfy TGS v4 Tier 2 on‑site renewable requirements."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general'
+  },
+  ohio_statewide: {
+    name: "Ohio (Statewide)",
+    coords: { lat: 40.4173, lon: -82.9071 },
+    mapX: 650,
+    mapY: 210,
+    climate: {
+      precip: 1100.0,
+      evap: 580.0,
+      storage: 0.200
+    },
+    links: {
+      stormwater: "#",
+      stormwaterManual: "#",
+      pv: "#",
+      incentives: []
+    },
+    regs: {
+      retention: [
+        "Capture and treat Water Quality Volume (WQv) from a 0.75\"–0.90\" design storm.",
+        "LID practices encouraged to meet WQv close to the source."
+      ],
+      detention: [
+        "Provide 24–48 hour drawdown time for WQv to support pollutant removal and settling."
+      ],
+      pv: [
+        "No statewide solar mandate, but Alternative Stormwater Infrastructure Loan Program can support renewable‑inclusive projects."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general'
+  },
+  columbus_oh: {
+    name: "Columbus, OH",
+    coords: { lat: 39.9612, lon: -82.9988 },
+    mapX: 640,
+    mapY: 230,
+    climate: {
+      precip: 1100.0,
+      evap: 580.0,
+      storage: 0.200
+    },
+    links: {
+      stormwater: "#",
+      stormwaterManual: "#",
+      pv: "#",
+      incentives: []
+    },
+    regs: {
+      retention: [
+        "Capture the 0.75\" Water Quality Volume (WQv); some watersheds also require a Stream Protection Volume (SV)."
+      ],
+      detention: [
+        "Peak flow control typically required for the 2, 5, 10, 25, 50, and 100‑year storms."
+      ],
+      pv: [
+        "No dedicated solar ordinance, but Green Building Tax Abatements favor LEED projects with integrated bio‑solar roofs."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general',
+    icon: "images/IMAGE-columbus-oh.jpg"
+  },
+  virginia_statewide: {
+    name: "Virginia (Statewide)",
+    coords: { lat: 37.4316, lon: -78.6569 },
+    mapX: 720,
+    mapY: 260,
+    climate: {
+      precip: 1150.0,
+      evap: 600.0,
+      storage: 0.200
+    },
+    links: {
+      stormwater: "#",
+      stormwaterManual: "#",
+      pv: "#",
+      incentives: []
+    },
+    regs: {
+      retention: [
+        "Manage site‑specific Treatment Volume (Tv) based on phosphorus reduction targets (VSMP criteria)."
+      ],
+      detention: [
+        "Control 1‑year and 10‑year storms using the Energy Balance approach to limit downstream erosion."
+      ],
+      pv: [
+        "State code allows local permit fee reductions and streamlined approvals for projects combining solar and green roofs."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general'
+  },
+  richmond_va: {
+    name: "Richmond, VA",
+    coords: { lat: 37.5407, lon: -77.4360 },
+    mapX: 735,
+    mapY: 270,
+    climate: {
+      precip: 1150.0,
+      evap: 600.0,
+      storage: 0.200
+    },
+    links: {
+      stormwater: "#",
+      stormwaterManual: "#",
+      pv: "#",
+      incentives: []
+    },
+    regs: {
+      retention: [
+        "Strict Tv‑based phosphorus reduction requirements under the Virginia Stormwater Management Program."
+      ],
+      detention: [
+        "Control 1‑year and 10‑year storms to match pre‑development or forested conditions."
+      ],
+      pv: [
+        "Local property tax exemptions support solar energy systems and high‑performance building upgrades."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general'
+  },
+  montgomery_md: {
+    name: "Montgomery County, MD",
+    coords: { lat: 39.1547, lon: -77.2405 },
+    mapX: 770,
+    mapY: 240,
+    climate: {
+      precip: 1150.0,
+      evap: 590.0,
+      storage: 0.200
+    },
+    links: {
+      stormwater: "#",
+      stormwaterManual: "#",
+      pv: "#",
+      incentives: []
+    },
+    regs: {
+      retention: [
+        "Environmental Site Design (ESD) to mimic \"Woods in Good Condition\"; capture up to ~2.6\" of rainfall through distributed practices."
+      ],
+      detention: [
+        "If ESD is not fully met, peak flows for 1‑, 10‑, and 100‑year storms must be controlled to acceptable levels."
+      ],
+      pv: [
+        "International Green Construction Code (IgCC) requires ≥2% of total energy from on‑site renewables on many large projects.",
+        "Bio‑solar roofs are a standard strategy for satisfying both ESD and on‑site renewable requirements."
+      ]
+    },
+    defaults: {
+      soilRetentionPct: 0.40,
+      mineralWoolRetentionPct: 0.80,
+      honeycombVoidPct: 0.95
+    },
+    regulationProfileId: 'general'
+  }
+};
+
+// Purple-Roof® case study locations (for US map)
+const CASE_STUDIES = [
+  {
+    id: 'baltimore_md',
+    label: 'Baltimore, MD – Johns Hopkins (2024)',
+    coords: { lat: 39.2904, lon: -76.6122 },
+    pdf: 'project-case-studies/Purple-Roof-case-study-BaltimoreMD-JohnsHopkins-2024.pdf'
+  },
+  {
+    id: 'cambridge_ma',
+    label: 'Cambridge, MA – IQHQ (2024)',
+    coords: { lat: 42.3736, lon: -71.1097 },
+    pdf: 'project-case-studies/Purple-roof-case-study-CambridgeMA-IQHQ-2024.pdf'
+  },
+  {
+    id: 'charlotte_nc',
+    label: 'Charlotte, NC – HPEC (2027, internal)',
+    coords: { lat: 35.2271, lon: -80.8431 },
+    pdf: 'project-case-studies/Purple-roof-case-study-CharlotteNC-HPEC-2027 internal.pdf'
+  },
+  {
+    id: 'columbus_oh_hilton',
+    label: 'Columbus, OH – Hilton 2.0 (2023)',
+    coords: { lat: 39.9612, lon: -82.9988 },
+    pdf: 'project-case-studies/Purple-Roof-case-study-ColumbusOH-Hilton2.0-2023.pdf',
+    cityKey: 'columbus_oh'
+  },
+  {
+    id: 'princeton_nj',
+    label: 'Princeton, NJ – SEAS (2024)',
+    coords: { lat: 40.3430, lon: -74.6514 },
+    pdf: 'project-case-studies/Purple-Roof-case-study-PrincetonNJ-_SEAS-2024.pdf'
+  },
+  {
+    id: 'saratoga_springs_ny',
+    label: 'Saratoga Springs, NY – The Moderne (2022)',
+    coords: { lat: 43.0831, lon: -73.7846 },
+    pdf: 'project-case-studies/Purple-Roof-case-study-SaratogaSpringsNY-TheModerne-2022p.pdf'
+  },
+  {
+    id: 'seattle_wa_yesler',
+    label: 'Seattle, WA – Yesler Terrace (2024)',
+    coords: { lat: 47.6019, lon: -122.3170 },
+    pdf: 'project-case-studies/Purple-Roof-case-study-SeattleWA-YeslerTerrace-2024.pdf',
+    cityKey: 'seattle'
+  }
+  // Note: Stepstone NL case study is outside North America, so not shown on this US map.
+];
+
+// localStorage key for project info (persists across refresh)
+const PROJECT_INFO_STORAGE_KEY = 'stormwater-bmp-project-info';
+
+function loadProjectInfoFromStorage() {
+  try {
+    const raw = localStorage.getItem(PROJECT_INFO_STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.projectName != null) salesModeState.projectName = String(data.projectName);
+    if (data.projectAddress != null) salesModeState.projectAddress = String(data.projectAddress);
+    if (data.clientName != null) salesModeState.clientName = String(data.clientName);
+  } catch (_) { /* ignore */ }
+}
+
+function saveProjectInfoToStorage() {
+  try {
+    localStorage.setItem(PROJECT_INFO_STORAGE_KEY, JSON.stringify({
+      projectName: salesModeState.projectName,
+      projectAddress: salesModeState.projectAddress,
+      clientName: salesModeState.clientName
+    }));
+  } catch (_) { /* ignore */ }
+}
+
+// State - matches legacy v1 inputs structure
+let currentCity = null;
+let salesModeState = {
+  projectName: '',
+  projectAddress: '',
+  clientName: '',
+  // Targets
+  targetDetentionCF: 100,
+  targetRetentionCF: 100,
+  detentionNeeded: true,
+  retentionNeeded: true,
+  // At-Grade Areas
+  perviousLandscapingUsable: 1000,
+  imperviousVehicularPavement: 1000,
+  imperviousPedestrianPavement: 1000,
+  perviousTreeCoverNonUsable: 0,
+  // On-Structure Areas
+  flatDeckOnStructureArea: 1000,
+  slopedRoofArea: 1000,
+  paversOnStructureArea: 0,
+  imperviousCAUntreated: 0,
+  // Site Conditions
+  greenRoofAlreadyInScope: false,
+  hasUndergroundUtilities: false,
+  hasHighWaterTable: false,
+  hasContaminatedSoil: false,
+  programmableSpaceIsHighValue: false,
+  allowSteepSlopeGreenRoof: false
+};
+
+// CALCULATION ENGINE (from legacy) – mutable so BMP Database admin can edit
+const REGULATION_PROFILES_DEFAULT = {
+  general: {
+    id: 'general',
+    label: 'General Defaults',
+    defaults: { soilRetentionPct: 0.40, nmwRetentionPct: 0.80, honeycombVoidPct: 0.95 },
+    rules: { nmwRetentionRequiresMinSoilCoverIn: 0 }
+  },
+  nyc_dep: {
+    id: 'nyc_dep',
+    label: 'NYC DEP',
+    defaults: { soilRetentionPct: 0.20, nmwRetentionPct: 0.40, honeycombVoidPct: 0.95 },
+    rules: { nmwRetentionRequiresMinSoilCoverIn: 4.0 }
+  }
+};
+let REGULATION_PROFILES = JSON.parse(JSON.stringify(REGULATION_PROFILES_DEFAULT));
+
+const BMP_OPTIONS_DEFAULT = [
+  { id: 1, name: "Landscape Pond (at grade)", areaType: 'atGrade_pervious', unitPrice: 75, specs: { freeboard: 18, soilDepth: 24, soilPorosity: 0.15, gravelDepth: 24, gravelPorosity: 0.50, spaceLoss: 0.20 } },
+  { id: 2, name: "Underground Cells / Crates", areaType: 'atGrade_combined', unitPrice: 100, specs: { storageDepth: 36, voidRatio: 0.95, freeboard: 6, spaceLoss: 0.15 } },
+  { id: 3, name: "Permeable Pavers", areaType: 'atGrade_ped', unitPrice: 155, specs: { reservoirDepth: 18, voidRatio: 0.40, spaceLoss: 0.10 } },
+  { id: 4, name: "Below Grade Tank (Dead Space)", areaType: 'atGrade_landscape_veh', unitPrice: 1200, specs: { detentionDepth: 72, freeboard: 24, spaceLoss: 0.15 } },
+  { id: 5, name: "Below Grade Tank (Usable Space)", areaType: 'atGrade_landscape_veh', unitPrice: 1500, specs: { detentionDepth: 72, freeboard: 24, spaceLoss: 0.20 } },
+  { id: 6, name: "On-Structure Tank (Usable Space)", areaType: 'on_structure_tank', unitPrice: 1500, specs: { detentionDepth: 72, freeboard: 24, spaceLoss: 0.15 } },
+  { id: 7, name: "Blue Roof Cells 6\"", areaType: 'flatDeck_strict', unitPrice: 208.58, specs: { storageDepth: 3, voidRatio: 0.95, freeboard: 0, spaceLoss: 0.05 } },
+  { id: 8, name: "Traditional Green Roof 6\"", areaType: 'sloped_roof', unitPrice: 30, specs: { mediaDepth: 4, detLayerDepth: 0, detVoidRatio: 0.95, spaceLoss: 0.05 } },
+  { id: 9, name: "Sponge Roof 4+2", areaType: 'sloped_roof', unitPrice: 28.39, specs: { mediaDepth: 4, nmwDepth: 2, spaceLoss: 0.05 } },
+  { id: 10, name: "Purple-Roof (Vegetated) 4+1+2", areaType: 'sloped_roof_or_flat_deck', unitPrice: 35.87, specs: { soilDepth: 4, soilPorosity: 0.20, nmwDepth: 1, nmwPorosity: 0.93, hcDepth: 2, hcVoidRatio: 0.95, dlDepth: 0.2, dlPorosity: 0.93, spaceLoss: 0.05 }, extra: { pricingMode: 'black', pricingUpgrade: 15, pricingBase: 40 } },
+  { id: '10B', name: "Purple-Roof (Vegetated) 4+1+4", areaType: 'sloped_roof_or_flat_deck', unitPrice: 43.72, specs: { soilDepth: 4, soilPorosity: 0.20, nmwDepth: 1, nmwPorosity: 0.93, hcDepth: 4, hcVoidRatio: 0.95, dlDepth: 0.2, dlPorosity: 0.93, spaceLoss: 0.05 }, extra: { pricingMode: 'black', pricingUpgrade: 15, pricingBase: 40 } },
+  { id: 11, name: "Purple-Roof (Pavers) P+1+2", areaType: 'pavers_or_sloped_or_flat_deck', unitPrice: 38.79, specs: { hcDepth: 2, hcVoidRatio: 0.95, nmwDepth: 1, nmwRetentionPct: 0.80, spaceLoss: 0.05 }, extra: { tradPaverBasePrice: 22.82 } },
+  { id: '11B', name: "Purple-Roof (Pavers) P+1+4", areaType: 'pavers_or_sloped_or_flat_deck', unitPrice: 47.47, specs: { hcDepth: 4, hcVoidRatio: 0.95, nmwDepth: 1, nmwRetentionPct: 0.80, spaceLoss: 0.05 }, extra: { tradPaverBasePrice: 22.82 } }
+];
+let BMP_OPTIONS = JSON.parse(JSON.stringify(BMP_OPTIONS_DEFAULT));
+
+// Friendly labels for BMP spec fields (BMP Database editor)
+const BMP_SPEC_LABELS = {
+  freeboard: 'Freeboard (in.)',
+  soilDepth: 'Soil depth (in.)',
+  soilPorosity: 'Soil porosity (%)',
+  gravelDepth: 'Gravel depth (in.)',
+  gravelPorosity: 'Gravel porosity (%)',
+  spaceLoss: 'Space loss (%)',
+  storageDepth: 'Storage depth (in.)',
+  voidRatio: 'Void ratio (%)',
+  reservoirDepth: 'Reservoir depth (in.)',
+  detentionDepth: 'Detention depth (in.)',
+  mediaDepth: 'Media depth (in.)',
+  detLayerDepth: 'Detention layer depth (in.)',
+  detVoidRatio: 'Detention void ratio (%)',
+  nmwDepth: 'Mineral wool depth (in.)',
+  nmwPorosity: 'NMW porosity (%)',
+  nmwRetentionPct: 'NMW retention (%)',
+  hcDepth: 'Honeycomb depth (in.)',
+  hcVoidRatio: 'Honeycomb void ratio (%)',
+  dlDepth: 'Drainage layer depth (in.)',
+  dlPorosity: 'Drainage layer porosity (%)'
+};
+// Spec keys stored as 0–1 in data but shown as 0–100% in the form
+const BMP_SPEC_AS_PERCENT = new Set(['soilPorosity', 'gravelPorosity', 'spaceLoss', 'voidRatio', 'detVoidRatio', 'nmwPorosity', 'nmwRetentionPct', 'hcVoidRatio', 'dlPorosity']);
+
+const BMP_IMAGES = {
+  1: 'images/IMAGE-bioretention-cell.jpg',
+  2: 'images/IMAGE-underground-passive-cells.png',
+  3: 'images/IMAGE-perm-pavers.png',
+  4: 'images/IMAGE-underground tank and pump.png',
+  5: 'images/IMAGE-underground tank and pump.png',
+  6: 'images/IMAGE-underground tank and pump.png',
+  7: 'images/IMAGE-blue-roof.png',
+  8: 'images/IMAGE-trad-green-roof-6.png',
+  9: 'images/IMAGE-sponge4+2.png',
+  10: 'images/IMAGE-purple-veg-4+1+2.png',
+  '10B': 'images/IMAGE-purple-veg-4+1+4.png',
+  11: 'images/IMAGE-purple-paver+1+2.png',
+  '11B': 'images/IMAGE-purple-paver+1+4.png'
+};
+
+function getRegulationProfile(profileId) {
+  return REGULATION_PROFILES[profileId] || REGULATION_PROFILES.general;
+}
+
+function getSpec(bmpId, overrides = {}) {
+  const defaults = BMP_OPTIONS.find(b => b.id == bmpId);
+  const override = overrides[bmpId] || {};
+  const specs = { ...defaults.specs, ...(override.specs || {}) };
+  const unitPrice = override.unitPrice !== undefined ? override.unitPrice : defaults.unitPrice;
+  const extra = { ...defaults.extra, ...(override.extra || {}) };
+  return { specs, unitPrice, extra };
+}
+
+function getEligibleArea(bmp, inputs) {
+  const flatDeckPlaza = inputs.flatDeckOnStructureArea;
+  const slopedRoof = inputs.slopedRoofArea;
+  const paversOnStructure = inputs.paversOnStructureArea;
+  
+  switch(bmp.areaType) {
+    case 'atGrade_pervious': return inputs.perviousLandscapingUsable;
+    case 'atGrade_combined': return inputs.perviousLandscapingUsable + inputs.imperviousVehicularPavement + inputs.imperviousPedestrianPavement;
+    case 'atGrade_ped': return inputs.imperviousPedestrianPavement;
+    case 'atGrade_landscape_veh': return inputs.perviousLandscapingUsable + inputs.imperviousVehicularPavement;
+    case 'on_structure_tank': return flatDeckPlaza + slopedRoof + paversOnStructure;
+    case 'flatDeck_strict': return flatDeckPlaza;
+    case 'sloped_roof': return slopedRoof;
+    case 'sloped_roof_or_flat_deck': return slopedRoof + flatDeckPlaza;
+    case 'pavers_or_sloped_or_flat_deck': return paversOnStructure + slopedRoof + flatDeckPlaza;
+    default: return 0;
+  }
+}
+
+function calculateCapacity(bmpId, fullSpec, profile) {
+  const { specs } = fullSpec;
+  let inRet = 0, inDet = 0;
+  const soilRet = profile.defaults.soilRetentionPct;
+  const nmwRet = profile.defaults.nmwRetentionPct;
+  const voidRatio = profile.defaults.honeycombVoidPct;
+  const nmwEffectiveRet = (profile.rules.nmwRetentionRequiresMinSoilCoverIn > 0 && (specs.soilDepth || specs.mediaDepth || 0) < profile.rules.nmwRetentionRequiresMinSoilCoverIn) ? 0 : nmwRet;
+
+  if (bmpId == 1) { inRet = specs.soilDepth * soilRet; inDet = specs.freeboard + (specs.soilDepth * specs.soilPorosity) + (specs.gravelDepth * specs.gravelPorosity); }
+  else if (bmpId == 2) { inDet = specs.freeboard + (specs.storageDepth * specs.voidRatio); }
+  else if (bmpId == 3) { inDet = specs.reservoirDepth * specs.voidRatio; }
+  else if ([4,5,6].includes(bmpId)) { inDet = specs.detentionDepth; }
+  else if (bmpId == 7) { inDet = specs.freeboard + (specs.storageDepth * specs.voidRatio); }
+  else if (bmpId == 8) { inRet = specs.mediaDepth * soilRet; inDet = specs.detLayerDepth * specs.detVoidRatio; }
+  else if (bmpId == 9) { inRet = (specs.mediaDepth * soilRet) + (specs.nmwDepth * nmwEffectiveRet); }
+  else if (bmpId == 10 || bmpId == '10B') { inRet = (specs.soilDepth * soilRet) + (specs.nmwDepth * nmwEffectiveRet); const hcVoid = specs.hcVoidRatio || voidRatio; inDet = (specs.soilDepth * specs.soilPorosity) + (specs.hcDepth * hcVoid) + (specs.dlDepth * specs.dlPorosity); }
+  else if (bmpId == 11 || bmpId == '11B') {
+      let hardscapeNmwRet = specs.nmwRetentionPct !== undefined ? specs.nmwRetentionPct : nmwRet;
+      if (profile.rules.nmwRetentionRequiresMinSoilCoverIn > 0) hardscapeNmwRet = 0;
+      inRet = specs.nmwDepth * hardscapeNmwRet;
+      const hardscapeHcVoid = specs.hcVoidRatio || voidRatio;
+      inDet = specs.hcDepth * hardscapeHcVoid;
+  }
+  
+  return { cfRetPerSf: inRet / 12.0, cfDetPerSf: inDet / 12.0, nmwRestricted: (profile.rules.nmwRetentionRequiresMinSoilCoverIn > 0 && (specs.soilDepth || specs.mediaDepth || 0) < profile.rules.nmwRetentionRequiresMinSoilCoverIn) };
+}
+
+function runCalculations(v1Inputs, profileId, overrides = {}) {
+  const profile = getRegulationProfile(profileId);
+  const results = BMP_OPTIONS.map(bmp => {
+    const fullSpec = getSpec(bmp.id, overrides);
+    const capacity = calculateCapacity(bmp.id, fullSpec, profile);
+    const eligibleArea = getEligibleArea(bmp, v1Inputs);
+    
+    let areaForRet = 0, areaForDet = 0;
+    if (v1Inputs.targetRetentionCF > 0 && capacity.cfRetPerSf > 0) areaForRet = v1Inputs.targetRetentionCF / capacity.cfRetPerSf;
+    else if (v1Inputs.targetRetentionCF > 0) areaForRet = Infinity;
+    
+    if (v1Inputs.targetDetentionCF > 0 && capacity.cfDetPerSf > 0) areaForDet = v1Inputs.targetDetentionCF / capacity.cfDetPerSf;
+    else if (v1Inputs.targetDetentionCF > 0) areaForDet = Infinity;
+    
+    const effectiveAreaForRet = (bmp.id == 11 || bmp.id == '11B') ? 0 : areaForRet;
+    const netAreaNeeded = Math.max(effectiveAreaForRet, areaForDet);
+    let grossAreaNeeded = netAreaNeeded === Infinity ? Infinity : netAreaNeeded / (1 - fullSpec.specs.spaceLoss);
+    
+    if (netAreaNeeded === Infinity) {
+        if (areaForRet === Infinity && areaForDet < Infinity) grossAreaNeeded = areaForDet / (1 - fullSpec.specs.spaceLoss);
+        else if (areaForDet === Infinity && areaForRet < Infinity) grossAreaNeeded = areaForRet / (1 - fullSpec.specs.spaceLoss);
+    }
+    
+    let designArea = grossAreaNeeded;
+    if (grossAreaNeeded > eligibleArea && grossAreaNeeded !== Infinity) {
+         const grossRetNeeded = areaForRet === Infinity ? Infinity : areaForRet / (1 - fullSpec.specs.spaceLoss);
+         const grossDetNeeded = areaForDet === Infinity ? Infinity : areaForDet / (1 - fullSpec.specs.spaceLoss);
+         const canMeetDet = grossDetNeeded <= eligibleArea;
+         const canMeetRet = grossRetNeeded <= eligibleArea;
+         if (canMeetDet && !canMeetRet) designArea = grossRetNeeded;
+         else if (canMeetRet && !canMeetDet) designArea = grossRetNeeded;
+         else designArea = eligibleArea;
+    }
+    
+    if (designArea !== Infinity && designArea < 100 && eligibleArea > 0 && (v1Inputs.targetDetentionCF > 0 || v1Inputs.targetRetentionCF > 0)) {
+      designArea = Math.min(100, eligibleArea);
+    }
+
+    let grossEligibleUsed = Math.min(eligibleArea, (designArea === Infinity ? eligibleArea : designArea));
+    const netEligibleUsed = grossEligibleUsed * (1 - fullSpec.specs.spaceLoss);
+    const retDesigned = netEligibleUsed * capacity.cfRetPerSf;
+    const detDesigned = netEligibleUsed * capacity.cfDetPerSf;
+    
+    let unitPrice = fullSpec.unitPrice;
+    if (bmp.id == 10 || bmp.id == '10B') {
+       unitPrice = fullSpec.extra.pricingMode === 'green' ? fullSpec.extra.pricingUpgrade : fullSpec.extra.pricingBase;
+    }
+    const costDesigned = grossEligibleUsed * unitPrice;
+    
+    const blockers = [], warnings = [];
+    if (grossAreaNeeded > eligibleArea && eligibleArea > 0) {
+      warnings.push(`Insufficient Area (Need ${Math.ceil(grossAreaNeeded).toLocaleString()} sf, Have ${Math.ceil(eligibleArea).toLocaleString()} sf)`);
+    }
+    if (eligibleArea === 0) {
+      blockers.push("No eligible area available");
+    }
+    
+    if (grossEligibleUsed > 0 && grossEligibleUsed < 100 && (v1Inputs.targetDetentionCF > 0 || v1Inputs.targetRetentionCF > 0)) {
+      blockers.push("Minimum footprint requirement: 100 sf");
+    }
+    
+    if (netAreaNeeded === Infinity) {
+       const failsRet = areaForRet === Infinity;
+       const failsDet = areaForDet === Infinity;
+       if (failsRet && failsDet) warnings.push("Cannot meet Retention or Detention targets alone (0 capacity)");
+       else if (failsRet) warnings.push("Fails Retention target (0 capacity)");
+       else if (failsDet) warnings.push("Fails Detention target (0 capacity)");
+    }
+    
+    const isUnderground = [2, 3, 4, 5].includes(bmp.id);
+    const isAtGradePond = bmp.id === 1;
+    if (isUnderground || isAtGradePond) {
+      if (v1Inputs.hasUndergroundUtilities) blockers.push("Blocked by Underground Utilities");
+      if (v1Inputs.hasHighWaterTable) blockers.push("Blocked by High Water Table");
+      if (v1Inputs.hasContaminatedSoil) blockers.push("Blocked by Contaminated Soil");
+    }
+    
+    if (capacity.cfDetPerSf === 0 && v1Inputs.targetRetentionCF === 0 && v1Inputs.targetDetentionCF > 0) {
+      blockers.push("Cannot provide detention - retention-only product");
+    }
+    
+    if ((bmp.id === 8 || bmp.id === 9) && !v1Inputs.retentionNeeded) {
+      blockers.push("Requires retention target to be needed");
+    }
+    
+    if ((bmp.id === 8 || bmp.id === 9) && v1Inputs.slopedRoofArea === 0) {
+      blockers.push("Requires Sloped Roof area");
+    }
+    
+    if ((bmp.id === 10 || bmp.id === '10B') && v1Inputs.slopedRoofArea === 0 && v1Inputs.flatDeckOnStructureArea === 0) {
+      blockers.push("Requires Sloped Roof or Flat Deck/Plaza area");
+    }
+    
+    if ((bmp.id === 11 || bmp.id === '11B') && v1Inputs.paversOnStructureArea === 0 && v1Inputs.slopedRoofArea === 0 && v1Inputs.flatDeckOnStructureArea === 0) {
+      blockers.push("Requires Pavers on Structure, Sloped Roof, or Flat Deck/Plaza area");
+    }
+    
+    if (bmp.id === 6 && v1Inputs.flatDeckOnStructureArea === 0 && v1Inputs.slopedRoofArea === 0 && v1Inputs.paversOnStructureArea === 0) {
+      blockers.push("Requires Flat Deck/Plaza, Sloped Roof, or Pavers on Structure area");
+    }
+    
+    if (bmp.id === 7 && v1Inputs.flatDeckOnStructureArea === 0) {
+      blockers.push("Requires Flat Deck / Plaza area");
+    }
+    
+    if (bmp.id === 1 && v1Inputs.perviousLandscapingUsable === 0) {
+      blockers.push("Requires Usable Landscape area");
+    }
+    
+    if (bmp.id === 4 && v1Inputs.perviousLandscapingUsable === 0 && v1Inputs.imperviousVehicularPavement === 0) {
+      blockers.push("Requires Usable Landscape or Vehicular Pavement area");
+    }
+    
+    if (bmp.id === 5 && v1Inputs.perviousLandscapingUsable === 0 && v1Inputs.imperviousVehicularPavement === 0) {
+      blockers.push("Requires Usable Landscape or Vehicular Pavement area for interior usable space");
+    }
+    
+    if (capacity.nmwRestricted) warnings.push("NYC DEP: NMW credit reduced (requires ≥4\" soil)");
+    if (v1Inputs.targetRetentionCF > 0 && retDesigned < v1Inputs.targetRetentionCF * 0.99) {
+        if (!warnings.some(w => w.includes("Fails Retention") || w.includes("meet Retention"))) warnings.push("Does not meet full Retention target (can be used in combination)");
+    }
+    if (v1Inputs.targetDetentionCF > 0 && detDesigned < v1Inputs.targetDetentionCF * 0.99) {
+        if (!warnings.some(w => w.includes("Fails Detention") || w.includes("meet Detention"))) warnings.push("Does not meet full Detention target (can be used in combination)");
+    }
+    
+    return {
+      ...bmp, fullSpec, capacity, eligibleArea, grossAreaNeeded, grossDesignedArea: grossEligibleUsed,
+      retDesigned, detDesigned, costDesigned, isViable: blockers.length === 0, blockers, warnings, unitPrice
+    };
+  });
+  
+  const viable = results.filter(r => r.isViable);
+  const recommended = viable.length > 0 ? viable[0] : null;
+  const bestValue = viable.length > 0 ? viable.reduce((p, c) => p.costDesigned < c.costDesigned ? p : c) : null;
+  
+  return { results, recommended, bestValue, profile };
+}
+
+// Adapter: Sales Mode inputs already match v1 structure, just ensure city regulation profile is set
+function adaptSalesInputsToV1(salesInputs, cityData) {
+  // Sales Mode inputs already match v1 structure exactly
+  // Just return them with any city-specific overrides if needed
+  return {
+    ...salesInputs,
+    // City regulation profile is handled separately in runCalculations
+  };
+}
+
+// --- City Data Admin helpers ---
+
+function initCityAdminPanel() {
+  const selectEl = document.getElementById('city-admin-select');
+  const retentionEl = document.getElementById('admin-retention-text');
+  const detentionEl = document.getElementById('admin-detention-text');
+  const pvEl = document.getElementById('admin-pv-text');
+  const soilEl = document.getElementById('admin-soil-retention');
+  const mwEl = document.getElementById('admin-mw-retention');
+  const honeycombEl = document.getElementById('admin-honeycomb-void');
+  const applyBtn = document.getElementById('admin-apply-btn');
+  const copyBtn = document.getElementById('admin-copy-json-btn');
+
+  if (!selectEl || !retentionEl || !detentionEl || !pvEl || !soilEl || !mwEl || !honeycombEl || !applyBtn || !copyBtn) {
+    // Admin panel markup not present (or not needed) – safely skip
+    return;
+  }
+
+  // Populate city dropdown
+  selectEl.innerHTML = '';
+  Object.entries(CITY_DATA).forEach(([key, city]) => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = city.name || key;
+    selectEl.appendChild(opt);
+  });
+
+  function loadCityIntoAdmin(key) {
+    const city = CITY_DATA[key];
+    if (!city) return;
+
+    const regs = city.regs || {};
+    const defaults = city.defaults || {};
+
+    retentionEl.value = (regs.retention || []).join('\n');
+    detentionEl.value = (regs.detention || []).join('\n');
+    pvEl.value = (regs.pv || []).join('\n');
+
+    soilEl.value = defaults.soilRetentionPct != null ? defaults.soilRetentionPct : '';
+    mwEl.value = defaults.mineralWoolRetentionPct != null ? defaults.mineralWoolRetentionPct : '';
+    honeycombEl.value = defaults.honeycombVoidPct != null ? defaults.honeycombVoidPct : '';
+  }
+
+  function applyAdminChanges() {
+    const key = selectEl.value;
+    const city = CITY_DATA[key];
+    if (!city) return;
+
+    const toLines = (text) =>
+      text
+        .split('\n')
+        .map(l => l.trim())
+        .filter(Boolean);
+
+    city.regs = city.regs || {};
+    city.regs.retention = toLines(retentionEl.value);
+    city.regs.detention = toLines(detentionEl.value);
+    city.regs.pv = toLines(pvEl.value);
+
+    city.defaults = city.defaults || {};
+    const soilVal = parseFloat(soilEl.value);
+    const mwVal = parseFloat(mwEl.value);
+    const honeyVal = parseFloat(honeycombEl.value);
+
+    if (!Number.isNaN(soilVal)) city.defaults.soilRetentionPct = soilVal;
+    if (!Number.isNaN(mwVal)) city.defaults.mineralWoolRetentionPct = mwVal;
+    if (!Number.isNaN(honeyVal)) city.defaults.honeycombVoidPct = honeyVal;
+
+    // Re-run current city selection if we're on a city page
+    if (window.currentCityKey && CITY_DATA[window.currentCityKey]) {
+      selectCity(window.currentCityKey);
+    }
+  }
+
+  function copyCityDataJsonToClipboard() {
+    try {
+      const json = JSON.stringify(CITY_DATA, null, 2);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(json);
+      } else {
+        // Fallback: create a temporary textarea
+        const ta = document.createElement('textarea');
+        ta.value = json;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      alert('CITY_DATA JSON copied to clipboard.');
+    } catch (e) {
+      console.error('Failed to copy CITY_DATA JSON', e);
+      alert('Could not copy CITY_DATA JSON. See console for details.');
+    }
+  }
+
+  selectEl.addEventListener('change', () => loadCityIntoAdmin(selectEl.value));
+  applyBtn.addEventListener('click', applyAdminChanges);
+  copyBtn.addEventListener('click', copyCityDataJsonToClipboard);
+
+  // Load current city if already on a city page, otherwise first in list
+  const keyToLoad = currentCity && CITY_DATA[currentCity] ? currentCity : Object.keys(CITY_DATA)[0];
+  if (keyToLoad) {
+    selectEl.value = keyToLoad;
+    loadCityIntoAdmin(keyToLoad);
+  }
+}
+
+// --- Landing tabs: Select City | BMP Database (global data only) ---
+function initLandingTabs() {
+  const tabSelect = document.getElementById('landing-tab-select');
+  const tabBmpDb = document.getElementById('landing-tab-bmpdb');
+  const panelSelect = document.getElementById('landing-select-tab');
+  const panelBmpDb = document.getElementById('landing-bmpdb-tab');
+  const profilesTa = document.getElementById('bmpdb-profiles-json');
+  const optionsTa = document.getElementById('bmpdb-options-json');
+  const bmpTbody = document.getElementById('bmpdb-tbody');
+  const bmpSpecsContainer = document.getElementById('bmpdb-specs-fields');
+  const bmpSpecsPanel = document.getElementById('bmpdb-specs-panel');
+  const bmpSpecsPanelName = document.getElementById('bmpdb-specs-panel-name');
+  let currentBmpIndex = 0;
+  const AREA_TYPE_OPTS = [
+    { v: 'atGrade_pervious', l: 'At-grade pervious' },
+    { v: 'atGrade_combined', l: 'At-grade combined' },
+    { v: 'atGrade_ped', l: 'At-grade pedestrian' },
+    { v: 'atGrade_landscape_veh', l: 'At-grade landscape + vehicular' },
+    { v: 'on_structure_tank', l: 'On-structure tank' },
+    { v: 'flatDeck_strict', l: 'Flat deck only' },
+    { v: 'sloped_roof', l: 'Sloped roof' },
+    { v: 'sloped_roof_or_flat_deck', l: 'Sloped or flat deck' },
+    { v: 'pavers_or_sloped_or_flat_deck', l: 'Pavers or sloped or flat deck' }
+  ];
+
+  function showPanel(which) {
+    const isSelect = which === 'select';
+    if (panelSelect) panelSelect.classList.toggle('hidden', !isSelect);
+    if (panelBmpDb) panelBmpDb.classList.toggle('hidden', isSelect);
+    if (tabSelect) tabSelect.classList.toggle('active', isSelect);
+    if (tabBmpDb) tabBmpDb.classList.toggle('active', !isSelect);
+    if (!isSelect) {
+      if (profilesTa) profilesTa.value = JSON.stringify(REGULATION_PROFILES, null, 2);
+      if (optionsTa) optionsTa.value = JSON.stringify(BMP_OPTIONS, null, 2);
+      renderBmpTable();
+    }
+  }
+
+  function setSpecsPanelBmpName(name, bmpId) {
+    if (!bmpSpecsPanelName) return;
+    const imageUrl = BMP_IMAGES[bmpId];
+    if (imageUrl) {
+      const esc = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      bmpSpecsPanelName.innerHTML = '<span class="image-tooltip-container result-name-with-tooltip" title="Hover to see system image">' + esc(name) + '<span class="image-tooltip"><img src="' + esc(imageUrl) + '" alt="' + esc(name) + '" onerror="this.parentElement.parentElement.classList.remove(\'image-tooltip-container\')"></span></span>';
+    } else {
+      bmpSpecsPanelName.textContent = name || '';
+    }
+  }
+
+  function bmpNameCellHtml(name, bmpId) {
+    const displayName = name || '';
+    const esc = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const imageUrl = BMP_IMAGES[bmpId];
+    if (imageUrl) {
+      return '<span class="image-tooltip-container result-name-with-tooltip" title="Hover to see system image">' + esc(displayName) + '<span class="image-tooltip"><img src="' + esc(imageUrl) + '" alt="' + esc(displayName) + '" onerror="this.parentElement.parentElement.classList.remove(\'image-tooltip-container\')"></span></span>';
+    }
+    return esc(displayName);
+  }
+
+  function renderBmpTable() {
+    if (!bmpTbody) return;
+    bmpTbody.innerHTML = '';
+    BMP_OPTIONS.forEach((bmp, i) => {
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-bmp-index', String(i));
+      const nameTd = document.createElement('td');
+      nameTd.className = 'py-2 px-3';
+      nameTd.innerHTML = bmpNameCellHtml(bmp.name || ('BMP ' + (i + 1)), bmp.id);
+      const areaSelect = document.createElement('select');
+      areaSelect.className = 'bmpdb-input-area';
+      AREA_TYPE_OPTS.forEach(o => { const opt = document.createElement('option'); opt.value = o.v; opt.textContent = o.l; if (o.v === (bmp.areaType || '')) opt.selected = true; areaSelect.appendChild(opt); });
+      areaSelect.addEventListener('change', () => { BMP_OPTIONS[i].areaType = areaSelect.value; if (optionsTa) optionsTa.value = JSON.stringify(BMP_OPTIONS, null, 2); });
+      const priceInput = document.createElement('input');
+      priceInput.type = 'number';
+      priceInput.min = 0;
+      priceInput.step = 0.01;
+      priceInput.className = 'bmpdb-input-price';
+      priceInput.value = bmp.unitPrice != null ? bmp.unitPrice : '';
+      priceInput.addEventListener('change', () => { const v = parseFloat(priceInput.value); if (Number.isFinite(v)) BMP_OPTIONS[i].unitPrice = v; if (optionsTa) optionsTa.value = JSON.stringify(BMP_OPTIONS, null, 2); });
+      const specBtn = document.createElement('button');
+      specBtn.type = 'button';
+      specBtn.className = 'btn-secondary bmpdb-specs-btn';
+      specBtn.textContent = 'Specs';
+      specBtn.addEventListener('click', () => {
+        currentBmpIndex = i;
+        document.querySelectorAll('.bmpdb-specs-btn').forEach(btn => btn.classList.remove('specs-active'));
+        specBtn.classList.add('specs-active');
+        setSpecsPanelBmpName(bmp.name || ('BMP ' + (i + 1)), bmp.id);
+        populateBmpForm(i);
+        if (bmpSpecsPanel) bmpSpecsPanel.classList.remove('hidden');
+      });
+      tr.innerHTML = '<td class="text-slate-500 py-2 px-3">' + (i + 1) + '</td>';
+      tr.appendChild(nameTd);
+      tr.appendChild(document.createElement('td')).appendChild(areaSelect);
+      tr.appendChild(document.createElement('td')).appendChild(priceInput);
+      tr.appendChild(document.createElement('td')).appendChild(specBtn);
+      bmpTbody.appendChild(tr);
+    });
+    // If specs panel is open, highlight the active row's Specs button
+    if (bmpSpecsPanel && !bmpSpecsPanel.classList.contains('hidden') && bmpTbody) {
+      const activeRow = bmpTbody.querySelector('tr[data-bmp-index="' + currentBmpIndex + '"]');
+      if (activeRow) {
+        const btn = activeRow.querySelector('.bmpdb-specs-btn');
+        if (btn) btn.classList.add('specs-active');
+      }
+    }
+  }
+
+  function populateBmpForm(index) {
+    const bmp = BMP_OPTIONS[index];
+    if (!bmp || !bmpSpecsContainer) return;
+    const defaultBmp = BMP_OPTIONS_DEFAULT[index] || null;
+    const defaultSpecs = defaultBmp && defaultBmp.specs ? defaultBmp.specs : {};
+    bmpSpecsContainer.innerHTML = '';
+    const specs = bmp.specs || {};
+    Object.keys(specs).sort().forEach(key => {
+      const label = BMP_SPEC_LABELS[key] || (key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()));
+      const isPct = BMP_SPEC_AS_PERCENT.has(key);
+      const val = specs[key];
+      const displayVal = isPct && typeof val === 'number' ? val * 100 : val;
+      const defaultVal = defaultSpecs[key];
+      const displayDefault = isPct && defaultVal != null && typeof defaultVal === 'number' ? defaultVal * 100 : defaultVal;
+      const defaultNote = displayDefault != null ? '<span class="text-xs font-normal text-slate-500 ml-1">(default: ' + displayDefault + (isPct ? '%)' : '') + '</span>' : '';
+      const num = typeof val === 'number';
+      const div = document.createElement('div');
+      div.className = 'flex flex-col';
+      const id = 'bmpdb-spec-' + key.replace(/\W/g, '_');
+      const step = isPct ? '0.1' : (num ? '1' : '');
+      div.innerHTML = '<label for="' + id + '" class="text-sm font-medium mb-0.5">' + label + defaultNote + '</label><input type="' + (num ? 'number' : 'text') + '" id="' + id + '" data-spec-key="' + key + '" data-percent="' + (isPct ? '1' : '0') + '" class="border rounded px-3 py-2 text-sm" style="border-color: #999999;" step="' + step + '" />';
+      const input = div.querySelector('input');
+      input.value = displayVal != null && displayVal !== '' ? displayVal : '';
+      bmpSpecsContainer.appendChild(div);
+    });
+  }
+
+  function getFormBmpFromTableAndSpecs(index) {
+    const row = bmpTbody && bmpTbody.querySelector('tr[data-bmp-index="' + index + '"]');
+    const bmp = BMP_OPTIONS[index];
+    if (!bmp) return null;
+    const name = bmp.name;
+    let areaType = bmp.areaType, unitPrice = bmp.unitPrice;
+    if (row) {
+      const areaIn = row.querySelector('.bmpdb-input-area');
+      const priceIn = row.querySelector('.bmpdb-input-price');
+      if (areaIn) areaType = areaIn.value || areaType;
+      if (priceIn) { const v = parseFloat(priceIn.value); if (Number.isFinite(v)) unitPrice = v; }
+    }
+    const specs = { ...(bmp.specs || {}) };
+    if (bmpSpecsContainer) {
+      bmpSpecsContainer.querySelectorAll('[data-spec-key]').forEach(input => {
+        const key = input.getAttribute('data-spec-key');
+        const v = input.value.trim();
+        const num = typeof bmp.specs[key] === 'number';
+        const asPct = input.getAttribute('data-percent') === '1';
+        if (v !== '') { let parsed = num ? parseFloat(v) : v; if (asPct && typeof parsed === 'number') parsed = parsed / 100; specs[key] = parsed; }
+      });
+    }
+    return { id: bmp.id, name: name || bmp.name, areaType: areaType || bmp.areaType, unitPrice: Number.isFinite(unitPrice) ? unitPrice : bmp.unitPrice, specs, extra: bmp.extra ? { ...bmp.extra } : undefined };
+  }
+
+  if (tabSelect) tabSelect.addEventListener('click', () => showPanel('select'));
+  if (tabBmpDb) tabBmpDb.addEventListener('click', () => showPanel('bmpdb'));
+
+  const applyOne = document.getElementById('bmpdb-apply-one');
+  if (applyOne) {
+    applyOne.addEventListener('click', () => {
+      const index = currentBmpIndex;
+      if (index < 0 || index >= BMP_OPTIONS.length) return;
+      const updated = getFormBmpFromTableAndSpecs(index);
+      if (updated) {
+        BMP_OPTIONS[index] = updated;
+        if (optionsTa) optionsTa.value = JSON.stringify(BMP_OPTIONS, null, 2);
+        renderBmpTable();
+        setSpecsPanelBmpName(updated.name || ('BMP ' + (index + 1)), updated.id);
+        alert('BMP updated for this session.');
+      }
+    });
+  }
+
+  const resetOne = document.getElementById('bmpdb-reset-one');
+  if (resetOne) {
+    resetOne.addEventListener('click', () => {
+      const index = currentBmpIndex;
+      if (index < 0 || index >= BMP_OPTIONS.length) return;
+      const defaultBmp = BMP_OPTIONS_DEFAULT[index];
+      if (defaultBmp) {
+        BMP_OPTIONS[index] = JSON.parse(JSON.stringify(defaultBmp));
+        renderBmpTable();
+        populateBmpForm(index);
+        setSpecsPanelBmpName(BMP_OPTIONS[index].name || ('BMP ' + (index + 1)), BMP_OPTIONS[index].id);
+        if (optionsTa) optionsTa.value = JSON.stringify(BMP_OPTIONS, null, 2);
+        alert('This BMP reset to default.');
+      }
+    });
+  }
+
+  function copyText(id) {
+    const el = document.getElementById(id);
+    if (!el || !el.value) return;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(el.value);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = el.value;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      alert('Copied to clipboard.');
+    } catch (e) { alert('Copy failed: ' + e.message); }
+  }
+
+  const applyProfiles = document.getElementById('bmpdb-apply-profiles');
+  if (applyProfiles && profilesTa) {
+    applyProfiles.addEventListener('click', () => {
+      try {
+        const parsed = JSON.parse(profilesTa.value);
+        if (typeof parsed !== 'object' || parsed === null) throw new Error('Must be an object');
+        REGULATION_PROFILES = parsed;
+        alert('REGULATION_PROFILES applied for this session.');
+      } catch (e) { alert('Invalid JSON: ' + e.message); }
+    });
+  }
+  const copyProfiles = document.getElementById('bmpdb-copy-profiles');
+  if (copyProfiles) copyProfiles.addEventListener('click', () => copyText('bmpdb-profiles-json'));
+
+  const applyOptions = document.getElementById('bmpdb-apply-options');
+  if (applyOptions && optionsTa) {
+    applyOptions.addEventListener('click', () => {
+      try {
+        const parsed = JSON.parse(optionsTa.value);
+        if (!Array.isArray(parsed)) throw new Error('Must be an array');
+        BMP_OPTIONS = parsed;
+        alert('BMP_OPTIONS applied for this session.');
+        renderBmpTable();
+      } catch (e) { alert('Invalid JSON: ' + e.message); }
+    });
+  }
+  const copyOptions = document.getElementById('bmpdb-copy-options');
+  if (copyOptions) copyOptions.addEventListener('click', () => copyText('bmpdb-options-json'));
+
+  const resetBtn = document.getElementById('bmpdb-reset');
+  if (resetBtn && profilesTa && optionsTa) {
+    resetBtn.addEventListener('click', () => {
+      REGULATION_PROFILES = JSON.parse(JSON.stringify(REGULATION_PROFILES_DEFAULT));
+      BMP_OPTIONS = JSON.parse(JSON.stringify(BMP_OPTIONS_DEFAULT));
+      profilesTa.value = JSON.stringify(REGULATION_PROFILES, null, 2);
+      optionsTa.value = JSON.stringify(BMP_OPTIONS, null, 2);
+      renderBmpTable();
+      if (bmpSpecsPanel) bmpSpecsPanel.classList.add('hidden');
+      alert('Reset all to defaults.');
+    });
+  }
+}
+
+// Initialize
+function init() {
+  renderCityMap();
+  populateCitySelect();
+  setupEventListeners();
+  // Initialize input fields with default values
+  initializeInputFields();
+  loadStateFromUrl(); // Load after initialization so URL params can override
+  initCityAdminPanel();
+  initLandingTabs();
+  setupImageTooltips();
+}
+
+function initializeInputFields() {
+  // Set all input fields to match salesModeState defaults
+  if (document.getElementById('input-project-name')) document.getElementById('input-project-name').value = salesModeState.projectName;
+  if (document.getElementById('input-project-address')) document.getElementById('input-project-address').value = salesModeState.projectAddress;
+  if (document.getElementById('input-client-name')) document.getElementById('input-client-name').value = salesModeState.clientName;
+  
+  if (document.getElementById('input-detention-needed')) document.getElementById('input-detention-needed').checked = salesModeState.detentionNeeded;
+  if (document.getElementById('input-retention-needed')) document.getElementById('input-retention-needed').checked = salesModeState.retentionNeeded;
+  if (document.getElementById('input-target-detention')) document.getElementById('input-target-detention').value = salesModeState.targetDetentionCF;
+  if (document.getElementById('input-target-retention')) document.getElementById('input-target-retention').value = salesModeState.targetRetentionCF;
+  
+  if (document.getElementById('input-pervious-landscaping')) document.getElementById('input-pervious-landscaping').value = salesModeState.perviousLandscapingUsable;
+  if (document.getElementById('input-vehicular-pavement')) document.getElementById('input-vehicular-pavement').value = salesModeState.imperviousVehicularPavement;
+  if (document.getElementById('input-pedestrian-pavement')) document.getElementById('input-pedestrian-pavement').value = salesModeState.imperviousPedestrianPavement;
+  
+  if (document.getElementById('input-flat-deck')) document.getElementById('input-flat-deck').value = salesModeState.flatDeckOnStructureArea;
+  if (document.getElementById('input-sloped-roof')) document.getElementById('input-sloped-roof').value = salesModeState.slopedRoofArea;
+  if (document.getElementById('input-pavers-structure')) document.getElementById('input-pavers-structure').value = salesModeState.paversOnStructureArea;
+  if (document.getElementById('input-ca-untreated')) document.getElementById('input-ca-untreated').value = salesModeState.imperviousCAUntreated;
+  
+  if (document.getElementById('input-green-roof-scope')) document.getElementById('input-green-roof-scope').checked = salesModeState.greenRoofAlreadyInScope;
+  if (document.getElementById('input-utilities')) document.getElementById('input-utilities').checked = salesModeState.hasUndergroundUtilities;
+  if (document.getElementById('input-water-table')) document.getElementById('input-water-table').checked = salesModeState.hasHighWaterTable;
+  if (document.getElementById('input-contaminated-soil')) document.getElementById('input-contaminated-soil').checked = salesModeState.hasContaminatedSoil;
+
+  updateSiteAreaGraphic();
+}
+
+function updateSiteAreaGraphic() {
+  const areas = [
+    salesModeState.perviousLandscapingUsable || 0,
+    salesModeState.imperviousVehicularPavement || 0,
+    salesModeState.imperviousPedestrianPavement || 0,
+    salesModeState.flatDeckOnStructureArea || 0,
+    salesModeState.slopedRoofArea || 0,
+    salesModeState.paversOnStructureArea || 0,
+    salesModeState.imperviousCAUntreated || 0
+  ];
+  const ids = ['site-area-pervious', 'site-area-vehicular', 'site-area-pedestrian', 'site-area-flatdeck', 'site-area-sloped', 'site-area-pavers', 'site-area-ca'];
+  const colors = ['#378D4D', '#999999', '#A6872B', '#26A3DF', '#C5B2E2', '#D4AF37', '#5D5D5D'];
+  const total = areas.reduce((s, a) => s + a, 0);
+
+  const totalLabel = document.getElementById('site-area-total-label');
+  if (totalLabel) totalLabel.textContent = 'Total: ' + Math.round(total).toLocaleString() + ' SF';
+
+  const nonZeroTotal = areas.reduce((s, a, i) => s + (a > 0 ? a : 0), 0);
+  const minPctToShowLabel = 6;
+
+  for (let i = 0; i < 7; i++) {
+    const el = document.getElementById(ids[i]);
+    const legendRow = document.getElementById('site-area-legend-' + i);
+    const valEl = document.getElementById('site-area-legend-val-' + i);
+    const isZero = areas[i] <= 0;
+
+    if (legendRow) legendRow.style.display = isZero ? 'none' : '';
+    if (valEl && !isZero) valEl.textContent = Math.round(areas[i]).toLocaleString() + ' SF';
+
+    if (!el) continue;
+
+    if (total === 0) {
+      el.style.display = i === 0 ? '' : 'none';
+      el.style.width = i === 0 ? '100%' : '0%';
+      el.style.background = i === 0 ? '#94a3b8' : 'transparent';
+      const label = el.querySelector('.site-area-seg-label');
+      if (label) label.style.visibility = 'hidden';
+      continue;
+    }
+
+    if (isZero) {
+      el.style.display = 'none';
+      el.style.width = '0%';
+      continue;
+    }
+
+    el.style.display = '';
+    const pct = nonZeroTotal > 0 ? (areas[i] / nonZeroTotal) * 100 : 0;
+    el.style.width = pct + '%';
+    el.style.background = colors[i];
+    const label = el.querySelector('.site-area-seg-label');
+    if (label) label.style.visibility = pct >= minPctToShowLabel ? 'visible' : 'hidden';
+  }
+}
+
+function renderCityMap() {
+  const mapContainer = document.getElementById('us-map-container');
+  if (!mapContainer || typeof L === 'undefined') {
+    console.warn('Leaflet not loaded yet or map container not found');
+    return;
+  }
+  
+  // Initialize map if not already created
+  if (!usMap) {
+    // Center map on US (between cities). tap: true so tap fires click on touch devices
+    usMap = L.map('us-map-container', { tap: true }).setView([39.5, -95], 4);
+    
+    // Use a more colorful CartoDB Voyager basemap for better visual context
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(usMap);
+  }
+  
+  // Clear existing markers
+  cityMarkers.forEach(marker => usMap.removeLayer(marker));
+  cityMarkers = [];
+  
+  // Determine which cities have Purple-Roof® case studies
+  const caseStudyCities = new Set(
+    (CASE_STUDIES || [])
+      .map(cs => cs.cityKey)
+      .filter(Boolean)
+  );
+  
+  // Touch dedupe: avoid calling selectCity twice when both touchend and click fire
+  let lastSelectKey = null;
+  let lastSelectTime = 0;
+  function triggerSelectCity(key) {
+    const now = Date.now();
+    if (lastSelectKey === key && now - lastSelectTime < 500) return;
+    lastSelectKey = key;
+    lastSelectTime = now;
+    selectCity(key);
+  }
+
+  // Add markers for each city (base layer). Use 44px hit area on mobile for reliable tap.
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const markerSize = isTouchDevice ? 44 : 26;
+  const markerHalf = markerSize / 2;
+  Object.entries(CITY_DATA).forEach(([key, city]) => {
+    const hasCaseStudy = caseStudyCities.has(key);
+    const boxShadow = hasCaseStudy
+      ? '0 0 0 3px rgba(138,72,181,0.9), 0 4px 10px rgba(0,0,0,0.35)'
+      : '0 4px 10px rgba(0,0,0,0.35)';
+    const marker = L.marker([city.coords.lat, city.coords.lon], {
+      icon: L.divIcon({
+        className: 'city-marker',
+        html: `<div style="
+          width: ${markerSize}px;
+          height: ${markerSize}px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "><div style="
+          background: linear-gradient(135deg, #65B646, #D4AF37);
+          width: ${isTouchDevice ? 32 : 26}px;
+          height: ${isTouchDevice ? 32 : 26}px;
+          border-radius: 9999px;
+          border: 3px solid white;
+          box-shadow: ${boxShadow};
+          cursor: pointer;
+          pointer-events: none;
+          transition: transform 0.2s;
+        "></div></div>`,
+        iconSize: [markerSize, markerSize],
+        iconAnchor: [markerHalf, markerHalf]
+      })
+    }).addTo(usMap);
+    
+    marker.bindTooltip(city.name, {
+      permanent: false,
+      direction: 'top',
+      offset: [0, -10],
+      className: 'city-tooltip'
+    });
+    marker.bindPopup(`<b>${city.name}</b><br><span style="cursor: pointer; color: #26A3DF; text-decoration: underline;" onclick="selectCity('${key}')">Select this city</span>`);
+    marker.on('click', () => triggerSelectCity(key));
+    marker.on('touchend', (e) => {
+      e.originalEvent.preventDefault();
+      triggerSelectCity(key);
+    });
+    
+    cityMarkers.push(marker);
+  });
+  
+  // Add Purple-Roof® case study locations as purple dots linking to PDFs (drawn above city markers)
+  CASE_STUDIES.forEach(cs => {
+    const csMarker = L.circleMarker([cs.coords.lat, cs.coords.lon], {
+      radius: 8,
+      color: '#8A48B5',
+      weight: 2,
+      fillColor: '#8A48B5',
+      fillOpacity: 0.9
+    }).addTo(usMap);
+    
+    // Ensure case study markers sit visually above city markers
+    if (csMarker.bringToFront) {
+      csMarker.bringToFront();
+    }
+    
+    csMarker.bindTooltip(cs.label, {
+      permanent: false,
+      direction: 'top',
+      offset: [0, -8],
+      className: 'city-tooltip'
+    });
+    
+    csMarker.on('click', () => {
+      if (cs.pdf) {
+        window.open(cs.pdf, '_blank', 'noopener,noreferrer');
+      }
+    });
+    
+    cityMarkers.push(csMarker);
+  });
+  
+  // Fit bounds to show all cities
+  if (cityMarkers.length > 0) {
+    const group = new L.featureGroup(cityMarkers);
+    usMap.fitBounds(group.getBounds().pad(0.2));
+  }
+}
+
+function populateCitySelect() {
+  const select = document.getElementById('city-select');
+  Object.entries(CITY_DATA).forEach(([key, city]) => {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = city.name;
+    select.appendChild(option);
+  });
+  select.addEventListener('change', (e) => {
+    if (e.target.value) selectCity(e.target.value);
+  });
+}
+
+function selectCity(cityKey) {
+  currentCity = cityKey;
+  const city = CITY_DATA[cityKey];
+
+  // Keep City Data Admin dropdown and fields in sync with the selected city
+  const adminSelect = document.getElementById('city-admin-select');
+  if (adminSelect && city) {
+    adminSelect.value = cityKey;
+    const regs = city.regs || {};
+    const defs = city.defaults || {};
+    const retentionEl = document.getElementById('admin-retention-text');
+    const detentionEl = document.getElementById('admin-detention-text');
+    const pvEl = document.getElementById('admin-pv-text');
+    const soilEl = document.getElementById('admin-soil-retention');
+    const mwEl = document.getElementById('admin-mw-retention');
+    const honeycombEl = document.getElementById('admin-honeycomb-void');
+    if (retentionEl) retentionEl.value = (regs.retention || []).join('\n');
+    if (detentionEl) detentionEl.value = (regs.detention || []).join('\n');
+    if (pvEl) pvEl.value = (regs.pv || []).join('\n');
+    if (soilEl) soilEl.value = defs.soilRetentionPct != null ? String(defs.soilRetentionPct) : '';
+    if (mwEl) mwEl.value = defs.mineralWoolRetentionPct != null ? String(defs.mineralWoolRetentionPct) : '';
+    if (honeycombEl) honeycombEl.value = defs.honeycombVoidPct != null ? String(defs.honeycombVoidPct) : '';
+  }
+  
+  const nameEl = document.getElementById('city-name');
+  const iconEl = document.getElementById('city-icon');
+  if (nameEl) nameEl.textContent = city.name;
+  if (iconEl) {
+    if (city.icon) {
+      iconEl.style.backgroundImage = `url('${city.icon}')`;
+      iconEl.style.display = 'block';
+    } else {
+      iconEl.style.backgroundImage = '';
+      iconEl.style.display = 'block';
+    }
+  }
+  document.getElementById('retention-rules').innerHTML = city.regs.retention.map(r => `<li>• ${r}</li>`).join('');
+  document.getElementById('detention-rules').innerHTML = city.regs.detention.map(r => `<li>• ${r}</li>`).join('');
+  document.getElementById('pv-rules').innerHTML = city.regs.pv.map(r => `<li>• ${r}</li>`).join('');
+  
+  // Set regulation links
+  if (city.links) {
+    // Official docs section
+    const manualLink = document.getElementById('stormwater-manual-link');
+    const regsLink = document.getElementById('stormwater-regs-link');
+    if (manualLink) {
+      if (city.links.stormwaterManual) {
+        manualLink.href = city.links.stormwaterManual;
+        manualLink.textContent = city.name.split(',')[0] + ' Stormwater Management Manual';
+        manualLink.style.display = '';
+      } else {
+        manualLink.style.display = 'none';
+      }
+    }
+    if (regsLink) {
+      if (city.links.stormwater) {
+        regsLink.href = city.links.stormwater;
+        regsLink.textContent = city.name.split(',')[0] + ' Stormwater Regulations';
+        regsLink.style.display = '';
+      } else {
+        regsLink.style.display = 'none';
+      }
+    }
+
+    // Card-specific "View Regulations" links
+    const retentionLink = document.getElementById('retention-link');
+    const detentionLink = document.getElementById('detention-link');
+    const pvLink = document.getElementById('pv-link');
+
+    // If the card is wired to a custom overview page, label it as "Overview".
+    // Otherwise, "Regulations" should only mean official docs.
+    const stormwaterOverviewUrl = city.links.stormwaterSummary || city.links.summary || null;
+
+    if (retentionLink) {
+      if (stormwaterOverviewUrl) {
+        retentionLink.textContent = 'Link to Overview →';
+        retentionLink.href = stormwaterOverviewUrl;
+        retentionLink.target = '_blank';
+        retentionLink.rel = 'noopener noreferrer';
+        retentionLink.style.display = '';
+      } else if (city.links.stormwater) {
+        retentionLink.textContent = 'View Regulations →';
+        retentionLink.href = city.links.stormwater;
+        retentionLink.target = '_blank';
+        retentionLink.rel = 'noopener noreferrer';
+        retentionLink.style.display = '';
+      } else {
+        retentionLink.style.display = 'none';
+      }
+    }
+
+    if (detentionLink) {
+      if (stormwaterOverviewUrl) {
+        detentionLink.textContent = 'Link to Overview →';
+        detentionLink.href = stormwaterOverviewUrl;
+        detentionLink.target = '_blank';
+        detentionLink.rel = 'noopener noreferrer';
+        detentionLink.style.display = '';
+      } else if (city.links.stormwater) {
+        detentionLink.textContent = 'View Regulations →';
+        detentionLink.href = city.links.stormwater;
+        detentionLink.target = '_blank';
+        detentionLink.rel = 'noopener noreferrer';
+        detentionLink.style.display = '';
+      } else {
+        detentionLink.style.display = 'none';
+      }
+    }
+    if (pvLink) {
+      if (city.links.pv) {
+        // Intercept click so we can show both PV regulations and incentive links
+        pvLink.style.display = '';
+        pvLink.onclick = (e) => {
+          e.preventDefault();
+          const urls = [];
+          // Primary PV regulations page first
+          urls.push(city.links.pv);
+          // Then any configured incentives (federal / state / local)
+          if (Array.isArray(city.links.incentives)) {
+            city.links.incentives.forEach(u => urls.push(u));
+          }
+          // Open each in a new tab; keep behavior simple and transparent
+          urls.forEach(u => {
+            try {
+              window.open(u, '_blank', 'noopener,noreferrer');
+            } catch (err) {
+              console.error('Failed to open incentives/regulations URL', u, err);
+            }
+          });
+        };
+      } else {
+        // If we don't have a PV-specific regulations link, hide the PV "View Regulations" affordance
+        pvLink.style.display = 'none';
+        pvLink.onclick = null;
+      }
+    }
+  }
+  
+  // Make City Rules cards clickable for city-specific one-pagers
+  const retentionCard = document.getElementById('retention-card');
+  const detentionCard = document.getElementById('detention-card');
+  const pvCard = document.getElementById('pv-card');
+  [retentionCard, detentionCard, pvCard].forEach(card => {
+    if (!card) return;
+    card.style.cursor = 'default';
+    card.onclick = null;
+  });
+  // - If links.summary exists: all three cards go to the same one-pager (Chicago behavior)
+  if (city.links && city.links.summary && retentionCard && detentionCard && pvCard) {
+    const url = city.links.summary;
+    [retentionCard, detentionCard, pvCard].forEach(card => {
+      card.style.cursor = 'pointer';
+      card.onclick = () => window.open(url, '_blank', 'noopener,noreferrer');
+    });
+  }
+  // - If links.stormwaterSummary exists: Retention/Detention cards go to a stormwater-only one-pager (NYC behavior)
+  if (city.links && city.links.stormwaterSummary && retentionCard && detentionCard) {
+    const url = city.links.stormwaterSummary;
+    [retentionCard, detentionCard].forEach(card => {
+      card.style.cursor = 'pointer';
+      card.onclick = () => window.open(url, '_blank', 'noopener,noreferrer');
+    });
+  }
+  
+  // Render city map
+  renderCityMiniMap(city);
+  
+  // Render climate data
+  renderClimateData(cityKey);
+  
+  document.getElementById('landing-page').classList.add('hidden');
+  document.getElementById('city-page').classList.remove('hidden');
+  document.getElementById('sticky-bar').classList.remove('hidden');
+  updateStickyBar();
+  
+  saveStateToUrl();
+}
+
+// Rainfall / time series images per city (add more as images are added to images folder)
+const RAINFALL_IMAGES = {
+  nyc: 'images/IMAGE-time-series-new-york.png',
+  chicago: 'images/IMAGE-time-series-chicago.png',
+  boston: 'images/IMAGE-time-series-boston.png'
+};
+
+// City key -> folder name (StateAbbr-CityName under city-data/)
+const CITY_DATA_FOLDER = {
+  nyc: 'NY-New-York-City',
+  dc: 'DC-Washington',
+  chicago: 'IL-Chicago',
+  boston: 'MA-Boston',
+  philadelphia: 'PA-Philadelphia',
+  nashville: 'TN-Nashville',
+  seattle: 'WA-Seattle',
+  san_francisco: 'CA-San-Francisco',
+  toronto: 'ON-Toronto',
+  ohio_statewide: 'OH-Statewide',
+  columbus_oh: 'OH-Columbus',
+  virginia_statewide: 'VA-Statewide',
+  richmond_va: 'VA-Richmond',
+  montgomery_md: 'MD-Montgomery'
+};
+
+// Rainfall .dat files per city: path relative to app root (city-data/StateAbbr-CityName/Rain*.dat)
+// Add an entry when you add a .dat file for a city.
+const RAINFALL_DAT_FILES = {
+  chicago: 'city-data/IL-Chicago/Rain - 72530094846.dat'
+};
+
+function parseRainfallDat(text) {
+  const byMonth = {};
+  const lines = text.trim().split(/\r?\n/);
+  for (const line of lines) {
+    const parts = line.split(/\t/);
+    if (parts.length < 7) continue;
+    const year = parseInt(parts[1], 10);
+    const month = parseInt(parts[2], 10);
+    const rain = parseFloat(parts[6]) || 0;
+    const key = `${year}-${String(month).padStart(2, '0')}`;
+    byMonth[key] = (byMonth[key] || 0) + rain;
+  }
+  const sorted = Object.entries(byMonth).sort((a, b) => a[0].localeCompare(b[0]));
+  return sorted.map(([label, value]) => ({ label, value }));
+}
+
+function renderRainfallChart(container, data, cityName) {
+  if (!data.length) {
+    container.innerHTML = '<div class="p-4 text-slate-500 text-center">No rainfall data in file.</div>';
+    return;
+  }
+  const maxVal = Math.max(...data.map(d => d.value));
+  const barGap = 1;
+  const barWidth = 6;
+  const chartHeight = 260;
+  const labelEvery = Math.max(1, Math.floor(data.length / 18));
+  const width = Math.max(500, data.length * (barWidth + barGap));
+  const height = chartHeight + 36;
+  let svg = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMinYMid meet" style="min-width: 100%; height: auto; max-height: 300px;">
+    <text x="0" y="14" font-size="13" fill="#5D5D5D" font-weight="600">Monthly rainfall (in.) — ${(cityName || 'City').replace(/</g, '&lt;')}</text>`;
+  data.forEach((d, i) => {
+    const x = 2 + i * (barWidth + barGap);
+    const h = maxVal > 0 ? (d.value / maxVal) * (chartHeight - 8) : 0;
+    const y = chartHeight - h;
+    svg += `<rect x="${x}" y="${y}" width="${barWidth}" height="${Math.max(0, h)}" fill="#26A3DF" opacity="0.9" />`;
+    if (i % labelEvery === 0) {
+      const label = d.label.length >= 7 ? d.label.slice(0, 4) + "'" + d.label.slice(5, 7) : d.label;
+      svg += `<text x="${x}" y="${chartHeight + 14}" font-size="9" fill="#5D5D5D">${label}</text>`;
+    }
+  });
+  svg += '</svg>';
+  container.innerHTML = `
+    <div class="rounded-lg border bg-slate-50 border-slate-200 overflow-x-auto p-4" style="overflow-y: hidden;">
+      ${svg}
+    </div>
+  `;
+}
+
+function renderClimateData(cityKey) {
+  const container = document.getElementById('climate-data-container');
+  if (!container) return;
+
+  const city = CITY_DATA[cityKey];
+  const cityName = city ? city.name : '';
+  const datPath = RAINFALL_DAT_FILES[cityKey];
+  const imgSrc = RAINFALL_IMAGES[cityKey];
+
+  if (datPath) {
+    container.innerHTML = '<div class="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center text-slate-500">Loading rainfall data…</div>';
+    fetch(datPath)
+      .then(r => {
+        if (!r.ok) throw new Error('File not found');
+        return r.text();
+      })
+      .then(text => {
+        const data = parseRainfallDat(text);
+        renderRainfallChart(container, data, cityName);
+      })
+      .catch(() => {
+        if (imgSrc) {
+          container.innerHTML = `
+            <div class="rounded-lg border bg-slate-50 border-slate-200 overflow-hidden">
+              <img src="${imgSrc}" alt="Rainfall time series for ${cityName}" class="w-full h-auto" onerror="this.style.display='none';" />
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center text-slate-500">
+              <p class="text-sm">Rainfall data could not be loaded.</p>
+            </div>
+          `;
+        }
+      });
+    return;
+  }
+
+  if (imgSrc) {
+    container.innerHTML = `
+      <div class="rounded-lg border bg-slate-50 border-slate-200 overflow-hidden">
+        <img src="${imgSrc}"
+             alt="Rainfall time series (1990–2019) for ${cityName}"
+             class="w-full h-auto"
+             onerror="this.onerror=null; this.alt='Image failed to load.'; this.style.display='none';" />
+      </div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center text-slate-500">
+        <p class="text-sm">Rainfall time series chart not yet added for this city.</p>
+        <p class="text-xs mt-2">Add a file in <code>city-data/${CITY_DATA_FOLDER[cityKey] || cityKey}/</code> (e.g. Rain - stationid.dat) and add the path to RAINFALL_DAT_FILES in the code.</p>
+      </div>
+    `;
+  }
+}
+
+function renderCityMiniMap(city) {
+  const mapContainer = document.getElementById('city-mini-map');
+  if (!mapContainer) {
+    console.warn('City map container not found');
+    return;
+  }
+  
+  if (typeof L === 'undefined') {
+    console.warn('Leaflet not loaded yet, will retry');
+    setTimeout(() => renderCityMiniMap(city), 100);
+    return;
+  }
+  
+  // Clear existing map if it exists
+  if (cityMap) {
+    cityMap.remove();
+    cityMap = null;
+  }
+  
+  // Clear container
+  mapContainer.innerHTML = '';
+  
+  // Create new map centered on city
+  cityMap = L.map('city-mini-map', {
+    zoomControl: true,
+    attributionControl: false
+  }).setView([city.coords.lat, city.coords.lon], 11);
+  
+  // Use a slightly richer Voyager basemap for local context
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(cityMap);
+  
+  // Add city marker
+  L.marker([city.coords.lat, city.coords.lon], {
+    icon: L.divIcon({
+      className: 'city-center-marker',
+      html: `<div style="
+        background: linear-gradient(135deg, #65B646, #D4AF37);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 4px solid white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      "></div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    })
+  }).addTo(cityMap).bindPopup(`<b>${city.name}</b>`);
+  
+  // Disable dragging on mobile for better UX
+  if (window.innerWidth < 768) {
+    cityMap.dragging.disable();
+    cityMap.touchZoom.disable();
+    cityMap.doubleClickZoom.disable();
+    cityMap.scrollWheelZoom.disable();
+    cityMap.boxZoom.disable();
+    cityMap.keyboard.disable();
+  }
+  
+  // Trigger resize after a brief delay to ensure map renders correctly
+  setTimeout(() => {
+    if (cityMap) {
+      cityMap.invalidateSize();
+    }
+  }, 100);
+}
+
+function showLanding() {
+  document.getElementById('landing-page').classList.remove('hidden');
+  document.getElementById('city-page').classList.add('hidden');
+  document.getElementById('sticky-bar').classList.add('hidden');
+  currentCity = null;
+  saveStateToUrl();
+}
+
+function setupEventListeners() {
+  // Project Details (persist to localStorage so refresh doesn't lose them)
+  document.getElementById('input-project-name').addEventListener('input', (e) => {
+    salesModeState.projectName = e.target.value;
+    saveProjectInfoToStorage();
+  });
+  document.getElementById('input-project-address').addEventListener('input', (e) => {
+    salesModeState.projectAddress = e.target.value;
+    saveProjectInfoToStorage();
+  });
+  document.getElementById('input-client-name').addEventListener('input', (e) => {
+    salesModeState.clientName = e.target.value;
+    saveProjectInfoToStorage();
+  });
+  document.getElementById('project-details-clear-all').addEventListener('click', (e) => {
+    e.stopPropagation(); // don't toggle the details open/close
+    // Project info
+    salesModeState.projectName = '';
+    salesModeState.projectAddress = '';
+    salesModeState.clientName = '';
+    // CF targets
+    salesModeState.targetDetentionCF = 0;
+    salesModeState.targetRetentionCF = 0;
+    // Checkboxes
+    salesModeState.detentionNeeded = false;
+    salesModeState.retentionNeeded = false;
+    salesModeState.greenRoofAlreadyInScope = false;
+    salesModeState.hasUndergroundUtilities = false;
+    salesModeState.hasHighWaterTable = false;
+    salesModeState.hasContaminatedSoil = false;
+    // SF values (at-grade)
+    salesModeState.perviousLandscapingUsable = 0;
+    salesModeState.imperviousVehicularPavement = 0;
+    salesModeState.imperviousPedestrianPavement = 0;
+    salesModeState.perviousTreeCoverNonUsable = 0;
+    // SF values (on-structure)
+    salesModeState.flatDeckOnStructureArea = 0;
+    salesModeState.slopedRoofArea = 0;
+    salesModeState.paversOnStructureArea = 0;
+    salesModeState.imperviousCAUntreated = 0;
+    saveProjectInfoToStorage();
+    initializeInputFields();
+  });
+
+  // Targets
+  document.getElementById('input-detention-needed').addEventListener('change', (e) => {
+    salesModeState.detentionNeeded = e.target.checked;
+  });
+  document.getElementById('input-retention-needed').addEventListener('change', (e) => {
+    salesModeState.retentionNeeded = e.target.checked;
+  });
+  document.getElementById('input-target-detention').addEventListener('input', (e) => {
+    salesModeState.targetDetentionCF = parseFloat(e.target.value) || 0;
+  });
+  document.getElementById('input-target-retention').addEventListener('input', (e) => {
+    salesModeState.targetRetentionCF = parseFloat(e.target.value) || 0;
+  });
+  
+  // At-Grade Areas
+  document.getElementById('input-pervious-landscaping').addEventListener('input', (e) => {
+    salesModeState.perviousLandscapingUsable = parseFloat(e.target.value) || 0;
+    updateSiteAreaGraphic();
+  });
+  document.getElementById('input-vehicular-pavement').addEventListener('input', (e) => {
+    salesModeState.imperviousVehicularPavement = parseFloat(e.target.value) || 0;
+    updateSiteAreaGraphic();
+  });
+  document.getElementById('input-pedestrian-pavement').addEventListener('input', (e) => {
+    salesModeState.imperviousPedestrianPavement = parseFloat(e.target.value) || 0;
+    updateSiteAreaGraphic();
+  });
+  
+  // On-Structure Areas
+  document.getElementById('input-flat-deck').addEventListener('input', (e) => {
+    salesModeState.flatDeckOnStructureArea = parseFloat(e.target.value) || 0;
+    updateSiteAreaGraphic();
+  });
+  document.getElementById('input-sloped-roof').addEventListener('input', (e) => {
+    salesModeState.slopedRoofArea = parseFloat(e.target.value) || 0;
+    updateSiteAreaGraphic();
+  });
+  document.getElementById('input-pavers-structure').addEventListener('input', (e) => {
+    salesModeState.paversOnStructureArea = parseFloat(e.target.value) || 0;
+    updateSiteAreaGraphic();
+  });
+  document.getElementById('input-ca-untreated').addEventListener('input', (e) => {
+    salesModeState.imperviousCAUntreated = parseFloat(e.target.value) || 0;
+    updateSiteAreaGraphic();
+  });
+  
+  // Site Conditions
+  document.getElementById('input-green-roof-scope').addEventListener('change', (e) => {
+    salesModeState.greenRoofAlreadyInScope = e.target.checked;
+  });
+  document.getElementById('input-utilities').addEventListener('change', (e) => {
+    salesModeState.hasUndergroundUtilities = e.target.checked;
+  });
+  document.getElementById('input-water-table').addEventListener('change', (e) => {
+    salesModeState.hasHighWaterTable = e.target.checked;
+  });
+  document.getElementById('input-contaminated-soil').addEventListener('change', (e) => {
+    salesModeState.hasContaminatedSoil = e.target.checked;
+  });
+
+  // Results: Expand all checkbox
+  document.getElementById('results-expand-all').addEventListener('change', (e) => {
+    const open = e.target.checked;
+    document.querySelectorAll('#results-container details.result-item').forEach(d => {
+      d.open = open;
+    });
+  });
+}
+
+function runComparison() {
+  if (!currentCity) {
+    alert('Please select a city first');
+    return;
+  }
+  
+  // Show loading state
+  const resultsSection = document.getElementById('results-section');
+  resultsSection.classList.remove('hidden');
+  const resultsContainer = document.getElementById('results-container');
+  const recommendationContainer = document.getElementById('recommendation-container');
+  resultsContainer.innerHTML = '<div class="p-4 text-center"><p>Calculating...</p></div>';
+  recommendationContainer.innerHTML = '';
+  
+  // Adapt inputs
+  const cityData = CITY_DATA[currentCity];
+  const v1Inputs = adaptSalesInputsToV1(salesModeState, cityData);
+  
+  // Run calculations
+  const calcResults = runCalculations(v1Inputs, cityData.regulationProfileId);
+  
+  // Render results
+  renderResults(calcResults, v1Inputs);
+  renderRecommendation(calcResults, v1Inputs);
+  
+  updateStickyBar(calcResults);
+}
+
+function renderResults(calcResults, v1Inputs) {
+  const container = document.getElementById('results-container');
+  const { results } = calcResults;
+  const targetRet = v1Inputs.targetRetentionCF || 0;
+  const targetDet = v1Inputs.targetDetentionCF || 0;
+
+  // Sort: Meets first (by cost), then Partial (by cost), then Does Not Meet (by cost)
+  const tier = (r) => {
+    const retPct = targetRet > 0 ? Math.min(100, (r.retDesigned / targetRet) * 100) : 0;
+    const detPct = targetDet > 0 ? Math.min(100, (r.detDesigned / targetDet) * 100) : 0;
+    if (r.isViable && retPct >= 99 && detPct >= 99) return 0;
+    if (r.isViable && (retPct >= 50 || detPct >= 50)) return 1;
+    return 2;
+  };
+  const sorted = [...results].sort((a, b) => {
+    const ta = tier(a), tb = tier(b);
+    if (ta !== tb) return ta - tb;
+    return a.costDesigned - b.costDesigned;
+  });
+
+  // Group by tier (Meets, Partial, Does Not Meet) for display before any item is expanded
+  const meets = sorted.filter(r => tier(r) === 0);
+  const partial = sorted.filter(r => tier(r) === 1);
+  const doesNotMeet = sorted.filter(r => tier(r) === 2);
+
+  function renderResultItem(result) {
+    const retPct = targetRet > 0 ? Math.min(100, (result.retDesigned / targetRet) * 100) : 0;
+    const detPct = targetDet > 0 ? Math.min(100, (result.detDesigned / targetDet) * 100) : 0;
+    
+    let badgeClass = 'fails';
+    let badgeText = 'Does Not Meet';
+    if (result.isViable && retPct >= 99 && detPct >= 99) {
+      badgeClass = 'meets';
+      badgeText = 'Meets';
+    } else if (result.isViable && (retPct >= 50 || detPct >= 50)) {
+      badgeClass = 'partial';
+      badgeText = 'Partial';
+    }
+    
+    const imageUrl = BMP_IMAGES[result.id];
+    const nameHtml = imageUrl
+      ? `<span class="image-tooltip-container result-name-with-tooltip" title="Hover to see system image">${result.name}<span class="image-tooltip"><img src="${imageUrl}" alt="${result.name}" onerror="this.parentElement.parentElement.classList.remove(\'image-tooltip-container\')"></span></span>`
+      : result.name;
+    
+    // Determine BMP type for color coding
+    const isUnderground = [2, 3, 4, 5].includes(result.id); // Underground Cells, Permeable Pavers, Below Grade Tanks
+    const isGreenRoof = [8, 9].includes(result.id); // Traditional Green Roof, Sponge Roof
+    const isPurpleRoof = [10, '10B', 11, '11B'].includes(result.id); // Purple-Roof systems
+    
+    // Card border color based on BMP type
+    let cardBorderColor = '#999999'; // LBG medium gray
+    if (isGreenRoof) cardBorderColor = '#87D292'; // LBG pale green
+    else if (isUnderground) cardBorderColor = '#5D5D5D'; // LBG dark gray
+    else if (isPurpleRoof) cardBorderColor = '#C5B2E2'; // LBG light purple
+    
+    const retBarClass = retPct >= 99 ? 'retention' : retPct >= 50 ? 'partial' : 'fail';
+    const detBarClass = detPct >= 99 ? 'detention' : detPct >= 50 ? 'partial' : 'fail';
+    
+    const issues = [...result.blockers, ...result.warnings];
+    
+    const detailBody = `
+        ${targetRet > 0 ? `
+          <div class="mb-3">
+            <div class="flex justify-between text-sm mb-1">
+              <span style="color: #26629F;">Retention: ${result.retDesigned.toFixed(1)} CF</span>
+              <span style="color: #26629F;">Target: ${targetRet.toFixed(1)} CF (${retPct.toFixed(0)}%)</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill ${retBarClass}" style="width: ${Math.min(100, retPct)}%"></div>
+            </div>
+          </div>
+        ` : ''}
+        
+        ${targetDet > 0 ? `
+          <div class="mb-3">
+            <div class="flex justify-between text-sm mb-1">
+              <span style="color: #674296;">Detention: ${result.detDesigned.toFixed(1)} CF</span>
+              <span style="color: #674296;">Target: ${targetDet.toFixed(1)} CF (${detPct.toFixed(0)}%)</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill ${detBarClass}" style="width: ${Math.min(100, detPct)}%"></div>
+            </div>
+          </div>
+        ` : ''}
+        
+        <div class="text-sm text-slate-600 mb-3">
+          <div>Area Used: ${Math.round(result.grossDesignedArea).toLocaleString()} SF</div>
+          ${(result.id === 11 || result.id === '11B') && result.fullSpec && result.fullSpec.extra && result.fullSpec.extra.tradPaverBasePrice != null ? `<div>Pricing: Trad Paver $${result.fullSpec.extra.tradPaverBasePrice.toFixed(2)}/SF + $${(result.unitPrice - result.fullSpec.extra.tradPaverBasePrice).toFixed(2)} upgrade = $${result.unitPrice.toFixed(2)}/SF</div>` : ''}
+          <div>Cost: $${Math.round(result.costDesigned).toLocaleString()}</div>
+        </div>
+        
+        ${issues.length > 0 ? `
+          <div class="mt-3 pt-3 border-t border-slate-200">
+            <ul class="text-sm space-y-1">
+              ${issues.map(issue => `<li class="text-red-600">• ${issue}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+    `;
+    
+    return `
+      <details class="result-item" style="border-color: ${cardBorderColor};">
+        <summary class="result-summary-row">
+          <span class="font-semibold text-slate-800">${nameHtml}</span>
+          <span class="flex items-center gap-2">
+            <span class="badge ${badgeClass}">${badgeText}</span>
+            <span class="expand-icon" aria-hidden="true">▶</span>
+          </span>
+        </summary>
+        <div class="result-detail-body" style="border-color: ${cardBorderColor};">
+          ${detailBody}
+        </div>
+      </details>
+    `;
+  }
+
+  function renderGroup(headerLabel, headerClass, items) {
+    if (items.length === 0) return '';
+    const count = items.length;
+    return `
+      <div class="results-group">
+        <div class="results-group-header ${headerClass}">${headerLabel} (${count})</div>
+        <div class="results-group-items">${items.map(renderResultItem).join('')}</div>
+      </div>
+    `;
+  }
+
+  container.innerHTML =
+    renderGroup('Meets requirements', 'results-group-meets', meets) +
+    renderGroup('Partially meets', 'results-group-partial', partial) +
+    renderGroup('Does not meet', 'results-group-fails', doesNotMeet);
+
+  // If "Expand all" is checked, open all result details
+  const expandAll = document.getElementById('results-expand-all');
+  if (expandAll && expandAll.checked) {
+    container.querySelectorAll('details.result-item').forEach(d => { d.open = true; });
+  }
+}
+
+function renderRecommendation(calcResults, v1Inputs) {
+  const container = document.getElementById('recommendation-container');
+  const { recommended, bestValue, results } = calcResults;
+  
+  if (!recommended) {
+    container.innerHTML = `
+      <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+        <p class="font-semibold text-red-900 mb-2">No Viable Options</p>
+        <p class="text-red-800 text-sm mb-3">None of the BMP options meet your requirements with the current site constraints.</p>
+        <ul class="text-sm text-red-700 space-y-1">
+          <li>• Consider increasing available area</li>
+          <li>• Consider increasing depth allowance</li>
+          <li>• Consider adding detention capacity</li>
+          <li>• Review site constraints (utilities, water table, soil)</li>
+          <li>• Use Deep Dive section for detailed analysis</li>
+        </ul>
+      </div>
+    `;
+    return;
+  }
+  
+  const targetRet = v1Inputs.targetRetentionCF || 0;
+  const targetDet = v1Inputs.targetDetentionCF || 0;
+  
+    // Determine if recommendation is green roof or underground
+    const isRecGreenRoof = [8, 9].includes(recommended.id);
+    const isRecUnderground = [2, 3, 4, 5].includes(recommended.id);
+    const recBgColor = isRecGreenRoof ? '#87D292' : isRecUnderground ? '#F2F2F2' : '#C5B2E2';
+    const recBorderColor = isRecGreenRoof ? '#38AF62' : isRecUnderground ? '#5D5D5D' : '#8A48B5';
+    const recTextColor = isRecGreenRoof ? '#378D4D' : isRecUnderground ? '#262626' : '#674296';
+    
+    container.innerHTML = `
+    <div class="p-4 rounded-lg border mb-4" style="background: ${recBgColor}; border-color: ${recBorderColor};">
+      <p class="font-semibold mb-2" style="color: ${recTextColor};">Top Recommendation: ${recommended.name}</p>
+      <ul class="text-sm space-y-1 mb-3" style="color: ${recTextColor};">
+        <li>• Meets ${targetRet > 0 ? 'retention' : ''} ${targetRet > 0 && targetDet > 0 ? 'and ' : ''}${targetDet > 0 ? 'detention' : ''} requirements</li>
+        <li>• Cost: $${Math.round(recommended.costDesigned).toLocaleString()}</li>
+        <li>• Area Required: ${Math.round(recommended.grossDesignedArea).toLocaleString()} SF</li>
+        ${recommended.retDesigned > 0 ? `<li>• Retention: ${recommended.retDesigned.toFixed(1)} CF</li>` : ''}
+        ${recommended.detDesigned > 0 ? `<li>• Detention: ${recommended.detDesigned.toFixed(1)} CF</li>` : ''}
+      </ul>
+    </div>
+    
+    ${bestValue && bestValue.id !== recommended.id ? `
+      <div class="p-4 rounded-lg border" style="background: #87D292; border-color: #38AF62;">
+        <p class="font-semibold mb-2" style="color: #378D4D;">Best Value Alternative: ${bestValue.name}</p>
+        <p class="text-sm" style="color: #378D4D;">Lower cost option at $${Math.round(bestValue.costDesigned).toLocaleString()}</p>
+      </div>
+    ` : ''}
+  `;
+}
+
+function updateStickyBar(calcResults = null) {
+  if (!currentCity) return;
+  const city = CITY_DATA[currentCity];
+  document.getElementById('sticky-city').textContent = city.name.split(',')[0];
+  
+  let targetText = '';
+  if (salesModeState.detentionNeeded && salesModeState.retentionNeeded) {
+    targetText = `${salesModeState.targetDetentionCF} CF Det / ${salesModeState.targetRetentionCF} CF Ret`;
+  } else if (salesModeState.detentionNeeded) {
+    targetText = `${salesModeState.targetDetentionCF} CF Det`;
+  } else if (salesModeState.retentionNeeded) {
+    targetText = `${salesModeState.targetRetentionCF} CF Ret`;
+  } else {
+    targetText = 'No targets set';
+  }
+  document.getElementById('sticky-target').textContent = targetText;
+  
+  let recText = 'See results below';
+  if (calcResults && calcResults.recommended) {
+    recText = calcResults.recommended.name;
+  }
+  document.getElementById('sticky-recommendation').textContent = recText;
+}
+
+function copyShareLink() {
+  const url = getShareLink();
+  navigator.clipboard.writeText(url).then(() => {
+    alert('Share link copied to clipboard!');
+  });
+}
+
+function getShareLink() {
+  const params = new URLSearchParams();
+  if (currentCity) params.set('city', currentCity);
+  
+  // Project Details
+  if (salesModeState.projectName) params.set('projectName', salesModeState.projectName);
+  if (salesModeState.projectAddress) params.set('projectAddress', salesModeState.projectAddress);
+  if (salesModeState.clientName) params.set('clientName', salesModeState.clientName);
+  
+  // Targets
+  params.set('targetDetentionCF', salesModeState.targetDetentionCF);
+  params.set('targetRetentionCF', salesModeState.targetRetentionCF);
+  params.set('detentionNeeded', salesModeState.detentionNeeded);
+  params.set('retentionNeeded', salesModeState.retentionNeeded);
+  
+  // At-Grade Areas
+  params.set('perviousLandscapingUsable', salesModeState.perviousLandscapingUsable);
+  params.set('imperviousVehicularPavement', salesModeState.imperviousVehicularPavement);
+  params.set('imperviousPedestrianPavement', salesModeState.imperviousPedestrianPavement);
+  
+  // On-Structure Areas
+  params.set('flatDeckOnStructureArea', salesModeState.flatDeckOnStructureArea);
+  params.set('slopedRoofArea', salesModeState.slopedRoofArea);
+  params.set('paversOnStructureArea', salesModeState.paversOnStructureArea);
+  params.set('imperviousCAUntreated', salesModeState.imperviousCAUntreated);
+  
+  // Site Conditions
+  params.set('greenRoofAlreadyInScope', salesModeState.greenRoofAlreadyInScope);
+  params.set('hasUndergroundUtilities', salesModeState.hasUndergroundUtilities);
+  params.set('hasHighWaterTable', salesModeState.hasHighWaterTable);
+  params.set('hasContaminatedSoil', salesModeState.hasContaminatedSoil);
+  
+  return window.location.origin + window.location.pathname + '?' + params.toString();
+}
+
+function loadStateFromUrl() {
+  // Restore project info from localStorage first (URL params below will override when present)
+  loadProjectInfoFromStorage();
+
+  const params = new URLSearchParams(window.location.search);
+  const city = params.get('city');
+  if (city && CITY_DATA[city]) {
+    selectCity(city);
+  }
+  
+  // Load all inputs from URL params (if present)
+  if (params.get('projectName')) salesModeState.projectName = params.get('projectName');
+  if (params.get('projectAddress')) salesModeState.projectAddress = params.get('projectAddress');
+  if (params.get('clientName')) salesModeState.clientName = params.get('clientName');
+  if (params.get('targetDetentionCF')) salesModeState.targetDetentionCF = parseFloat(params.get('targetDetentionCF')) || 0;
+  if (params.get('targetRetentionCF')) salesModeState.targetRetentionCF = parseFloat(params.get('targetRetentionCF')) || 0;
+  if (params.get('detentionNeeded')) salesModeState.detentionNeeded = params.get('detentionNeeded') === 'true';
+  if (params.get('retentionNeeded')) salesModeState.retentionNeeded = params.get('retentionNeeded') === 'true';
+  
+  // At-Grade Areas
+  if (params.get('perviousLandscapingUsable')) salesModeState.perviousLandscapingUsable = parseFloat(params.get('perviousLandscapingUsable')) || 0;
+  if (params.get('imperviousVehicularPavement')) salesModeState.imperviousVehicularPavement = parseFloat(params.get('imperviousVehicularPavement')) || 0;
+  if (params.get('imperviousPedestrianPavement')) salesModeState.imperviousPedestrianPavement = parseFloat(params.get('imperviousPedestrianPavement')) || 0;
+  
+  // On-Structure Areas
+  if (params.get('flatDeckOnStructureArea')) salesModeState.flatDeckOnStructureArea = parseFloat(params.get('flatDeckOnStructureArea')) || 0;
+  if (params.get('slopedRoofArea')) salesModeState.slopedRoofArea = parseFloat(params.get('slopedRoofArea')) || 0;
+  if (params.get('paversOnStructureArea')) salesModeState.paversOnStructureArea = parseFloat(params.get('paversOnStructureArea')) || 0;
+  if (params.get('imperviousCAUntreated')) salesModeState.imperviousCAUntreated = parseFloat(params.get('imperviousCAUntreated')) || 0;
+  
+  // Site Conditions
+  if (params.get('greenRoofAlreadyInScope')) salesModeState.greenRoofAlreadyInScope = params.get('greenRoofAlreadyInScope') === 'true';
+  if (params.get('hasUndergroundUtilities')) salesModeState.hasUndergroundUtilities = params.get('hasUndergroundUtilities') === 'true';
+  if (params.get('hasHighWaterTable')) salesModeState.hasHighWaterTable = params.get('hasHighWaterTable') === 'true';
+  if (params.get('hasContaminatedSoil')) salesModeState.hasContaminatedSoil = params.get('hasContaminatedSoil') === 'true';
+  
+  // Update all UI fields after loading from URL
+  initializeInputFields();
+}
+
+function saveStateToUrl() {
+  // Don't auto-save to URL on every change to avoid cluttering history
+  // User can use Share Link button
+}
+
+function scrollToDeepDive() {
+  const deepDive = document.querySelector('details');
+  if (deepDive) {
+    deepDive.open = true;
+    deepDive.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// Leaflet map instances
+let usMap = null;
+let cityMarkers = [];
+let cityMap = null; // For individual city page
+
+// Image tooltips on result system names (event delegation for dynamically added content)
+function setupImageTooltips() {
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  function showOneTooltip(container) {
+    const tooltip = container.querySelector('.image-tooltip');
+    if (!tooltip) return;
+    const img = tooltip.querySelector('img');
+    if (!img) return;
+    document.querySelectorAll('.image-tooltip.show').forEach(t => {
+      if (t !== tooltip) { t.style.visibility = 'hidden'; t.style.opacity = '0'; t.style.display = 'none'; t.classList.remove('show'); }
+    });
+    tooltip.style.visibility = 'visible';
+    tooltip.style.opacity = '0';
+    tooltip.style.left = '0';
+    tooltip.style.top = '0';
+    tooltip.style.display = 'block';
+    const positionTooltip = () => {
+      void tooltip.offsetWidth;
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const vw = window.innerWidth, vh = window.innerHeight;
+      let left = (vw - tooltipRect.width) / 2, top = (vh - tooltipRect.height) / 2;
+      const pad = 20;
+      left = Math.max(pad, Math.min(left, vw - tooltipRect.width - pad));
+      top = Math.max(pad, Math.min(top, vh - tooltipRect.height - pad));
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
+      tooltip.classList.add('show');
+      setTimeout(() => { tooltip.style.opacity = '1'; }, 10);
+    };
+    if (img.complete) positionTooltip();
+    else { img.onload = positionTooltip; img.onerror = () => { tooltip.style.visibility = 'hidden'; tooltip.style.display = 'none'; }; }
+  }
+
+  function hideAllTooltips() {
+    document.querySelectorAll('.image-tooltip.show').forEach(t => {
+      t.style.visibility = 'hidden'; t.style.opacity = '0'; t.style.display = 'none'; t.classList.remove('show');
+    });
+  }
+
+  if (isTouch) {
+    document.addEventListener('click', function(e) {
+      const container = e.target.closest('.image-tooltip-container');
+      if (container) {
+        const tooltip = container.querySelector('.image-tooltip');
+        if (tooltip && tooltip.classList.contains('show')) {
+          hideAllTooltips();
+        } else if (tooltip) {
+          showOneTooltip(container);
+        }
+      } else {
+        hideAllTooltips();
+      }
+    }, true);
+  }
+
+  document.addEventListener('mouseenter', function(e) {
+    if (isTouch) return;
+    const container = e.target.closest('.image-tooltip-container');
+    if (!container) return;
+    showOneTooltip(container);
+  }, true);
+  document.addEventListener('mouseleave', function(e) {
+    if (isTouch) return;
+    const container = e.target.closest('.image-tooltip-container');
+    if (!container) return;
+    const tooltip = container.querySelector('.image-tooltip');
+    if (!tooltip) return;
+    tooltip.style.visibility = 'hidden';
+    tooltip.style.opacity = '0';
+    tooltip.style.display = 'none';
+    tooltip.classList.remove('show');
+  }, true);
+}
+
+// Initialize on load
+window.onload = init;
+</script>
+</body>
+</html>

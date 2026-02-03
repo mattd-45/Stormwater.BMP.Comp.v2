@@ -1,0 +1,10 @@
+{
+  "name": "stormwater-bmp-comparison",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npx serve . -l 3000",
+    "serve": "npx serve . -l 3000"
+  },
+  "description": "Run 'npm run start' or double-click start-server.bat, then open http://localhost:3000"
+}
