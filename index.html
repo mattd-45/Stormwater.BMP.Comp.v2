@@ -163,6 +163,54 @@
     .results-group-partial { background: #F9D864; color: #A6872B; }
     .results-group-fails { background: #F37D7D; color: #A83838; }
     .results-group-items { display: flex; flex-direction: column; gap: 8px; }
+    /* Raindrop overlay when running comparison */
+    .rain-overlay {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 25%;
+      right: 25%;
+      pointer-events: none;
+      z-index: 1200;
+      overflow: hidden;
+      background: transparent;
+    }
+    .raindrop {
+      position: absolute;
+      top: -15%;
+      width: 14px;
+      height: 52px;
+      background: linear-gradient(to bottom, rgba(191,219,254,0.3), rgba(37,99,235,0.98));
+      /* Teardrop: point at top, rounded bulb at bottom — widest at bottom, taper to tip */
+      clip-path: polygon(50% 0%, 65% 42%, 72% 88%, 50% 100%, 28% 88%, 35% 42%);
+      opacity: 0.98;
+      filter: drop-shadow(0 0 6px rgba(59,130,246,0.9));
+      animation-name: rain-fall;
+      animation-timing-function: linear;
+      animation-iteration-count: 1;
+      transform-origin: center top;
+    }
+    @keyframes rain-fall {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      100% { transform: translateY(130vh); opacity: 0; }
+    }
+    /* Lightning / thunder */
+    .lightning-flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1300;
+      background: radial-gradient(circle at top, rgba(255,255,255,0.95), rgba(255,255,255,0));
+      opacity: 0;
+      animation: lightning-flash 0.5s ease-out forwards;
+    }
+    @keyframes lightning-flash {
+      0% { opacity: 0; }
+      5% { opacity: 1; }
+      30% { opacity: 0.35; }
+      100% { opacity: 0; }
+    }
     .site-area-bar { width: 100%; }
     .site-area-bar-wide { min-height: 80px; aspect-ratio: 2.2 / 1; max-height: 180px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.15); overflow: hidden; }
     .site-area-seg { min-width: 2px; position: relative; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); border-right: 1px solid rgba(255,255,255,0.25); transition: width 0.35s ease; }
@@ -202,6 +250,9 @@
       #us-map-container, #city-mini-map { touch-action: manipulation; }
       #city-select { min-height: 48px; font-size: 16px; padding: 12px 16px; -webkit-appearance: none; appearance: none; }
       .city-marker .leaflet-marker-icon { min-width: 44px !important; min-height: 44px !important; }
+      /* Smaller BMP hover images on touch devices (~50% desktop size) */
+      .image-tooltip { max-width: 400px; }
+      .image-tooltip img { max-width: 360px; max-height: 360px; }
       input:not([type="checkbox"]):not([type="radio"]), select { font-size: 16px !important; min-height: 44px; }
       textarea { font-size: 16px !important; }
       input[type="checkbox"], input[type="radio"] { min-width: 24px; min-height: 24px; }
@@ -323,7 +374,7 @@
   <div class="max-w-4xl mx-auto">
     <!-- Logo -->
     <div class="landing-logo-wrap flex justify-end">
-      <img src="images/LBG_Logo.png" alt="LBG Logo" class="h-12 md:h-16 w-auto" onerror="this.style.display='none'" />
+      <img src="images/LOGO_SEMPERGREEN.png" alt="Sempergreen Logo" class="h-12 md:h-16 w-auto" onerror="this.style.display='none'" />
     </div>
 
     <!-- Hero -->
@@ -418,17 +469,17 @@
     
     <!-- Header -->
     <div class="mb-8">
-      <!-- Logo in top right -->
-      <div class="flex justify-end mb-4">
-        <img src="images/LBG_Logo.png" alt="LBG Logo" class="h-12 md:h-16 w-auto" onerror="this.style.display='none'" />
+      <!-- Top row: Back to main page (left) + Logo (right) -->
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <button type="button" onclick="showLanding()" class="btn-secondary text-sm">← Back to main page</button>
+        <img src="images/LOGO_SEMPERGREEN.png" alt="Sempergreen Logo" class="h-12 md:h-16 w-auto" onerror="this.style.display='none'" />
       </div>
       
       <div class="text-center">
-        <button onclick="showLanding()" class="mb-4 btn-secondary text-sm">← Back to Cities</button>
-        <div class="flex items-center justify-center gap-4 mb-2">
+        <div class="flex items-center justify-center gap-5 mb-2">
           <!-- Placeholder: rectangular city image (widescreen format) -->
-          <div id="city-icon" class="w-32 h-16 md:w-40 md:h-20 rounded-lg shadow-sm border border-slate-300 bg-white"></div>
-          <h1 id="city-name" class="text-4xl md:text-5xl font-bold text-slate-800"></h1>
+          <div id="city-icon" class="w-40 h-20 md:w-52 md:h-24 rounded-lg shadow-sm border border-slate-300 bg-white"></div>
+          <h1 id="city-name" class="text-5xl md:text-6xl font-bold text-slate-800"></h1>
         </div>
         <p class="text-xl text-slate-600">Comparing roof and BMP options for stormwater management</p>
       </div>
@@ -439,6 +490,14 @@
       <h2>City Overview</h2>
       <div id="city-mini-map" style="height: 300px; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid #999999; background: linear-gradient(to bottom, #96D8F5 0%, #26A3DF 100%);">
         <!-- City map will be rendered here by Leaflet -->
+      </div>
+      <div class="mt-3 space-y-1">
+        <label for="city-map-address" class="block text-xs font-medium text-slate-700">Project address for map (optional)</label>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input type="text" id="city-map-address" placeholder="Street, city, state" class="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+          <button type="button" id="city-map-locate" class="btn-secondary text-xs sm:text-sm whitespace-nowrap" onclick="locateProjectOnCityMap()">Locate on map</button>
+        </div>
+        <p class="text-xs text-slate-500">If provided, the map will zoom to this job location (using OpenStreetMap geocoding).</p>
       </div>
     </div>
     
@@ -476,20 +535,21 @@
         <div class="flex flex-wrap gap-3">
           <a id="stormwater-manual-link" href="#" target="_blank" rel="noopener noreferrer" class="text-sm font-medium underline" style="color: #26A3DF;">Stormwater Management Manual</a>
           <a id="stormwater-regs-link" href="#" target="_blank" rel="noopener noreferrer" class="text-sm font-medium underline" style="color: #26A3DF;">Stormwater Regulations</a>
+          <a id="dc-ms4-link" href="#" target="_blank" rel="noopener noreferrer" class="text-sm font-medium underline" style="color: #26A3DF; display: none;">DC MS4 vs CSS Map →</a>
         </div>
       </div>
     </div>
     
     <!-- Site Inputs -->
     <div class="card">
-      <h2>Project Inputs</h2>
+      <div class="flex items-center justify-between gap-2 mb-4">
+        <h2 class="m-0">Project Inputs</h2>
+        <button type="button" id="project-details-clear-all" class="text-xs px-2 py-1 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">Clear all</button>
+      </div>
       
       <!-- Project Details -->
-      <details open>
-        <summary class="flex items-center justify-between gap-2">
-          <span class="flex items-center gap-2"><span class="expand-icon" aria-hidden="true">▶</span>Project Details</span>
-          <button type="button" id="project-details-clear-all" class="text-xs px-2 py-1 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">Clear all</button>
-        </summary>
+      <details>
+        <summary><span class="expand-icon" aria-hidden="true">▶</span>Project Details</summary>
         <div class="mt-4 space-y-3">
           <div>
             <label class="block mb-1 text-sm font-medium text-slate-700">Project Name</label>
@@ -507,7 +567,7 @@
       </details>
       
       <!-- Targets -->
-      <details open>
+      <details>
         <summary><span class="expand-icon" aria-hidden="true">▶</span>Targets (Cubic Feet)</summary>
         <div class="mt-4 grid grid-cols-2 gap-4">
           <div>
@@ -534,7 +594,7 @@
         <div class="mt-4">
           <div class="site-dimensions-concentric">
             <div class="site-dimensions-inner-box">
-              <h3 class="text-sm font-semibold mb-3" style="color: #378D4D;">At-Grade — Underground Systems</h3>
+              <h3 class="text-sm font-semibold mb-3" style="color: #378D4D;">At-Grade</h3>
               <div class="site-dimensions-cell">
                 <label class="block mb-1 text-sm font-medium" style="color: #378D4D;">Usable Landscape – grass and planting areas (pond/cell/tank eligible)</label>
                 <input type="number" id="input-pervious-landscaping" min="0" step="100" value="1000" class="w-full px-3 py-2 border-2 rounded-lg text-sm focus:ring-2 focus:ring-green-200 focus:border-green-600" style="border-color: #378D4D; background: #e2f0e2;" />
@@ -549,7 +609,7 @@
               </div>
             </div>
             <div class="site-dimensions-inner-box">
-              <h3 class="text-sm font-semibold mb-3" style="color: #378D4D;">On-Structure — Green Roof Systems</h3>
+              <h3 class="text-sm font-semibold mb-3" style="color: #378D4D;">On-Structure</h3>
               <div class="site-dimensions-cell">
                 <label class="block mb-1 text-sm font-medium" style="color: #26629F;">Flat Deck/Plaza- pedestrian/vehicular paving over waterproofing (blue/tank/purple eligible)</label>
                 <input type="number" id="input-flat-deck" min="0" step="100" value="1000" class="w-full px-3 py-2 border-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500" style="border-color: #26A3DF; background: #e3f4fc;" />
@@ -596,8 +656,8 @@
       </details>
       
       <!-- Site area graphic: proportional bar + legend (collapsible) -->
-      <details open>
-        <summary><span class="expand-icon" aria-hidden="true">▶</span>Site area (SF)</summary>
+      <details>
+        <summary><span class="expand-icon" aria-hidden="true">▶</span>Site area</summary>
         <div class="mt-4">
           <div id="site-area-graphic-wrap">
             <div id="site-area-graphic-bar" class="site-area-bar site-area-bar-wide flex">
@@ -787,7 +847,8 @@ const CITY_DATA = {
         "https://doee.dc.gov/solarforall",
         "https://doee.dc.gov/fr/service/commercial-green-incentives",
         "https://programs.dsireusa.org/system/program/dc"
-      ]
+      ],
+      ms4Map: "https://experience.arcgis.com/experience/d03534b10eaa4bd8991df7cf4f9dfb53"
     },
     regs: {
       retention: [
@@ -808,7 +869,8 @@ const CITY_DATA = {
       mineralWoolRetentionPct: 0.80,
       honeycombVoidPct: 0.95
     },
-    regulationProfileId: 'general'
+    regulationProfileId: 'general',
+    icon: "images/IMAGE-washington-dc.jpg"
   },
   chicago: {
     name: "Chicago, IL",
@@ -1399,13 +1461,14 @@ const BMP_OPTIONS_DEFAULT = [
   { id: 4, name: "Below Grade Tank (Dead Space)", areaType: 'atGrade_landscape_veh', unitPrice: 1200, specs: { detentionDepth: 72, freeboard: 24, spaceLoss: 0.15 } },
   { id: 5, name: "Below Grade Tank (Usable Space)", areaType: 'atGrade_landscape_veh', unitPrice: 1500, specs: { detentionDepth: 72, freeboard: 24, spaceLoss: 0.20 } },
   { id: 6, name: "On-Structure Tank (Usable Space)", areaType: 'on_structure_tank', unitPrice: 1500, specs: { detentionDepth: 72, freeboard: 24, spaceLoss: 0.15 } },
-  { id: 7, name: "Blue Roof Cells 6\"", areaType: 'flatDeck_strict', unitPrice: 208.58, specs: { storageDepth: 3, voidRatio: 0.95, freeboard: 0, spaceLoss: 0.05 } },
-  { id: 8, name: "Traditional Green Roof 6\"", areaType: 'sloped_roof', unitPrice: 30, specs: { mediaDepth: 4, detLayerDepth: 0, detVoidRatio: 0.95, spaceLoss: 0.05 } },
-  { id: 9, name: "Sponge Roof 4+2", areaType: 'sloped_roof', unitPrice: 28.39, specs: { mediaDepth: 4, nmwDepth: 2, spaceLoss: 0.05 } },
-  { id: 10, name: "Purple-Roof (Vegetated) 4+1+2", areaType: 'sloped_roof_or_flat_deck', unitPrice: 35.87, specs: { soilDepth: 4, soilPorosity: 0.20, nmwDepth: 1, nmwPorosity: 0.93, hcDepth: 2, hcVoidRatio: 0.95, dlDepth: 0.2, dlPorosity: 0.93, spaceLoss: 0.05 }, extra: { pricingMode: 'black', pricingUpgrade: 15, pricingBase: 40 } },
-  { id: '10B', name: "Purple-Roof (Vegetated) 4+1+4", areaType: 'sloped_roof_or_flat_deck', unitPrice: 43.72, specs: { soilDepth: 4, soilPorosity: 0.20, nmwDepth: 1, nmwPorosity: 0.93, hcDepth: 4, hcVoidRatio: 0.95, dlDepth: 0.2, dlPorosity: 0.93, spaceLoss: 0.05 }, extra: { pricingMode: 'black', pricingUpgrade: 15, pricingBase: 40 } },
-  { id: 11, name: "Purple-Roof (Pavers) P+1+2", areaType: 'pavers_or_sloped_or_flat_deck', unitPrice: 38.79, specs: { hcDepth: 2, hcVoidRatio: 0.95, nmwDepth: 1, nmwRetentionPct: 0.80, spaceLoss: 0.05 }, extra: { tradPaverBasePrice: 22.82 } },
-  { id: '11B', name: "Purple-Roof (Pavers) P+1+4", areaType: 'pavers_or_sloped_or_flat_deck', unitPrice: 47.47, specs: { hcDepth: 4, hcVoidRatio: 0.95, nmwDepth: 1, nmwRetentionPct: 0.80, spaceLoss: 0.05 }, extra: { tradPaverBasePrice: 22.82 } }
+  { id: 7, name: "Blue Roof Cells 6\"", areaType: 'flatDeck_strict', unitPrice: 75, specs: { storageDepth: 3, voidRatio: 0.95, freeboard: 0, spaceLoss: 0.05 } },
+  // Green roof media options – include explicit soilPorosity (credited retention) and NMW retention where applicable
+  { id: 8, name: "Traditional Green Roof 6\"", areaType: 'sloped_roof', unitPrice: 30, specs: { mediaDepth: 4, soilPorosity: 0.20, detLayerDepth: 0, detVoidRatio: 0.95, spaceLoss: 0.05 } },
+  { id: 9, name: "Sponge Roof 4+2", areaType: 'sloped_roof', unitPrice: 28.39, specs: { mediaDepth: 4, soilPorosity: 0.20, nmwDepth: 2, nmwRetentionPct: 0.40, spaceLoss: 0.05 } },
+  { id: 10, name: "Purple-Roof (Vegetated) 4+1+2", areaType: 'sloped_roof_or_flat_deck', unitPrice: 35.87, specs: { soilDepth: 4, soilPorosity: 0.20, nmwDepth: 1, nmwPorosity: 0.93, nmwRetentionPct: 0.40, hcDepth: 2, hcVoidRatio: 0.95, dlDepth: 0.2, dlPorosity: 0.93, spaceLoss: 0.05 }, extra: { pricingMode: 'black', pricingUpgrade: 15, pricingBase: 40 } },
+  { id: '10B', name: "Purple-Roof (Vegetated) 4+1+4", areaType: 'sloped_roof_or_flat_deck', unitPrice: 43.72, specs: { soilDepth: 4, soilPorosity: 0.20, nmwDepth: 1, nmwPorosity: 0.93, nmwRetentionPct: 0.40, hcDepth: 4, hcVoidRatio: 0.95, dlDepth: 0.2, dlPorosity: 0.93, spaceLoss: 0.05 }, extra: { pricingMode: 'black', pricingUpgrade: 15, pricingBase: 40 } },
+  { id: 11, name: "Purple-Roof (Pavers) P+1+2", areaType: 'pavers_or_sloped_or_flat_deck', unitPrice: 38.79, specs: { hcDepth: 2, hcVoidRatio: 0.95, nmwDepth: 1, nmwRetentionPct: 0.40, spaceLoss: 0.05 }, extra: { tradPaverBasePrice: 22.82 } },
+  { id: '11B', name: "Purple-Roof (Pavers) P+1+4", areaType: 'pavers_or_sloped_or_flat_deck', unitPrice: 47.47, specs: { hcDepth: 4, hcVoidRatio: 0.95, nmwDepth: 1, nmwRetentionPct: 0.40, spaceLoss: 0.05 }, extra: { tradPaverBasePrice: 22.82 } }
 ];
 let BMP_OPTIONS = JSON.parse(JSON.stringify(BMP_OPTIONS_DEFAULT));
 
@@ -1486,21 +1549,23 @@ function getEligibleArea(bmp, inputs) {
 function calculateCapacity(bmpId, fullSpec, profile) {
   const { specs } = fullSpec;
   let inRet = 0, inDet = 0;
-  const soilRet = profile.defaults.soilRetentionPct;
-  const nmwRet = profile.defaults.nmwRetentionPct;
+  const soilRetProfile = profile.defaults.soilRetentionPct;
+  // Allow per-BMP spec overrides for credited retention where provided
+  const soilRetForGreenRoof = specs.soilPorosity != null ? specs.soilPorosity : soilRetProfile;
+  const baseNmwRet = specs.nmwRetentionPct != null ? specs.nmwRetentionPct : profile.defaults.nmwRetentionPct;
   const voidRatio = profile.defaults.honeycombVoidPct;
-  const nmwEffectiveRet = (profile.rules.nmwRetentionRequiresMinSoilCoverIn > 0 && (specs.soilDepth || specs.mediaDepth || 0) < profile.rules.nmwRetentionRequiresMinSoilCoverIn) ? 0 : nmwRet;
+  const nmwEffectiveRet = (profile.rules.nmwRetentionRequiresMinSoilCoverIn > 0 && (specs.soilDepth || specs.mediaDepth || 0) < profile.rules.nmwRetentionRequiresMinSoilCoverIn) ? 0 : baseNmwRet;
 
-  if (bmpId == 1) { inRet = specs.soilDepth * soilRet; inDet = specs.freeboard + (specs.soilDepth * specs.soilPorosity) + (specs.gravelDepth * specs.gravelPorosity); }
+  if (bmpId == 1) { inRet = specs.soilDepth * soilRetProfile; inDet = specs.freeboard + (specs.soilDepth * specs.soilPorosity) + (specs.gravelDepth * specs.gravelPorosity); }
   else if (bmpId == 2) { inDet = specs.freeboard + (specs.storageDepth * specs.voidRatio); }
   else if (bmpId == 3) { inDet = specs.reservoirDepth * specs.voidRatio; }
   else if ([4,5,6].includes(bmpId)) { inDet = specs.detentionDepth; }
   else if (bmpId == 7) { inDet = specs.freeboard + (specs.storageDepth * specs.voidRatio); }
-  else if (bmpId == 8) { inRet = specs.mediaDepth * soilRet; inDet = specs.detLayerDepth * specs.detVoidRatio; }
-  else if (bmpId == 9) { inRet = (specs.mediaDepth * soilRet) + (specs.nmwDepth * nmwEffectiveRet); }
-  else if (bmpId == 10 || bmpId == '10B') { inRet = (specs.soilDepth * soilRet) + (specs.nmwDepth * nmwEffectiveRet); const hcVoid = specs.hcVoidRatio || voidRatio; inDet = (specs.soilDepth * specs.soilPorosity) + (specs.hcDepth * hcVoid) + (specs.dlDepth * specs.dlPorosity); }
+  else if (bmpId == 8) { inRet = specs.mediaDepth * soilRetForGreenRoof; inDet = specs.detLayerDepth * specs.detVoidRatio; }
+  else if (bmpId == 9) { inRet = (specs.mediaDepth * soilRetForGreenRoof) + (specs.nmwDepth * nmwEffectiveRet); }
+  else if (bmpId == 10 || bmpId == '10B') { inRet = (specs.soilDepth * soilRetForGreenRoof) + (specs.nmwDepth * nmwEffectiveRet); const hcVoid = specs.hcVoidRatio || voidRatio; inDet = (specs.soilDepth * specs.soilPorosity) + (specs.hcDepth * hcVoid) + (specs.dlDepth * specs.dlPorosity); }
   else if (bmpId == 11 || bmpId == '11B') {
-      let hardscapeNmwRet = specs.nmwRetentionPct !== undefined ? specs.nmwRetentionPct : nmwRet;
+      let hardscapeNmwRet = baseNmwRet;
       if (profile.rules.nmwRetentionRequiresMinSoilCoverIn > 0) hardscapeNmwRet = 0;
       inRet = specs.nmwDepth * hardscapeNmwRet;
       const hardscapeHcVoid = specs.hcVoidRatio || voidRatio;
@@ -1824,6 +1889,23 @@ function initLandingTabs() {
     return esc(displayName);
   }
 
+  function updateBmpRowEditability() {
+    if (!bmpTbody) return;
+    const controlsEnabled = bmpSpecsPanel && !bmpSpecsPanel.classList.contains('hidden');
+    bmpTbody.querySelectorAll('tr[data-bmp-index]').forEach(row => {
+      const idx = parseInt(row.getAttribute('data-bmp-index') || '-1', 10);
+      const areaSelect = row.querySelector('.bmpdb-input-area');
+      const priceInput = row.querySelector('.bmpdb-input-price');
+      const allowEdit = controlsEnabled && idx === currentBmpIndex;
+      [areaSelect, priceInput].forEach(ctrl => {
+        if (!ctrl) return;
+        ctrl.disabled = !allowEdit;
+        ctrl.classList.toggle('opacity-60', !allowEdit);
+        ctrl.classList.toggle('cursor-not-allowed', !allowEdit);
+      });
+    });
+  }
+
   function renderBmpTable() {
     if (!bmpTbody) return;
     bmpTbody.innerHTML = '';
@@ -1849,12 +1931,22 @@ function initLandingTabs() {
       specBtn.className = 'btn-secondary bmpdb-specs-btn';
       specBtn.textContent = 'Specs';
       specBtn.addEventListener('click', () => {
+        // If this BMP is already active and panel is open, clicking again closes Specs
+        const isOpen = bmpSpecsPanel && !bmpSpecsPanel.classList.contains('hidden');
+        if (isOpen && currentBmpIndex === i) {
+          if (bmpSpecsPanel) bmpSpecsPanel.classList.add('hidden');
+          document.querySelectorAll('.bmpdb-specs-btn').forEach(btn => btn.classList.remove('specs-active'));
+          currentBmpIndex = -1;
+          updateBmpRowEditability();
+          return;
+        }
         currentBmpIndex = i;
         document.querySelectorAll('.bmpdb-specs-btn').forEach(btn => btn.classList.remove('specs-active'));
         specBtn.classList.add('specs-active');
         setSpecsPanelBmpName(bmp.name || ('BMP ' + (i + 1)), bmp.id);
         populateBmpForm(i);
         if (bmpSpecsPanel) bmpSpecsPanel.classList.remove('hidden');
+        updateBmpRowEditability();
       });
       tr.innerHTML = '<td class="text-slate-500 py-2 px-3">' + (i + 1) + '</td>';
       tr.appendChild(nameTd);
@@ -1871,6 +1963,7 @@ function initLandingTabs() {
         if (btn) btn.classList.add('specs-active');
       }
     }
+    updateBmpRowEditability();
   }
 
   function populateBmpForm(index) {
@@ -1879,6 +1972,13 @@ function initLandingTabs() {
     const defaultBmp = BMP_OPTIONS_DEFAULT[index] || null;
     const defaultSpecs = defaultBmp && defaultBmp.specs ? defaultBmp.specs : {};
     bmpSpecsContainer.innerHTML = '';
+    // Unit price ($/SF) editor, shown along with specs
+    const unitDiv = document.createElement('div');
+    unitDiv.className = 'flex flex-col';
+    unitDiv.innerHTML = '<label for="bmpdb-unit-price" class="text-sm font-medium mb-0.5">Unit price ($/SF)</label><input type="number" id="bmpdb-unit-price" min="0" step="0.01" class="border rounded px-3 py-2 text-sm" style="border-color: #999999;" />';
+    const unitInput = unitDiv.querySelector('input');
+    if (unitInput) unitInput.value = bmp.unitPrice != null ? bmp.unitPrice : '';
+    bmpSpecsContainer.appendChild(unitDiv);
     const specs = bmp.specs || {};
     Object.keys(specs).sort().forEach(key => {
       const label = BMP_SPEC_LABELS[key] || (key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()));
@@ -1911,6 +2011,13 @@ function initLandingTabs() {
       const priceIn = row.querySelector('.bmpdb-input-price');
       if (areaIn) areaType = areaIn.value || areaType;
       if (priceIn) { const v = parseFloat(priceIn.value); if (Number.isFinite(v)) unitPrice = v; }
+    }
+    if (bmpSpecsContainer) {
+      const unitIn = bmpSpecsContainer.querySelector('#bmpdb-unit-price');
+      if (unitIn) {
+        const v = parseFloat(unitIn.value);
+        if (Number.isFinite(v)) unitPrice = v;
+      }
     }
     const specs = { ...(bmp.specs || {}) };
     if (bmpSpecsContainer) {
@@ -2040,6 +2147,7 @@ function initializeInputFields() {
   if (document.getElementById('input-project-name')) document.getElementById('input-project-name').value = salesModeState.projectName;
   if (document.getElementById('input-project-address')) document.getElementById('input-project-address').value = salesModeState.projectAddress;
   if (document.getElementById('input-client-name')) document.getElementById('input-client-name').value = salesModeState.clientName;
+  if (document.getElementById('city-map-address')) document.getElementById('city-map-address').value = salesModeState.projectAddress;
   
   if (document.getElementById('input-detention-needed')) document.getElementById('input-detention-needed').checked = salesModeState.detentionNeeded;
   if (document.getElementById('input-retention-needed')) document.getElementById('input-retention-needed').checked = salesModeState.retentionNeeded;
@@ -2306,6 +2414,7 @@ function selectCity(cityKey) {
     // Official docs section
     const manualLink = document.getElementById('stormwater-manual-link');
     const regsLink = document.getElementById('stormwater-regs-link');
+    const dcMs4Link = document.getElementById('dc-ms4-link');
     if (manualLink) {
       if (city.links.stormwaterManual) {
         manualLink.href = city.links.stormwaterManual;
@@ -2322,6 +2431,14 @@ function selectCity(cityKey) {
         regsLink.style.display = '';
       } else {
         regsLink.style.display = 'none';
+      }
+    }
+    if (dcMs4Link) {
+      if (city.links.ms4Map) {
+        dcMs4Link.href = city.links.ms4Map;
+        dcMs4Link.style.display = '';
+      } else {
+        dcMs4Link.style.display = 'none';
       }
     }
 
@@ -2442,6 +2559,7 @@ function selectCity(cityKey) {
 // Rainfall / time series images per city (add more as images are added to images folder)
 const RAINFALL_IMAGES = {
   nyc: 'images/IMAGE-time-series-new-york.png',
+  dc: 'images/IMAGE-washington-rainfall.jpg',
   chicago: 'images/IMAGE-time-series-chicago.png',
   boston: 'images/IMAGE-time-series-boston.png'
 };
@@ -2645,6 +2763,99 @@ function renderCityMiniMap(city) {
   }, 100);
 }
 
+// Geocode and center the city map on the specific project address (if provided)
+function locateProjectOnCityMap() {
+  const addrInput = document.getElementById('city-map-address');
+  if (!addrInput) return;
+  const city = currentCity ? CITY_DATA[currentCity] : null;
+  if (!city) {
+    alert('Please select a city first so the map can be centered.');
+    return;
+  }
+  // Ensure city map is initialized
+  if (!cityMap) {
+    renderCityMiniMap(city);
+  }
+  const raw = (addrInput.value || '').trim() || (salesModeState.projectAddress || '').trim();
+  if (!raw) {
+    alert('Enter a project address to locate on the map.');
+    return;
+  }
+  const query = city ? `${raw}, ${city.name}` : raw;
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+  fetch(url)
+    .then(r => r.json())
+    .then(results => {
+      if (!results || !results.length) {
+        alert('Could not find that address on the map.');
+        return;
+      }
+      const hit = results[0];
+      const lat = parseFloat(hit.lat);
+      const lon = parseFloat(hit.lon);
+      if (!isFinite(lat) || !isFinite(lon)) return;
+      cityMap.setView([lat, lon], 16);
+      if (projectLocationMarker) {
+        cityMap.removeLayer(projectLocationMarker);
+      }
+      projectLocationMarker = L.marker([lat, lon]).addTo(cityMap).bindPopup('Project location').openPopup();
+    })
+    .catch(() => {
+      alert('There was a problem looking up that address.');
+    });
+}
+
+// Simple raindrop effect when running comparison
+function triggerRainEffect() {
+  try {
+    if (rainTimeoutId) {
+      clearTimeout(rainTimeoutId);
+      rainTimeoutId = null;
+    }
+    const existing = document.getElementById('rain-overlay');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'rain-overlay';
+    overlay.className = 'rain-overlay';
+    const dropCount = 70;
+    const slotWidth = 100 / dropCount;
+    for (let i = 0; i < dropCount; i++) {
+      const d = document.createElement('div');
+      d.className = 'raindrop';
+      // Space drops roughly evenly across the overlay width with some jitter
+      const base = i * slotWidth;
+      const jitter = (Math.random() - 0.5) * slotWidth * 0.6;
+      const left = Math.max(0, Math.min(100, base + jitter));
+      const delay = Math.random() * 1.0; // seconds
+      const duration = 0.8 + Math.random() * 1.2; // ~0.8–2.0s
+      d.style.left = left + '%';
+      d.style.animationDuration = duration + 's';
+      d.style.animationDelay = delay + 's';
+      overlay.appendChild(d);
+    }
+    document.body.appendChild(overlay);
+
+    // Lightning: 1–2 flashes during the storm (no screen shake)
+    const doLightning = () => {
+      const flash = document.createElement('div');
+      flash.className = 'lightning-flash';
+      document.body.appendChild(flash);
+      setTimeout(() => {
+        flash.remove();
+      }, 550);
+    };
+    setTimeout(doLightning, 300 + Math.random() * 400);
+    setTimeout(doLightning, 900 + Math.random() * 500);
+
+    rainTimeoutId = setTimeout(() => {
+      overlay.remove();
+      rainTimeoutId = null;
+    }, 3500);
+  } catch (e) {
+    // Fail silently if DOM not available
+  }
+}
+
 function showLanding() {
   document.getElementById('landing-page').classList.remove('hidden');
   document.getElementById('city-page').classList.add('hidden');
@@ -2662,11 +2873,39 @@ function setupEventListeners() {
   document.getElementById('input-project-address').addEventListener('input', (e) => {
     salesModeState.projectAddress = e.target.value;
     saveProjectInfoToStorage();
+    const mapAddr = document.getElementById('city-map-address');
+    if (mapAddr && mapAddr.value !== e.target.value) {
+      mapAddr.value = e.target.value;
+    }
   });
   document.getElementById('input-client-name').addEventListener('input', (e) => {
     salesModeState.clientName = e.target.value;
     saveProjectInfoToStorage();
   });
+  const cityMapAddress = document.getElementById('city-map-address');
+  const cityMapLocate = document.getElementById('city-map-locate');
+  if (cityMapAddress) {
+    cityMapAddress.addEventListener('input', (e) => {
+      salesModeState.projectAddress = e.target.value;
+      saveProjectInfoToStorage();
+      const projAddr = document.getElementById('input-project-address');
+      if (projAddr && projAddr.value !== e.target.value) {
+        projAddr.value = e.target.value;
+      }
+    });
+    cityMapAddress.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        locateProjectOnCityMap();
+      }
+    });
+  }
+  if (cityMapLocate) {
+    cityMapLocate.addEventListener('click', (e) => {
+      e.preventDefault();
+      locateProjectOnCityMap();
+    });
+  }
   document.getElementById('project-details-clear-all').addEventListener('click', (e) => {
     e.stopPropagation(); // don't toggle the details open/close
     // Project info
@@ -2771,7 +3010,10 @@ function runComparison() {
     alert('Please select a city first');
     return;
   }
-  
+  // Fun: brief raindrop animation; show results only 2 seconds after rain ends
+  triggerRainEffect();
+  const showResultsAtMs = 2250;
+
   // Show loading state
   const resultsSection = document.getElementById('results-section');
   resultsSection.classList.remove('hidden');
@@ -2779,19 +3021,18 @@ function runComparison() {
   const recommendationContainer = document.getElementById('recommendation-container');
   resultsContainer.innerHTML = '<div class="p-4 text-center"><p>Calculating...</p></div>';
   recommendationContainer.innerHTML = '';
-  
-  // Adapt inputs
+
+  // Adapt inputs and run calculations (sync)
   const cityData = CITY_DATA[currentCity];
   const v1Inputs = adaptSalesInputsToV1(salesModeState, cityData);
-  
-  // Run calculations
   const calcResults = runCalculations(v1Inputs, cityData.regulationProfileId);
-  
-  // Render results
-  renderResults(calcResults, v1Inputs);
-  renderRecommendation(calcResults, v1Inputs);
-  
-  updateStickyBar(calcResults);
+
+  // Show results only after rain ends + 2 seconds
+  setTimeout(() => {
+    renderResults(calcResults, v1Inputs);
+    renderRecommendation(calcResults, v1Inputs);
+    updateStickyBar(calcResults);
+  }, showResultsAtMs);
 }
 
 function renderResults(calcResults, v1Inputs) {
@@ -2799,6 +3040,23 @@ function renderResults(calcResults, v1Inputs) {
   const { results } = calcResults;
   const targetRet = v1Inputs.targetRetentionCF || 0;
   const targetDet = v1Inputs.targetDetentionCF || 0;
+
+  // When a traditional green roof is already in scope, compute upgrade deltas
+  // for Purple-Roof vegetated options so users can compare incremental cost.
+  const greenRoofInScope = typeof salesModeState !== 'undefined' && !!salesModeState.greenRoofAlreadyInScope;
+  const paversOnStructurePopulated = typeof salesModeState !== 'undefined' && (salesModeState.paversOnStructureArea || 0) > 0;
+  const upgradeDeltas = {};
+  if (greenRoofInScope) {
+    const tradGreen = results.find(r => r.id === 8 && r.isViable && r.costDesigned > 0);
+    if (tradGreen) {
+      [10, '10B'].forEach(pid => {
+        const purple = results.find(r => r.id === pid && r.isViable && r.costDesigned > 0);
+        if (purple) {
+          upgradeDeltas[pid] = purple.costDesigned - tradGreen.costDesigned;
+        }
+      });
+    }
+  }
 
   // Sort: Meets first (by cost), then Partial (by cost), then Does Not Meet (by cost)
   const tier = (r) => {
@@ -2853,6 +3111,7 @@ function renderResults(calcResults, v1Inputs) {
     const detBarClass = detPct >= 99 ? 'detention' : detPct >= 50 ? 'partial' : 'fail';
     
     const issues = [...result.blockers, ...result.warnings];
+    const costPerSf = result.grossDesignedArea > 0 ? (result.costDesigned / result.grossDesignedArea) : 0;
     
     const detailBody = `
         ${targetRet > 0 ? `
@@ -2881,8 +3140,20 @@ function renderResults(calcResults, v1Inputs) {
         
         <div class="text-sm text-slate-600 mb-3">
           <div>Area Used: ${Math.round(result.grossDesignedArea).toLocaleString()} SF</div>
-          ${(result.id === 11 || result.id === '11B') && result.fullSpec && result.fullSpec.extra && result.fullSpec.extra.tradPaverBasePrice != null ? `<div>Pricing: Trad Paver $${result.fullSpec.extra.tradPaverBasePrice.toFixed(2)}/SF + $${(result.unitPrice - result.fullSpec.extra.tradPaverBasePrice).toFixed(2)} upgrade = $${result.unitPrice.toFixed(2)}/SF</div>` : ''}
-          <div>Cost: $${Math.round(result.costDesigned).toLocaleString()}</div>
+          <div>Cost: $${Math.round(result.costDesigned).toLocaleString()}${costPerSf > 0 ? ` ($${costPerSf.toFixed(2)}/SF)` : ''}</div>
+          ${greenRoofInScope && (result.id === 10 || result.id === '10B') && upgradeDeltas[result.id] != null
+            ? `<div class="mt-1 text-xs text-slate-500">Upgrade vs Traditional Green Roof 6&quot;: +$${Math.round(upgradeDeltas[result.id]).toLocaleString()} (incremental cost for stormwater performance)</div>`
+            : ''}
+          ${paversOnStructurePopulated && (result.id === 11 || result.id === '11B') && result.fullSpec && result.fullSpec.extra && result.fullSpec.extra.tradPaverBasePrice != null
+            ? (() => {
+                const basePerSf = result.fullSpec.extra.tradPaverBasePrice;
+                const baselineCost = result.grossDesignedArea * basePerSf;
+                const delta = result.costDesigned - baselineCost;
+                if (!isFinite(delta) || Math.abs(delta) < 1) return '';
+                const deltaRounded = Math.round(delta);
+                return `<div class="mt-1 text-xs text-slate-500">Upgrade vs Traditional Pavers on Structure: +$${deltaRounded.toLocaleString()} (incremental cost for stormwater performance)</div>`;
+              })()
+            : ''}
         </div>
         
         ${issues.length > 0 ? `
@@ -3108,6 +3379,8 @@ function scrollToDeepDive() {
 let usMap = null;
 let cityMarkers = [];
 let cityMap = null; // For individual city page
+let projectLocationMarker = null; // Marker for specific job address on city map
+let rainTimeoutId = null;
 
 // Image tooltips on result system names (event delegation for dynamically added content)
 function setupImageTooltips() {
