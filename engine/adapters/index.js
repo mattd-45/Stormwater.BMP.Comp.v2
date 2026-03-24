@@ -29,7 +29,8 @@
         constraints: {
           hasUndergroundUtilities: !!s.hasUndergroundUtilities,
           hasHighWaterTable: !!s.hasHighWaterTable,
-          hasContaminatedSoil: !!s.hasContaminatedSoil
+          hasContaminatedSoil: !!s.hasContaminatedSoil,
+          hasSiteGradingConstraint: !!s.hasSiteGradingConstraint
         },
         assumptions: {
           greenRoofAlreadyInScope: !!s.greenRoofAlreadyInScope,
