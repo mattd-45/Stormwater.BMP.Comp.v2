@@ -316,6 +316,28 @@
       .guided-step-connector { width: 16px; }
     }
 
+    /* ── City Quick-Link Pills ──────────────────────────────────── */
+    .city-quick-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 9999px;
+      font-size: 13px; font-weight: 600;
+      text-decoration: none; cursor: pointer;
+      border: 1.5px solid #CBD5E1;
+      color: #475569; background: #FFFFFF;
+      transition: all 0.15s ease;
+    }
+    .city-quick-pill:hover {
+      background: #F1F5F9; border-color: #94A3B8; color: #1E293B;
+    }
+    .city-quick-pill svg { flex-shrink: 0; }
+    /* Engineering (dark) mode */
+    .engineering-mode .city-quick-pill {
+      border-color: #475569; color: #CBD5E1; background: #1E293B;
+    }
+    .engineering-mode .city-quick-pill:hover {
+      background: #334155; border-color: #94A3B8; color: #F1F5F9;
+    }
+
     /* ── Regulation Summary (6-section profile) ─────────────────── */
 
     /* --- Engineering mode: full detail with collapsible sections --- */
@@ -1244,6 +1266,69 @@ body.theme-dark .sticky-bar {
     body.theme-dark .sticky-top-bar .sticky-city-name { color: #E2E8F0; }
     @media print { .sticky-top-bar { display: none !important; } }
 
+    /* ── Admin Overlay ────────────────────────────────────────────────── */
+    .admin-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2000;
+      background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+    }
+    .admin-overlay.open { display: flex; align-items: stretch; justify-content: center; }
+    .admin-panel {
+      position: relative; width: 100%; max-width: 960px;
+      margin: 24px; background: white; border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .admin-panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-bottom: 1px solid #E2E8F0;
+      background: #F8FAFC;
+    }
+    .admin-panel-header h2 { font-size: 16px; font-weight: 700; color: #334155; margin: 0; }
+    .admin-close-btn {
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: #64748B; font-size: 20px; line-height: 1; border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .admin-close-btn:hover { background: #F1F5F9; color: #0F172A; }
+    .admin-tabs {
+      display: flex; border-bottom: 2px solid #E2E8F0; padding: 0 20px;
+      background: #F8FAFC;
+    }
+    .admin-tab {
+      padding: 10px 18px; font-size: 13px; font-weight: 600;
+      color: #64748B; background: none; border: none; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .admin-tab:hover { color: #334155; }
+    .admin-tab.active { color: #7FA329; border-bottom-color: #7FA329; }
+    .admin-tab-content { flex: 1; overflow-y: auto; padding: 20px; }
+    .admin-tab-panel { display: none; }
+    .admin-tab-panel.active { display: block; }
+    .admin-gear-btn {
+      background: none; border: 1px solid #D0D4DA; border-radius: 6px;
+      padding: 4px 8px; cursor: pointer; color: #64748B;
+      font-size: 16px; line-height: 1; transition: background 0.15s, color 0.15s;
+    }
+    .admin-gear-btn:hover { background: #F1F5F9; color: #334155; }
+    body.theme-dark .admin-panel { background: #1E1E1E; }
+    body.theme-dark .admin-panel-header { background: #262626; border-bottom-color: #333; }
+    body.theme-dark .admin-panel-header h2 { color: #E2E8F0; }
+    body.theme-dark .admin-close-btn { color: #94A3B8; }
+    body.theme-dark .admin-close-btn:hover { background: #333; color: #E2E8F0; }
+    body.theme-dark .admin-tabs { background: #262626; border-bottom-color: #333; }
+    body.theme-dark .admin-tab { color: #94A3B8; }
+    body.theme-dark .admin-tab:hover { color: #E2E8F0; }
+    body.theme-dark .admin-tab.active { color: #7FA329; border-bottom-color: #7FA329; }
+    body.theme-dark .admin-tab-content { background: #1E1E1E; }
+    body.theme-dark .admin-gear-btn { color: #94A3B8; border-color: #444; }
+    body.theme-dark .admin-gear-btn:hover { background: #262626; color: #E2E8F0; }
+    @media print { .admin-overlay { display: none !important; } }
+    @media (max-width: 640px) {
+      .admin-panel { margin: 8px; border-radius: 8px; }
+      .admin-tab { padding: 8px 12px; font-size: 12px; }
+    }
+
     /* ── Mode Toggle (Design / Engineering) ───────────────────────────── */
     .mode-toggle {
       display: inline-flex;
@@ -1346,49 +1431,12 @@ body.theme-dark .sticky-bar {
       margin-bottom: 10px;
       line-height: 1.4;
     }
-    /* Proportional site diagram inside preset card */
-    .preset-diagram {
+    /* SVG site-plan diagram inside preset card */
+    .preset-plan-svg {
       width: 100%;
-      height: 48px;
-      border-radius: 6px;
-      overflow: hidden;
-      display: flex;
+      height: 52px;
       margin-bottom: 8px;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
-    }
-    .preset-seg {
-      position: relative;
-      min-width: 1px;
-      transition: width 0.3s ease;
-    }
-    /* Textures via CSS patterns */
-    .preset-seg-building {
-      background: repeating-linear-gradient(
-        45deg, #6B7280 0px, #6B7280 3px, #7B8290 3px, #7B8290 6px
-      );
-    }
-    .preset-seg-landscape {
-      background: repeating-linear-gradient(
-        135deg, #7FA329 0px, #7FA329 2px, #8DB33A 2px, #8DB33A 4px, #7FA329 4px, #7FA329 5px, #6E8F22 5px, #6E8F22 7px
-      );
-    }
-    .preset-seg-parking {
-      background: repeating-linear-gradient(
-        0deg, #999999 0px, #999999 5px, #A8A8A8 5px, #A8A8A8 6px
-      );
-    }
-    .preset-seg-label {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 700;
-      color: white;
-      text-shadow: 0 0 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6);
-      pointer-events: none;
-      overflow: hidden;
+      border-radius: 4px;
     }
     .preset-pcts {
       display: flex;
@@ -1446,6 +1494,8 @@ body.theme-dark .sticky-bar {
       border-left: 2px solid #CBD5E1;
       border-radius: 0 4px 4px 0;
     }
+    /* Design mode hides condition notes — checkboxes still visible */
+    body.mode-design .condition-note { display: none !important; }
   </style>
 </head>
 <body>
@@ -1454,9 +1504,12 @@ body.theme-dark .sticky-bar {
 <div class="sticky-top-bar no-print" id="sticky-top-bar">
   <button type="button" class="sticky-home-btn" onclick="showLanding()">← Home</button>
   <span class="sticky-city-name" id="sticky-city-name"></span>
-  <div class="mode-toggle" id="mode-toggle-sticky">
-    <button type="button" class="mode-toggle-btn active" data-mode="design">Design</button>
-    <button type="button" class="mode-toggle-btn" data-mode="engineering">Engineering</button>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="mode-toggle" id="mode-toggle-sticky">
+      <button type="button" class="mode-toggle-btn active" data-mode="design">Design</button>
+      <button type="button" class="mode-toggle-btn" data-mode="engineering">Engineering</button>
+    </div>
+    <button type="button" class="admin-gear-btn no-print" onclick="openAdminOverlay()" title="Admin Database">⚙</button>
   </div>
 </div>
 
@@ -1469,11 +1522,12 @@ body.theme-dark .sticky-bar {
         <img src="images/LBG_Logo trsp.PNG" alt="LBG Logo" class="h-[140px] md:h-[168px] w-auto" onerror="this.style.display='none'" />
         <img src="images/LOGO_SEMPERGREEN.png" alt="Sempergreen Logo" class="h-[120px] md:h-[160px] w-auto" onerror="this.style.display='none'" />
       </div>
-      <div class="flex justify-end">
+      <div class="flex justify-end items-center gap-2">
         <div class="mode-toggle" id="mode-toggle-landing">
           <button type="button" class="mode-toggle-btn active" data-mode="design">Design</button>
           <button type="button" class="mode-toggle-btn" data-mode="engineering">Engineering</button>
         </div>
+        <button type="button" class="admin-gear-btn no-print" onclick="openAdminOverlay()" title="Admin Database">⚙</button>
       </div>
     </div>
 
@@ -1482,14 +1536,8 @@ body.theme-dark .sticky-bar {
       <h1>Stormwater BMP Comparison</h1>
     </div>
 
-    <!-- Tabs: Select City | Database (non–city-specific data) -->
-    <div class="landing-tabs-wrap flex border-b-2 mb-4 gap-0">
-      <button type="button" id="landing-tab-select" class="landing-tab active px-4 py-2 text-sm font-medium rounded-t border-2 border-b-0 -mb-px">Select City</button>
-      <button type="button" id="landing-tab-bmpdb" class="landing-tab px-4 py-2 text-sm font-medium rounded-t border-2 border-b-0 -mb-px border-l-0">Database</button>
-    </div>
-
-    <!-- Tab: Select City -->
-    <div id="landing-select-tab" class="landing-tab-panel">
+    <!-- City Selection -->
+    <div id="landing-select-tab">
       <div class="landing-card landing-select-wrap">
         <label class="block mb-3">Search or pick a city</label>
         <select id="city-select" class="landing-select w-full min-h-[48px] px-4 py-3 touch-manipulation">
@@ -1503,62 +1551,6 @@ body.theme-dark .sticky-bar {
       </div>
     </div>
 
-    <!-- Tab: Database (view/edit non–city-specific: regulation profiles + BMP options + additional systems) -->
-    <div id="landing-bmpdb-tab" class="landing-tab-panel hidden">
-      <div class="card mb-6">
-        <h2>Database (project-specific parameters)</h2>
-        <p class="text-sm text-slate-600 mb-4">View and edit all BMPs in the table. Change name, area type, or unit price in the row; click <strong>Specs</strong> to edit depths and porosity (in., %). Changes apply for this session.</p>
-        <div class="overflow-x-auto">
-          <table class="bmpdb-table w-full border-collapse text-sm">
-            <thead>
-              <tr class="bg-slate-100 border-b-2 border-slate-300">
-                <th class="text-left py-2 px-3 font-semibold text-slate-700 w-8">#</th>
-                <th class="text-left py-2 px-3 font-semibold text-slate-700">Name</th>
-                <th class="text-left py-2 px-3 font-semibold text-slate-700">Area type</th>
-                <th class="text-left py-2 px-3 font-semibold text-slate-700 w-28">Unit price ($/SF)</th>
-                <th class="text-left py-2 px-3 font-semibold text-slate-700 w-24">Specs</th>
-              </tr>
-            </thead>
-            <tbody id="bmpdb-tbody">
-              <!-- Rows filled by JS -->
-            </tbody>
-          </table>
-        </div>
-        <div id="bmpdb-specs-panel" class="hidden mt-4 pt-4 border-t border-slate-200">
-          <h3 id="bmpdb-specs-panel-title" class="text-sm font-semibold mb-2" style="color: #5D5D5D;">Specs — <span id="bmpdb-specs-panel-name"></span></h3>
-          <p class="text-xs text-slate-500 mb-2">Depths in inches; porosity and void ratios in percent (0–100).</p>
-          <div id="bmpdb-specs-fields" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-3"></div>
-          <div class="flex gap-2">
-            <button type="button" id="bmpdb-apply-one" class="btn-primary text-sm">Apply to this BMP</button>
-            <button type="button" id="bmpdb-reset-one" class="btn-secondary text-sm">Reset this BMP to default</button>
-          </div>
-        </div>
-      </div>
-      <details class="card">
-        <summary class="cursor-pointer font-medium text-slate-700">Advanced: Regulation profiles &amp; raw JSON</summary>
-        <div class="mt-4 space-y-4">
-          <div>
-            <label for="bmpdb-profiles-json" class="block text-sm font-medium mb-1">REGULATION_PROFILES</label>
-            <textarea id="bmpdb-profiles-json" rows="10" class="w-full font-mono text-sm border rounded px-3 py-2" style="border-color: #999999;"></textarea>
-            <div class="flex gap-2 mt-2">
-              <button type="button" id="bmpdb-apply-profiles" class="btn-primary text-sm">Apply to session</button>
-              <button type="button" id="bmpdb-copy-profiles" class="btn-secondary text-sm">Copy JSON</button>
-            </div>
-          </div>
-          <div>
-            <label for="bmpdb-options-json" class="block text-sm font-medium mb-1">BMP_OPTIONS (all BMPs)</label>
-            <textarea id="bmpdb-options-json" rows="14" class="w-full font-mono text-sm border rounded px-3 py-2" style="border-color: #999999;"></textarea>
-            <div class="flex gap-2 mt-2">
-              <button type="button" id="bmpdb-apply-options" class="btn-primary text-sm">Apply to session</button>
-              <button type="button" id="bmpdb-copy-options" class="btn-secondary text-sm">Copy JSON</button>
-            </div>
-          </div>
-          <div class="pt-2 border-t border-slate-200">
-            <button type="button" id="bmpdb-reset" class="btn-secondary text-sm">Reset all to defaults</button>
-          </div>
-        </div>
-      </details>
-    </div>
   </div>
 </div>
 
@@ -1576,8 +1568,9 @@ body.theme-dark .sticky-bar {
         <h1 id="city-name" class="text-5xl md:text-6xl font-bold text-slate-800 mb-1"></h1>
         <p class="text-xl text-slate-600">Comparing roof and BMP options for stormwater management</p>
       </div>
+
     </div>
-    
+
     <!-- Guided presentation step bar (no-print) -->
     <div id="guided-steps-bar" class="guided-steps-bar no-print">
       <div class="guided-step active" data-step="1" onclick="goToStep(1)">
@@ -1611,7 +1604,7 @@ body.theme-dark .sticky-bar {
         <span style="font-size:11px;font-weight:500;color:#64748B;background:#F1F5F9;padding:2px 8px;border-radius:9999px;margin-left:auto;" class="no-print">Technical Profile</span>
       </h2>
       <div id="reg-summary-body"></div>
-      <div class="pt-4 border-t border-slate-200 mt-4">
+      <div id="official-docs-section" class="pt-4 border-t border-slate-200 mt-4">
         <p class="text-sm text-slate-600 mb-2">Official Documents:</p>
         <div class="flex flex-wrap gap-3">
           <a id="stormwater-manual-link" href="#" target="_blank" rel="noopener noreferrer" class="text-sm font-medium underline" style="color: #26A3DF;">Stormwater Management Manual</a>
@@ -1698,7 +1691,7 @@ body.theme-dark .sticky-bar {
                 <label class="text-sm font-semibold" style="color: #374151;">Roof / Building (SF)</label>
               </div>
               <input type="number" id="input-design-building" min="0" step="100" value="1000" class="w-full px-3 py-2 border-2 rounded-lg text-sm focus:ring-2 focus:ring-slate-300 focus:border-slate-500" style="border-color: #9CA3AF; background: #F3F4F6;" />
-              <p class="text-xs text-slate-400 mt-1">Combined roof and building footprint — distributes to Sloped Roof (60%) and Flat Deck (40%)</p>
+              <p class="text-xs text-slate-400 mt-1" id="design-building-hint">Combined roof and building footprint — split varies by site type</p>
             </div>
             <div class="design-input-cell">
               <div class="flex items-center mb-2">
@@ -2279,57 +2272,6 @@ body.theme-dark .sticky-bar {
 
     </div>
     
-    <!-- City Data Admin (internal configuration helper) -->
-    <details class="card">
-      <summary>City Data Admin (Internal)</summary>
-      <div class="mt-4 space-y-4">
-        <p class="text-sm text-gray-600">
-          Edit the plain-English city rules text and retention/detention credit values. Changes apply immediately in this session but are not saved to a server.
-        </p>
-        <div>
-          <label for="city-admin-select" class="block text-sm font-medium mb-1">City</label>
-          <select id="city-admin-select" class="w-full border rounded px-3 py-2">
-            <!-- Populated by initCityAdminPanel() -->
-          </select>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="admin-retention-text" class="block text-sm font-medium mb-1">Retention rules (one bullet per line)</label>
-            <textarea id="admin-retention-text" rows="5" class="w-full border rounded px-3 py-2 text-sm"></textarea>
-          </div>
-          <div>
-            <label for="admin-detention-text" class="block text-sm font-medium mb-1">Detention rules (one bullet per line)</label>
-            <textarea id="admin-detention-text" rows="5" class="w-full border rounded px-3 py-2 text-sm"></textarea>
-          </div>
-        </div>
-        <div>
-          <label for="admin-pv-text" class="block text-sm font-medium mb-1">PV / Green roof notes (one bullet per line)</label>
-          <textarea id="admin-pv-text" rows="4" class="w-full border rounded px-3 py-2 text-sm"></textarea>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label for="admin-soil-retention" class="block text-sm font-medium mb-1">Soil retention credit (fraction, e.g. 0.20)</label>
-            <input id="admin-soil-retention" type="number" step="0.01" class="w-full border rounded px-3 py-2" />
-          </div>
-          <div>
-            <label for="admin-mw-retention" class="block text-sm font-medium mb-1">Mineral wool retention credit (fraction, e.g. 0.40)</label>
-            <input id="admin-mw-retention" type="number" step="0.01" class="w-full border rounded px-3 py-2" />
-          </div>
-          <div>
-            <label for="admin-honeycomb-void" class="block text-sm font-medium mb-1">Honeycomb void ratio (fraction, e.g. 0.95)</label>
-            <input id="admin-honeycomb-void" type="number" step="0.01" class="w-full border rounded px-3 py-2" />
-          </div>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <button type="button" id="admin-apply-btn" class="btn-primary">Apply to CITY_DATA</button>
-          <button type="button" id="admin-copy-json-btn" class="btn-secondary">Copy CITY_DATA JSON to clipboard</button>
-        </div>
-        <p class="text-xs text-gray-500">
-          Tip: after editing, run a comparison for the selected city to see the updated rules and credits reflected in the Sales Mode UI. To make permanent changes to the codebase, paste the copied JSON back into the `CITY_DATA` definition in `index.html` (or a shared data file, if extracted).
-        </p>
-      </div>
-    </details>
-    
     <!-- Deep Dive -->
     <details class="card">
       <summary>Deep Dive (Estimator View)</summary>
@@ -2378,6 +2320,9 @@ body.theme-dark .sticky-bar {
 <script src="engine/adapters/md-montgomery.js"></script>
 <script src="engine/model.js"></script>
 <script src="data/city-data.js"></script>
+<script src="data/bmp-options.js"></script>
+<script src="data/regulation-profiles.js"></script>
+<script src="data/city-sales-data.js"></script>
 <script>
 // localStorage keys (persist across refresh)
 const PROJECT_INFO_STORAGE_KEY = 'stormwater-bmp-project-info';
@@ -2476,14 +2421,12 @@ function loadAppStateFromStorage() {
       if (typeof setMode === 'function') setMode(savedMode);
     }
     // Restore preset selection
-    if (data.selectedPresetId) {
+    if (data.selectedPresetId && SITE_PRESETS.some(p => p.id === data.selectedPresetId)) {
       selectedPresetId = data.selectedPresetId;
       if (typeof renderPresetCards === 'function') renderPresetCards();
     }
-    // Restore city — navigate back to where the user was
-    if (data.currentCity && CITY_DATA && CITY_DATA[data.currentCity]) {
-      selectCity(data.currentCity);
-    }
+    // Always start on the landing page — form data is restored but city is not auto-selected
+    // City auto-restore only happens via URL share links (handled in loadStateFromUrl)
   } catch (_) { /* ignore */ }
 }
 
@@ -2543,52 +2486,99 @@ function resetAllToDefaults() {
 
 // State - matches legacy v1 inputs structure
 let currentCity = null;
-let salesModeState = {
-  projectName: '',
-  projectAddress: '',
-  clientName: '',
-  clientAddress: '',
-  // Targets
-  targetDetentionCF: 100,
-  targetRetentionCF: 100,
-  detentionNeeded: true,
-  retentionNeeded: true,
-  // At-Grade Areas
-  perviousLandscapingUsable: 500,
-  imperviousVehicularPavement: 500,
-  imperviousPedestrianPavement: 0,
-  perviousTreeCoverNonUsable: 0,
-  // On-Structure Areas
-  flatDeckOnStructureArea: 500,
-  slopedRoofArea: 500,
-  paversOnStructureArea: 0,
-  imperviousCAUntreated: 0,
-  // Site Conditions
-  greenRoofAlreadyInScope: false,
-  hasUndergroundUtilities: false,
-  hasHighWaterTable: false,
-  hasContaminatedSoil: false,
-  hasSiteGradingConstraint: false,
-  highValueOutdoorSpace: false,
-  highValueIndoorSpace: false,
-  allowSteepSlopeGreenRoof: false
-};
-
-// CALCULATION ENGINE (from legacy) – mutable so BMP Database admin can edit
-const REGULATION_PROFILES_DEFAULT = {
-  general: {
-    id: 'general',
-    label: 'General Defaults',
-    defaults: { soilRetentionPct: 0.40, nmwRetentionPct: 0.80, honeycombVoidPct: 0.95 },
-    rules: { nmwRetentionRequiresMinSoilCoverIn: 0 }
+// ── Structured Project State ────────────────────────────────────────────
+// Canonical data lives in four sub-objects. A Proxy provides backward-
+// compatible flat-key access (e.g. salesModeState.slopedRoofArea) so that
+// all existing code continues to work without modification.
+const _salesModeStateRaw = {
+  projectInfo: {
+    projectName: '',
+    projectAddress: '',
+    clientName: '',
+    clientAddress: ''
   },
-  nyc_dep: {
-    id: 'nyc_dep',
-    label: 'NYC DEP',
-    defaults: { soilRetentionPct: 0.20, nmwRetentionPct: 0.40, honeycombVoidPct: 0.95 },
-    rules: { nmwRetentionRequiresMinSoilCoverIn: 4.0 }
+  siteAreas: {
+    perviousLandscapingUsable: 500,
+    imperviousVehicularPavement: 500,
+    imperviousPedestrianPavement: 0,
+    perviousTreeCoverNonUsable: 0,
+    flatDeckOnStructureArea: 500,
+    slopedRoofArea: 500,
+    paversOnStructureArea: 0,
+    imperviousCAUntreated: 0
+  },
+  targets: {
+    targetDetentionCF: 100,
+    targetRetentionCF: 100,
+    detentionNeeded: true,
+    retentionNeeded: true
+  },
+  siteConditions: {
+    greenRoofAlreadyInScope: false,
+    hasUndergroundUtilities: false,
+    hasHighWaterTable: false,
+    hasContaminatedSoil: false,
+    hasSiteGradingConstraint: false,
+    highValueOutdoorSpace: false,
+    highValueIndoorSpace: false,
+    allowSteepSlopeGreenRoof: false
   }
 };
+
+// Map every flat key to its sub-object for O(1) lookup
+const _flatKeyMap = {};
+for (const group of ['projectInfo', 'siteAreas', 'targets', 'siteConditions']) {
+  for (const key of Object.keys(_salesModeStateRaw[group])) {
+    _flatKeyMap[key] = group;
+  }
+}
+
+let salesModeState = new Proxy(_salesModeStateRaw, {
+  get(target, prop) {
+    // Direct sub-object access (e.g. salesModeState.projectInfo)
+    if (prop in target) return target[prop];
+    // Flat key access (e.g. salesModeState.slopedRoofArea)
+    const group = _flatKeyMap[prop];
+    if (group) return target[group][prop];
+    // Symbol.toPrimitive, toJSON, etc.
+    return undefined;
+  },
+  set(target, prop, value) {
+    // Direct sub-object replacement (e.g. salesModeState.projectInfo = {...})
+    if (prop in target && typeof value === 'object' && value !== null && !(_flatKeyMap[prop])) {
+      target[prop] = value;
+      return true;
+    }
+    // Flat key write (e.g. salesModeState.slopedRoofArea = 100)
+    const group = _flatKeyMap[prop];
+    if (group) {
+      target[group][prop] = value;
+      return true;
+    }
+    // Unknown key — store at top level as fallback for forward-compat
+    target[prop] = value;
+    return true;
+  },
+  has(target, prop) {
+    return prop in target || prop in _flatKeyMap;
+  },
+  ownKeys(target) {
+    // Return all flat keys + sub-object keys so spread (...salesModeState) works
+    return [...Object.keys(_flatKeyMap), 'projectInfo', 'siteAreas', 'targets', 'siteConditions'];
+  },
+  getOwnPropertyDescriptor(target, prop) {
+    // Required for spread operator and Object.keys to work with ownKeys
+    if (prop in _flatKeyMap) {
+      return { configurable: true, enumerable: true, value: target[_flatKeyMap[prop]][prop] };
+    }
+    if (prop in target) {
+      return { configurable: true, enumerable: true, value: target[prop] };
+    }
+    return undefined;
+  }
+});
+
+// REGULATION_PROFILES_DEFAULT is loaded from data/regulation-profiles.js
 let REGULATION_PROFILES = JSON.parse(JSON.stringify(REGULATION_PROFILES_DEFAULT));
 
 // Derived city-level rules passed into the pure engine.
@@ -2606,112 +2596,11 @@ function rebuildCityRulesByKey() {
 }
 rebuildCityRulesByKey();
 
-const BMP_OPTIONS_DEFAULT = [
-  { id: 1, name: "Bioretention Cell (at grade)", areaType: 'atGrade_pervious', unitPrice: 75, specs: { freeboard: 18, soilDepth: 24, soilPorosity: 0.15, gravelDepth: 24, gravelPorosity: 0.50, spaceLoss: 0.20 } },
-  { id: 2, name: "Underground Cells / Crates", areaType: 'atGrade_combined', unitPrice: 100, specs: { storageDepth: 36, voidRatio: 0.95, freeboard: 6, spaceLoss: 0.15 } },
-  { id: 3, name: "Permeable Pavers", areaType: 'atGrade_ped', unitPrice: 155, specs: { reservoirDepth: 18, voidRatio: 0.40, spaceLoss: 0.10 } },
-  { id: 4, name: "Below Grade Tank (Dead Space)", areaType: 'atGrade_landscape_veh', unitPrice: 1200, specs: { detentionDepth: 72, freeboard: 24, spaceLoss: 0.15 } },
-  { id: 5, name: "Below Grade Tank (Usable Space)", areaType: 'atGrade_landscape_veh', unitPrice: 1500, specs: { detentionDepth: 72, freeboard: 24, spaceLoss: 0.20 } },
-  { id: 6, name: "On-Structure Tank (Usable Space)", areaType: 'on_structure_tank', unitPrice: 1500, specs: { detentionDepth: 72, freeboard: 24, spaceLoss: 0.15 } },
-  { id: 7, name: "Blue Roof Cells 6\"", areaType: 'flatDeck_strict', unitPrice: 75, specs: { storageDepth: 3, voidRatio: 0.95, freeboard: 0, spaceLoss: 0.05 } },
-  // Green roof media options – include explicit soilPorosity (credited retention) and NMW retention where applicable
-  { id: 8, name: "Traditional Green Roof 6\"", areaType: 'sloped_roof', unitPrice: 30, specs: { mediaDepth: 4, soilPorosity: 0.20, detLayerDepth: 0, detVoidRatio: 0.95, spaceLoss: 0.05 } },
-  { id: 9, name: "Sponge Roof 4+2", areaType: 'sloped_roof', unitPrice: 28.39, specs: { mediaDepth: 4, soilPorosity: 0.20, nmwDepth: 2, nmwRetentionPct: 0.40, spaceLoss: 0.05 } },
-  { id: 10, name: "Purple-Roof (Vegetated) 4+1+2", areaType: 'sloped_roof_or_flat_deck', unitPrice: 35.87, specs: { soilDepth: 4, soilPorosity: 0.20, nmwDepth: 1, nmwPorosity: 0.93, nmwRetentionPct: 0.40, hcDepth: 2, hcVoidRatio: 0.95, dlDepth: 0.2, dlPorosity: 0.93, spaceLoss: 0.05 }, extra: { pricingMode: 'black', pricingUpgrade: 15, pricingBase: 40 } },
-  { id: '10B', name: "Purple-Roof (Vegetated) 4+1+4", areaType: 'sloped_roof_or_flat_deck', unitPrice: 43.72, specs: { soilDepth: 4, soilPorosity: 0.20, nmwDepth: 1, nmwPorosity: 0.93, nmwRetentionPct: 0.40, hcDepth: 4, hcVoidRatio: 0.95, dlDepth: 0.2, dlPorosity: 0.93, spaceLoss: 0.05 }, extra: { pricingMode: 'black', pricingUpgrade: 22.85, pricingBase: 47.85 } },
-  { id: 11, name: "Purple-Roof (Pavers) P+1+2", areaType: 'pavers_or_sloped_or_flat_deck', unitPrice: 38.79, specs: { hcDepth: 2, hcVoidRatio: 0.95, nmwDepth: 1, nmwRetentionPct: 0.40, spaceLoss: 0.05 }, extra: { tradPaverBasePrice: 22.82 } },
-  { id: '11B', name: "Purple-Roof (Pavers) P+1+4", areaType: 'pavers_or_sloped_or_flat_deck', unitPrice: 47.47, specs: { hcDepth: 4, hcVoidRatio: 0.95, nmwDepth: 1, nmwRetentionPct: 0.40, spaceLoss: 0.05 }, extra: { tradPaverBasePrice: 22.82 } },
-  { id: 12, name: "OverEasy xM3-256", areaType: 'sloped_roof_or_flat_deck', unitPrice: 14.82, pvOnly: true, specs: { sfPerUnit: 45, kwPerUnit: 0.256, kwhPerUnitBase: 300, pricePerUnit: 667, spaceLoss: 0.05 } },
-  {
-    id: 15,
-    name: "Contec Greenlite Pro 4mm base plate + rails",
-    areaType: 'pavers_or_sloped_or_flat_deck',
-    unitPrice: 370,
-    pvOnly: true,
-    specs: {
-      format: 'Landscape',
-      rowSpacingIn: 36,
-      sfPerUnit: 41.21,
-      kwPerUnit: 0.40,
-      kwhPerUnitBase: 520,
-      pricePerUnit: 370,
-      spaceLoss: 0.05
-    }
-  },
-  {
-    id: 16,
-    name: "Diadem Line 21 fall protection anchor",
-    areaType: 'sloped_roof_or_flat_deck',
-    unitPrice: 1000,
-    pvOnly: true,
-    specs: {
-      lfPerAnchor: 25,
-      anchorsPerCorner: 1,
-      spaceLoss: 0
-    }
-  }
-];
+// BMP_OPTIONS_DEFAULT, BMP_SPEC_LABELS, BMP_SPEC_AS_PERCENT, BMP_IMAGES
+// are loaded from data/bmp-options.js
 let BMP_OPTIONS = JSON.parse(JSON.stringify(BMP_OPTIONS_DEFAULT));
 
-// Friendly labels for BMP spec fields (BMP Database editor)
-const BMP_SPEC_LABELS = {
-  freeboard: 'Freeboard (in.)',
-  soilDepth: 'Soil depth (in.)',
-  soilPorosity: 'Soil porosity (%)',
-  retentionFactorPct: 'Soil retention factor (%)',
-  gravelDepth: 'Gravel depth (in.)',
-  gravelPorosity: 'Gravel porosity (%)',
-  spaceLoss: 'Space loss (%)',
-  storageDepth: 'Storage depth (in.)',
-  voidRatio: 'Void ratio (%)',
-  reservoirDepth: 'Reservoir depth (in.)',
-  detentionDepth: 'Detention depth (in.)',
-  mediaDepth: 'Media depth (in.)',
-  detLayerDepth: 'Detention layer depth (in.)',
-  detVoidRatio: 'Detention void ratio (%)',
-  nmwDepth: 'Mineral wool depth (in.)',
-  nmwPorosity: 'NMW porosity (%)',
-  nmwRetentionPct: 'NMW retention (%)',
-  hcDepth: 'Honeycomb depth (in.)',
-  hcVoidRatio: 'Honeycomb void ratio (%)',
-  dlDepth: 'Drainage layer depth (in.)',
-  dlPorosity: 'Drainage layer porosity (%)',
-  format: 'Module orientation',
-  rowSpacingIn: 'Row spacing (in.)',
-  kwPerBase: 'Output per base (kW)',
-  lfPerAnchor: 'LF per anchor',
-  anchorsPerCorner: 'Anchors per corner',
-  packingFactor: 'Packing factor (0–1)',
-  minAreaSF: 'Minimum area (SF)',
-  deadDepthIn: 'Dead storage depth (in.)',
-  sfPerUnit: 'SF per unit',
-  kwPerUnit: 'DC kW per unit',
-  kwhPerUnitBase: 'Base kWh/yr per unit',
-  pricePerUnit: 'Price per unit ($)'
-};
-// Spec keys stored as 0–1 in data but shown as 0–100% in the form
-const BMP_SPEC_AS_PERCENT = new Set(['soilPorosity', 'gravelPorosity', 'spaceLoss', 'voidRatio', 'detVoidRatio', 'nmwPorosity', 'nmwRetentionPct', 'hcVoidRatio', 'dlPorosity', 'retentionFactorPct']);
-
-const BMP_IMAGES = {
-  1: 'images/IMAGE-bioretention-cell.jpg',
-  2: 'images/IMAGE-underground-passive-cells.png',
-  3: 'images/IMAGE-perm-pavers.png',
-  4: 'images/IMAGE-underground tank and pump.png',
-  5: 'images/IMAGE-underground tank and pump.png',
-  6: 'images/IMAGE-underground tank and pump.png',
-  7: 'images/IMAGE-blue-roof.png',
-  8: 'images/IMAGE-trad-green-roof-6.png',
-  9: 'images/IMAGE-sponge4+2.png',
-  10: 'images/IMAGE-purple-veg-4+1+2.png',
-  '10B': 'images/IMAGE-purple-veg-4+1+4.png',
-  11: 'images/IMAGE-purple-paver+1+2.png',
-  '11B': 'images/IMAGE-purple-paver+1+4.png',
-  12: 'images/IMAGE-overeasy-pv-1.jpg',
-  15: 'images/solar_green_roof-2.jpg',
-  16: 'images/IMAGE-Diasafe_line-21.jpg'
-};
-
-// --- City Data Admin helpers ---
+// --- BMP Database helpers ---
 
 function initCityAdminPanel() {
   const selectEl = document.getElementById('city-admin-select');
@@ -2820,12 +2709,209 @@ function initCityAdminPanel() {
   }
 }
 
-// --- Landing tabs: Select City | BMP Database (global data only) ---
-function initLandingTabs() {
-  const tabSelect = document.getElementById('landing-tab-select');
-  const tabBmpDb = document.getElementById('landing-tab-bmpdb');
-  const panelSelect = document.getElementById('landing-select-tab');
-  const panelBmpDb = document.getElementById('landing-bmpdb-tab');
+// --- City Database panel helpers ---
+
+function initCityDbPanel() {
+  const selectEl = document.getElementById('citydb-select');
+  const applyBtn = document.getElementById('citydb-apply-btn');
+  const copyBtn = document.getElementById('citydb-copy-btn');
+  if (!selectEl || !applyBtn) return;
+
+  const cityDbFields = [
+    { field: 'regulatoryOverview',    elId: 'citydb-reg-s1' },
+    { field: 'soilConditions',        elId: 'citydb-reg-s2' },
+    { field: 'greenRoofRequirements', elId: 'citydb-reg-s3' },
+    { field: 'tssRequirements',       elId: 'citydb-reg-s4' },
+    { field: 'retentionRequirements', elId: 'citydb-reg-s5' },
+    { field: 'outflowRates',          elId: 'citydb-reg-s6' }
+  ];
+
+  function getItems(sectionData) {
+    if (!sectionData) return [];
+    if (Array.isArray(sectionData)) return sectionData;
+    if (sectionData.items && Array.isArray(sectionData.items)) return sectionData.items;
+    return [];
+  }
+
+  // Populate city dropdown
+  selectEl.innerHTML = '';
+  Object.entries(CITY_DATA).forEach(([key, city]) => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = city.name || key;
+    selectEl.appendChild(opt);
+  });
+
+  function loadCityIntoDb(key) {
+    const city = CITY_DATA[key];
+    if (!city) return;
+    const rs = city.regSummary || {};
+    cityDbFields.forEach(({ field, elId }) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = getItems(rs[field]).join('\n');
+    });
+  }
+
+  function applyCityDbChanges() {
+    const key = selectEl.value;
+    const city = CITY_DATA[key];
+    if (!city) return;
+
+    city.regSummary = city.regSummary || {};
+    cityDbFields.forEach(({ field, elId }) => {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      const items = el.value.split('\n').map(l => l.trim()).filter(Boolean);
+      if (city.regSummary[field] && typeof city.regSummary[field] === 'object' && !Array.isArray(city.regSummary[field])) {
+        city.regSummary[field].items = items;
+      } else {
+        city.regSummary[field] = items;
+      }
+    });
+
+    // Re-render if we're on this city's page
+    if (currentCity === key) {
+      renderRegSummary(key);
+    }
+  }
+
+  function copyCityJsonToClipboard() {
+    const key = selectEl.value;
+    const city = CITY_DATA[key];
+    if (!city) return;
+    try {
+      const json = JSON.stringify({ [key]: { regSummary: city.regSummary } }, null, 2);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(json);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = json;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      alert('City regulation summary JSON copied to clipboard.');
+    } catch (e) {
+      console.error('Failed to copy city JSON', e);
+      alert('Could not copy. See console for details.');
+    }
+  }
+
+  selectEl.addEventListener('change', () => loadCityIntoDb(selectEl.value));
+  applyBtn.addEventListener('click', applyCityDbChanges);
+  if (copyBtn) copyBtn.addEventListener('click', copyCityJsonToClipboard);
+
+  const keyToLoad = currentCity && CITY_DATA[currentCity] ? currentCity : Object.keys(CITY_DATA)[0];
+  if (keyToLoad) {
+    selectEl.value = keyToLoad;
+    loadCityIntoDb(keyToLoad);
+  }
+}
+
+// Expose for selectCity sync
+window._loadCityIntoDb = function(key) {
+  const selectEl = document.getElementById('citydb-select');
+  if (!selectEl) return;
+  selectEl.value = key;
+  selectEl.dispatchEvent(new Event('change'));
+};
+
+// --- Sales Data admin (inside admin overlay) ---
+function initSalesDataPanel() {
+  const selectEl = document.getElementById('sales-city-select');
+  const talkingPtsEl = document.getElementById('sales-talking-points');
+  const objectionsEl = document.getElementById('sales-objections');
+  const bestFitEl = document.getElementById('sales-bestfit');
+  const applyBtn = document.getElementById('sales-apply-btn');
+  const copyBtn = document.getElementById('sales-copy-btn');
+
+  if (!selectEl || !talkingPtsEl || !objectionsEl || !bestFitEl) return;
+
+  // Populate city dropdown
+  Object.entries(CITY_DATA).forEach(([key, city]) => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = city.name || key;
+    selectEl.appendChild(opt);
+  });
+
+  function loadCity(key) {
+    const data = (typeof CITY_SALES_DATA !== 'undefined' && CITY_SALES_DATA[key]) || {};
+    talkingPtsEl.value = (data.talkingPoints || []).join('\n');
+    objectionsEl.value = (data.objections || []).map(o =>
+      (o.objection || '') + ' | ' + (o.response || '')
+    ).join('\n');
+    bestFitEl.value = (data.bestFitSystems || []).map(b =>
+      (b.condition || '') + ' | ' + (b.recommendation || '')
+    ).join('\n');
+  }
+
+  selectEl.addEventListener('change', () => loadCity(selectEl.value));
+
+  if (applyBtn) {
+    applyBtn.addEventListener('click', () => {
+      const key = selectEl.value;
+      if (!key) return;
+      if (typeof CITY_SALES_DATA === 'undefined') { alert('CITY_SALES_DATA not loaded.'); return; }
+      // Parse talking points
+      const talkingPoints = talkingPtsEl.value.split('\n').map(s => s.trim()).filter(Boolean);
+      // Parse objections (pipe-separated)
+      const objections = objectionsEl.value.split('\n').map(line => {
+        const parts = line.split('|');
+        if (parts.length < 2) return null;
+        return { objection: parts[0].trim(), response: parts.slice(1).join('|').trim() };
+      }).filter(Boolean);
+      // Parse best-fit systems (pipe-separated)
+      const bestFitSystems = bestFitEl.value.split('\n').map(line => {
+        const parts = line.split('|');
+        if (parts.length < 2) return null;
+        return { condition: parts[0].trim(), recommendation: parts.slice(1).join('|').trim() };
+      }).filter(Boolean);
+
+      CITY_SALES_DATA[key] = { talkingPoints, objections, bestFitSystems };
+      alert('Sales data applied for ' + (CITY_DATA[key]?.name || key) + '.');
+    });
+  }
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      const key = selectEl.value;
+      if (!key) return;
+      const data = (typeof CITY_SALES_DATA !== 'undefined' && CITY_SALES_DATA[key]) || {};
+      const json = JSON.stringify({ [key]: data }, null, 2);
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(json);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = json;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        alert('Sales data JSON copied to clipboard.');
+      } catch (e) { alert('Copy failed: ' + e.message); }
+    });
+  }
+
+  // Load first city
+  if (selectEl.options.length > 0) {
+    loadCity(selectEl.options[0].value);
+  }
+}
+
+// Expose for selectCity sync
+window._loadCityIntoSales = function(key) {
+  const selectEl = document.getElementById('sales-city-select');
+  if (!selectEl) return;
+  selectEl.value = key;
+  selectEl.dispatchEvent(new Event('change'));
+};
+
+// --- BMP Library admin (inside admin overlay) ---
+function initBmpLibraryPanel() {
   const profilesTa = document.getElementById('bmpdb-profiles-json');
   const optionsTa = document.getElementById('bmpdb-options-json');
   const bmpTbody = document.getElementById('bmpdb-tbody');
@@ -2845,17 +2931,10 @@ function initLandingTabs() {
     { v: 'pavers_or_sloped_or_flat_deck', l: 'Pavers or sloped or flat deck' }
   ];
 
-  function showPanel(which) {
-    const isSelect = which === 'select';
-    if (panelSelect) panelSelect.classList.toggle('hidden', !isSelect);
-    if (panelBmpDb) panelBmpDb.classList.toggle('hidden', isSelect);
-    if (tabSelect) tabSelect.classList.toggle('active', isSelect);
-    if (tabBmpDb) tabBmpDb.classList.toggle('active', !isSelect);
-    if (!isSelect) {
-      if (profilesTa) profilesTa.value = JSON.stringify(REGULATION_PROFILES, null, 2);
-      if (optionsTa) optionsTa.value = JSON.stringify(BMP_OPTIONS, null, 2);
-      renderBmpTable();
-    }
+  function refreshBmpLibraryData() {
+    if (profilesTa) profilesTa.value = JSON.stringify(REGULATION_PROFILES, null, 2);
+    if (optionsTa) optionsTa.value = JSON.stringify(BMP_OPTIONS, null, 2);
+    renderBmpTable();
   }
 
   function setSpecsPanelBmpName(name, bmpId) {
@@ -3022,8 +3101,8 @@ function initLandingTabs() {
     return { id: bmp.id, name: name || bmp.name, areaType: areaType || bmp.areaType, unitPrice: Number.isFinite(unitPrice) ? unitPrice : bmp.unitPrice, specs, extra: bmp.extra ? { ...bmp.extra } : undefined };
   }
 
-  if (tabSelect) tabSelect.addEventListener('click', () => showPanel('select'));
-  if (tabBmpDb) tabBmpDb.addEventListener('click', () => showPanel('bmpdb'));
+  // Initial render
+  refreshBmpLibraryData();
 
   const applyOne = document.getElementById('bmpdb-apply-one');
   if (applyOne) {
@@ -3121,6 +3200,51 @@ function initLandingTabs() {
   }
 }
 
+// --- Admin Overlay ---
+function openAdminOverlay() {
+  const overlay = document.getElementById('admin-overlay');
+  if (overlay) overlay.classList.add('open');
+  // Refresh BMP data when opening
+  const profilesTa = document.getElementById('bmpdb-profiles-json');
+  const optionsTa = document.getElementById('bmpdb-options-json');
+  if (profilesTa) profilesTa.value = JSON.stringify(REGULATION_PROFILES, null, 2);
+  if (optionsTa) optionsTa.value = JSON.stringify(BMP_OPTIONS, null, 2);
+  // Sync city dropdowns to current city if one is selected
+  if (typeof currentCity === 'string' && currentCity) {
+    const adminSelect = document.getElementById('city-admin-select');
+    if (adminSelect && adminSelect.value !== currentCity) {
+      adminSelect.value = currentCity;
+      adminSelect.dispatchEvent(new Event('change'));
+    }
+    if (window._loadCityIntoDb) window._loadCityIntoDb(currentCity);
+    if (window._loadCityIntoSales) window._loadCityIntoSales(currentCity);
+  }
+}
+function closeAdminOverlay() {
+  const overlay = document.getElementById('admin-overlay');
+  if (overlay) overlay.classList.remove('open');
+}
+(function initAdminTabs() {
+  document.addEventListener('click', function(e) {
+    const tab = e.target.closest('.admin-tab');
+    if (!tab) return;
+    const tabName = tab.dataset.adminTab;
+    if (!tabName) return;
+    // Update tab active state
+    tab.closest('.admin-tabs').querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    // Update panel visibility
+    const content = tab.closest('.admin-panel').querySelector('.admin-tab-content');
+    content.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById('admin-panel-' + tabName);
+    if (panel) panel.classList.add('active');
+  });
+  // Close on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAdminOverlay();
+  });
+})();
+
 // Initialize
 function init() {
   renderCityMap();
@@ -3130,7 +3254,9 @@ function init() {
   initializeInputFields();
   loadStateFromUrl(); // Load after initialization so URL params can override
   initCityAdminPanel();
-  initLandingTabs();
+  initCityDbPanel();
+  initSalesDataPanel();
+  initBmpLibraryPanel();
   setupImageTooltips();
 }
 
@@ -3439,7 +3565,7 @@ function selectCity(cityKey) {
   currentCity = cityKey;
   const city = CITY_DATA[cityKey];
 
-  // Keep City Data Admin dropdown and fields in sync with the selected city
+  // Keep BMP Database dropdown and fields in sync with the selected city
   const adminSelect = document.getElementById('city-admin-select');
   if (adminSelect && city) {
     adminSelect.value = cityKey;
@@ -3458,6 +3584,9 @@ function selectCity(cityKey) {
     if (mwEl) mwEl.value = defs.mineralWoolRetentionPct != null ? String(defs.mineralWoolRetentionPct) : '';
     if (honeycombEl) honeycombEl.value = defs.honeycombVoidPct != null ? String(defs.honeycombVoidPct) : '';
   }
+  // Sync City Database and Sales Data panels
+  if (window._loadCityIntoDb) window._loadCityIntoDb(cityKey);
+  if (window._loadCityIntoSales) window._loadCityIntoSales(cityKey);
   
   const nameEl = document.getElementById('city-name');
   if (nameEl) nameEl.textContent = city.name;
@@ -3620,7 +3749,7 @@ const CITY_MAP_IMAGES = {
   nyc: 'city-data/NY-New-York-City/IMAGE-NYC-ms4-map.jpg',
   dc: 'city-data/DC-Washington/IMAGE-washington-dc.jpg',
   chicago: 'city-data/IL-Chicago/IMAGE-chicago.jpg',
-  boston: 'city-data/MA-Boston/IMAGE-boston.png',
+  boston: 'city-data/MA-Boston/IMAGE-boston.jpg',
   philadelphia: 'city-data/PA-Philadelphia/IMAGE-philadelphia.jpg',
   nashville: 'city-data/TN-Nashville/IMAGE-nashville.jpg',
   seattle: 'city-data/WA-Seattle/IMAGE-seattle-wa.jpg',
@@ -3759,44 +3888,126 @@ const SITE_PRESETS = [
     title: 'Balanced Mixed-Use',
     desc: 'Typical mixed site with roof, paving, and planted area',
     building: 50, landscape: 25, parking: 25,
-    defaults: { building: 25000, landscape: 12500, parking: 12500 }
+    defaults: { building: 25000, landscape: 12500, parking: 12500 },
+    engineeringSplits: {
+      slopedRoof: 0.60, flatDeck: 0.40, paversOnStructure: 0,
+      vehicularPavement: 0.80, pedestrianPavement: 0.20
+    }
   },
   {
     id: 'dense-urban',
     title: 'Dense Urban',
     desc: 'Roof-dominant site with little or no ground-level green space',
     building: 80, landscape: 0, parking: 20,
-    defaults: { building: 40000, landscape: 0, parking: 10000 }
+    defaults: { building: 40000, landscape: 0, parking: 10000 },
+    engineeringSplits: {
+      slopedRoof: 0.45, flatDeck: 0.40, paversOnStructure: 0.15,
+      vehicularPavement: 0.50, pedestrianPavement: 0.50
+    }
   },
   {
     id: 'campus',
     title: 'Campus / Landscape-Heavy',
     desc: 'Open site with strong ground-based stormwater opportunities',
     building: 30, landscape: 50, parking: 20,
-    defaults: { building: 15000, landscape: 25000, parking: 10000 }
+    defaults: { building: 15000, landscape: 25000, parking: 10000 },
+    engineeringSplits: {
+      slopedRoof: 0.75, flatDeck: 0.25, paversOnStructure: 0,
+      vehicularPavement: 0.65, pedestrianPavement: 0.35
+    }
   },
   {
     id: 'parking-dominant',
     title: 'Parking-Dominant',
     desc: 'Large paved site where runoff is driven by pavement area',
     building: 20, landscape: 10, parking: 70,
-    defaults: { building: 10000, landscape: 5000, parking: 35000 }
+    defaults: { building: 10000, landscape: 5000, parking: 35000 },
+    engineeringSplits: {
+      slopedRoof: 0.75, flatDeck: 0.25, paversOnStructure: 0,
+      vehicularPavement: 0.90, pedestrianPavement: 0.10
+    }
   },
   {
     id: 'podium',
     title: 'Podium / Structured Deck',
     desc: 'Urban over-structure condition with limited true ground access',
     building: 60, landscape: 30, parking: 10,
-    defaults: { building: 30000, landscape: 15000, parking: 5000 }
-  },
-  {
-    id: 'retail',
-    title: 'Retail / Big-Box',
-    desc: 'Commercial building with large parking field and minimal landscape',
-    building: 25, landscape: 10, parking: 65,
-    defaults: { building: 12500, landscape: 5000, parking: 32500 }
+    defaults: { building: 30000, landscape: 15000, parking: 5000 },
+    engineeringSplits: {
+      slopedRoof: 0.25, flatDeck: 0.50, paversOnStructure: 0.25,
+      vehicularPavement: 0.50, pedestrianPavement: 0.50
+    }
   }
 ];
+
+// Default splits when no preset is selected (matches prior hard-coded behavior)
+const DEFAULT_ENGINEERING_SPLITS = {
+  slopedRoof: 0.60, flatDeck: 0.40, paversOnStructure: 0,
+  vehicularPavement: 1.0, pedestrianPavement: 0
+};
+
+// SVG site-plan layouts per preset — 2D block arrangement (viewBox 100×60)
+const PRESET_LAYOUTS = {
+  'balanced': [
+    { type: 'building', x: 0, y: 0, w: 100, h: 30 },
+    { type: 'landscape', x: 0, y: 32, w: 48, h: 28 },
+    { type: 'parking', x: 52, y: 32, w: 48, h: 28 }
+  ],
+  'dense-urban': [
+    { type: 'building', x: 0, y: 0, w: 100, h: 47 },
+    { type: 'parking', x: 0, y: 49, w: 100, h: 11 }
+  ],
+  'campus': [
+    { type: 'landscape', x: 0, y: 0, w: 58, h: 60 },
+    { type: 'building', x: 60, y: 0, w: 40, h: 36 },
+    { type: 'parking', x: 60, y: 38, w: 40, h: 22 }
+  ],
+  'parking-dominant': [
+    { type: 'parking', x: 0, y: 0, w: 100, h: 42 },
+    { type: 'building', x: 0, y: 44, w: 62, h: 16 },
+    { type: 'landscape', x: 64, y: 44, w: 36, h: 16 }
+  ],
+  'podium': [
+    { type: 'building', x: 0, y: 0, w: 100, h: 36 },
+    { type: 'landscape', x: 0, y: 38, w: 73, h: 22 },
+    { type: 'parking', x: 75, y: 38, w: 25, h: 22 }
+  ]
+};
+
+function buildPresetSvg(presetId) {
+  const layout = PRESET_LAYOUTS[presetId];
+  if (!layout) return '';
+  const pid = presetId; // short alias for pattern IDs
+
+  // SVG pattern definitions for surface textures
+  const defs = `<defs>
+    <pattern id="pb-${pid}" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#5C6370"/>
+      <rect x="0" y="0" width="8" height="3" fill="#6B7280"/>
+    </pattern>
+    <pattern id="pl-${pid}" patternUnits="userSpaceOnUse" width="6" height="6">
+      <rect width="6" height="6" fill="#7FA329"/>
+      <circle cx="1.5" cy="2" r="0.9" fill="#6E8F22"/>
+      <circle cx="4.5" cy="5" r="0.9" fill="#8DB33A"/>
+      <circle cx="3" cy="0.8" r="0.6" fill="#6E8F22"/>
+    </pattern>
+    <pattern id="pp-${pid}" patternUnits="userSpaceOnUse" width="10" height="10">
+      <rect width="10" height="10" fill="#9A9A9A"/>
+      <line x1="0" y1="5" x2="3.5" y2="5" stroke="#B5B5B5" stroke-width="0.6"/>
+      <line x1="6.5" y1="5" x2="10" y2="5" stroke="#B5B5B5" stroke-width="0.6"/>
+      <rect x="4" y="0" width="0.4" height="10" fill="#A8A8A8"/>
+    </pattern>
+  </defs>`;
+
+  const fillMap = { building: `url(#pb-${pid})`, landscape: `url(#pl-${pid})`, parking: `url(#pp-${pid})` };
+  const strokeMap = { building: '#555D67', landscape: '#5E7A1A', parking: '#808080' };
+
+  const rects = layout.map(b =>
+    `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="2" fill="${fillMap[b.type]}" stroke="${strokeMap[b.type]}" stroke-width="0.5"/>`
+  ).join('\n    ');
+
+  return `<svg viewBox="0 0 100 60" class="preset-plan-svg" aria-hidden="true">${defs}${rects}</svg>`;
+}
 
 function renderPresetCards() {
   const grid = document.getElementById('preset-grid');
@@ -3810,11 +4021,7 @@ function renderPresetCards() {
     card.innerHTML = `
       <div class="preset-card-title">${p.title}</div>
       <div class="preset-card-desc">${p.desc}</div>
-      <div class="preset-diagram">
-        ${p.building > 0 ? `<div class="preset-seg preset-seg-building" style="width:${p.building}%"><span class="preset-seg-label">${p.building}%</span></div>` : ''}
-        ${p.landscape > 0 ? `<div class="preset-seg preset-seg-landscape" style="width:${p.landscape}%"><span class="preset-seg-label">${p.landscape}%</span></div>` : ''}
-        ${p.parking > 0 ? `<div class="preset-seg preset-seg-parking" style="width:${p.parking}%"><span class="preset-seg-label">${p.parking}%</span></div>` : ''}
-      </div>
+      ${buildPresetSvg(p.id)}
       <div class="preset-pcts">
         ${p.building > 0 ? `<span><span class="preset-pct-dot" style="background:#6B7280;"></span>Bldg ${p.building}%</span>` : ''}
         ${p.landscape > 0 ? `<span><span class="preset-pct-dot" style="background:#7FA329;"></span>Land ${p.landscape}%</span>` : ''}
@@ -3868,20 +4075,23 @@ function distributeDesignToEngine() {
   const land = parseFloat(document.getElementById('input-design-landscape')?.value) || 0;
   const pave = parseFloat(document.getElementById('input-design-pavement')?.value) || 0;
 
-  // Building → 60% sloped roof, 40% flat deck
-  salesModeState.slopedRoofArea = Math.round(bldg * 0.6);
-  salesModeState.flatDeckOnStructureArea = Math.round(bldg * 0.4);
+  // Use preset-specific splits if a preset is selected, otherwise defaults
+  const preset = selectedPresetId ? SITE_PRESETS.find(p => p.id === selectedPresetId) : null;
+  const splits = preset?.engineeringSplits || DEFAULT_ENGINEERING_SPLITS;
+
+  // Building → sloped roof + flat deck + pavers on structure
+  salesModeState.slopedRoofArea = Math.round(bldg * splits.slopedRoof);
+  salesModeState.flatDeckOnStructureArea = Math.round(bldg * splits.flatDeck);
+  salesModeState.paversOnStructureArea = Math.round(bldg * splits.paversOnStructure);
 
   // Landscape → 100% pervious landscaping
   salesModeState.perviousLandscapingUsable = land;
 
-  // Pavement → 100% vehicular pavement
-  salesModeState.imperviousVehicularPavement = pave;
-  salesModeState.imperviousPedestrianPavement = 0;
+  // Pavement → vehicular + pedestrian
+  salesModeState.imperviousVehicularPavement = Math.round(pave * splits.vehicularPavement);
+  salesModeState.imperviousPedestrianPavement = Math.round(pave * splits.pedestrianPavement);
 
-  // Zero out fields not directly addressable in Design Mode
-  salesModeState.paversOnStructureArea = 0;
-  salesModeState.imperviousCAUntreated = 0;
+  // CDA / untreated remains independent — not touched by presets
 
   // Sync Engineering Mode fields (so they're correct if user switches)
   syncEngineeringFields();
@@ -4665,6 +4875,7 @@ function renderResults(calcResults, v1Inputs) {
   const { results } = calcResults;
   const targetRet = v1Inputs.targetRetentionCF || 0;
   const targetDet = v1Inputs.targetDetentionCF || 0;
+  const isDesignResults = currentMode === 'design';
 
   // When a traditional green roof is already in scope, compute upgrade deltas
   // for Purple-Roof vegetated options so users can compare incremental cost.
@@ -4710,7 +4921,8 @@ function renderResults(calcResults, v1Inputs) {
   const swCard = document.getElementById('stormwater-report-card');
   if (STORMWATER_REPORT_ENHANCED && summarySection && summaryBody && swCard) {
     swCard.classList.add('stormwater-report-enhanced');
-    summarySection.style.display = '';
+    // Summary table is engineering-level detail — hide in Design mode
+    summarySection.style.display = isDesignResults ? 'none' : '';
     const activeTargets = (targetRet > 0 ? 1 : 0) + (targetDet > 0 ? 1 : 0) || 1;
     const rankTier = (r) => {
       const t = tier(r);
@@ -4889,16 +5101,16 @@ function renderResults(calcResults, v1Inputs) {
         ${targetRet > 0 ? `
           <div class="${targetDet > 0 ? 'mb-4' : ''}">
             <div class="result-progress-label" style="color:#26629F;">
-              <span>Retention credit: ${retCredit.toFixed(1)} CF (Provided: ${retProvided.toFixed(1)} CF)</span>
-              <span>${retPct.toFixed(0)}% of ${targetRet.toFixed(1)} CF target</span>
+              <span>${isDesignResults ? 'Retention' : `Retention credit: ${retCredit.toFixed(1)} CF (Provided: ${retProvided.toFixed(1)} CF)`}</span>
+              <span>${retPct.toFixed(0)}%${isDesignResults ? '' : ` of ${targetRet.toFixed(1)} CF target`}</span>
             </div>
             <div class="progress-bar"><div class="progress-fill ${retBarClass}" style="width:${Math.min(100,retPct)}%"></div></div>
           </div>` : ''}
         ${targetDet > 0 ? `
           <div>
             <div class="result-progress-label" style="color:#674296;">
-              <span>Detention credit: ${detCredit.toFixed(1)} CF (Provided: ${detProvided.toFixed(1)} CF)</span>
-              <span>${detPct.toFixed(0)}% of ${targetDet.toFixed(1)} CF target</span>
+              <span>${isDesignResults ? 'Detention' : `Detention credit: ${detCredit.toFixed(1)} CF (Provided: ${detProvided.toFixed(1)} CF)`}</span>
+              <span>${detPct.toFixed(0)}%${isDesignResults ? '' : ` of ${targetDet.toFixed(1)} CF target`}</span>
             </div>
             <div class="progress-bar"><div class="progress-fill ${detBarClass}" style="width:${Math.min(100,detPct)}%"></div></div>
           </div>` : ''}
@@ -5052,6 +5264,8 @@ function renderRecommendation(calcResults, v1Inputs) {
   const recTotalCF  = recommended.retDesigned + recommended.detDesigned;
   const recCostPerCF = recTotalCF > 1 && recommended.costDesigned > 0 ? recommended.costDesigned / recTotalCF : 0;
 
+  const isDesignRec = currentMode === 'design';
+
   // Best value card (computed before innerHTML so we can use a variable)
   const bestValueHtml = (bestValue && bestValue.id !== recommended.id) ? (() => {
     const savings     = recommended.costDesigned - bestValue.costDesigned;
@@ -5060,14 +5274,7 @@ function renderRecommendation(calcResults, v1Inputs) {
     const bvDetPct    = targetDet > 0 ? Math.min(100, (bestValue.detDesigned / targetDet) * 100) : 100;
     const bvTotalCF   = bestValue.retDesigned + bestValue.detDesigned;
     const bvCostPerCF = bvTotalCF > 1 && bestValue.costDesigned > 0 ? bestValue.costDesigned / bvTotalCF : 0;
-    return `
-      <div class="p-4 rounded-lg border mt-4" style="background:#EEF4D0; border-color:#7FA329;">
-        <div class="flex items-start justify-between gap-2 mb-2">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#4A6610;opacity:0.65;">Best Value Alternative</p>
-            <p class="font-bold text-sm leading-snug" style="color:#4A6610;">${bestValue.name}</p>
-          </div>
-        </div>
+    const bvTechHtml = isDesignRec ? '' : `
         <div class="result-tech-section" style="border-radius:8px;border-top:none;padding:10px 14px;margin-top:8px;">
           <div class="result-tech-heading">Cost &amp; Performance</div>
           <div class="result-tech-grid">
@@ -5079,7 +5286,22 @@ function renderRecommendation(calcResults, v1Inputs) {
             ${targetDet > 0 ? `<div class="result-tech-row"><span class="result-tech-label">Detention Met</span><span class="result-tech-value" style="color:${bvDetPct>=99?'#15803D':'#B45309'}">${bvDetPct.toFixed(0)}% (${bestValue.detDesigned.toFixed(1)} CF)</span></div>` : ''}
             ${bvCostPerCF > 0 ? `<div class="result-tech-row"><span class="result-tech-label">Cost / CF</span><span class="result-tech-value">$${bvCostPerCF.toFixed(2)}/CF</span></div>` : ''}
           </div>
+        </div>`;
+    const bvDesignHtml = isDesignRec ? `
+        <div class="result-stats-grid" style="border-radius:8px;overflow:hidden;margin-top:8px;grid-template-columns:repeat(3,1fr);">
+          <div class="result-stat-box"><div class="result-stat-label">Total Cost</div><div class="result-stat-val" style="color:#15803D;">$${Math.round(bestValue.costDesigned).toLocaleString()}</div><div class="result-stat-sub">&nbsp;</div></div>
+          <div class="result-stat-box"><div class="result-stat-label">Savings</div><div class="result-stat-val" style="color:#15803D;">−$${Math.round(savings).toLocaleString()}</div><div class="result-stat-sub">vs Top Rec.</div></div>
+          <div class="result-stat-box"><div class="result-stat-label">Area</div><div class="result-stat-val">${Math.round(bestValue.grossDesignedArea).toLocaleString()}</div><div class="result-stat-sub">SF</div></div>
+        </div>` : '';
+    return `
+      <div class="p-4 rounded-lg border mt-4" style="background:#EEF4D0; border-color:#7FA329;">
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#4A6610;opacity:0.65;">Best Value Alternative</p>
+            <p class="font-bold text-sm leading-snug" style="color:#4A6610;">${bestValue.name}</p>
+          </div>
         </div>
+        ${isDesignRec ? bvDesignHtml : bvTechHtml}
       </div>`;
   })() : '';
 
@@ -5109,6 +5331,7 @@ function renderRecommendation(calcResults, v1Inputs) {
           <div class="result-stat-sub">&nbsp;</div>
         </div>
       </div>
+      ${isDesignRec ? '' : `
       <div class="result-tech-section" style="border-radius:8px;border-top:none;padding:10px 14px;margin-bottom:10px;">
         <div class="result-tech-heading">Performance &amp; Technical Parameters</div>
         <div class="result-tech-grid">
@@ -5119,7 +5342,7 @@ function renderRecommendation(calcResults, v1Inputs) {
           ${recommended.capacity.cfRetPerSf > 0 ? `<div class="result-tech-row"><span class="result-tech-label">Ret. Capacity</span><span class="result-tech-value">${recommended.capacity.cfRetPerSf.toFixed(3)} CF/SF</span></div>` : ''}
           ${recommended.capacity.cfDetPerSf > 0 ? `<div class="result-tech-row"><span class="result-tech-label">Det. Capacity</span><span class="result-tech-value">${recommended.capacity.cfDetPerSf.toFixed(3)} CF/SF</span></div>` : ''}
         </div>
-      </div>
+      </div>`}
       <p class="text-xs" style="color:${recTextColor};opacity:0.7;">★ Lowest-cost system meeting all stormwater targets</p>
     </div>
     ${bestValueHtml}
@@ -5330,7 +5553,10 @@ function loadStateFromUrl() {
   if (params.toString()) {
     // URL has params (e.g. share link): apply URL state
     const city = params.get('city');
-    if (city && CITY_DATA[city]) selectCity(city);
+    if (city && CITY_DATA[city]) {
+      // Store the city so it's ready when the user navigates, but always start on the homepage
+      currentCity = city;
+    }
     if (params.get('projectName')) salesModeState.projectName = params.get('projectName');
     if (params.get('projectAddress')) salesModeState.projectAddress = params.get('projectAddress');
     if (params.get('clientName')) salesModeState.clientName = params.get('clientName');
@@ -5926,6 +6152,201 @@ setInterval(saveAppStateToStorage, 30000);
 // Initialize on load
 window.onload = init;
 </script>
+<!-- Admin Overlay (separate from presentation flow) -->
+<div class="admin-overlay" id="admin-overlay" onclick="if(event.target===this)closeAdminOverlay()">
+  <div class="admin-panel">
+    <div class="admin-panel-header">
+      <h2>Admin Database</h2>
+      <button type="button" class="admin-close-btn" onclick="closeAdminOverlay()" title="Close">&times;</button>
+    </div>
+    <div class="admin-tabs">
+      <button type="button" class="admin-tab active" data-admin-tab="bmp-library">BMP Library</button>
+      <button type="button" class="admin-tab" data-admin-tab="city-data">City Data</button>
+      <button type="button" class="admin-tab" data-admin-tab="sales-data">Sales Data</button>
+    </div>
+    <div class="admin-tab-content">
+      <div class="admin-tab-panel active" id="admin-panel-bmp-library">
+        <p class="text-sm text-slate-600 mb-4">View and edit all BMPs in the table. Change name, area type, or unit price in the row; click <strong>Specs</strong> to edit depths and porosity (in., %). Changes apply for this session.</p>
+        <div class="overflow-x-auto">
+          <table class="bmpdb-table w-full border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-100 border-b-2 border-slate-300">
+                <th class="text-left py-2 px-3 font-semibold text-slate-700 w-8">#</th>
+                <th class="text-left py-2 px-3 font-semibold text-slate-700">Name</th>
+                <th class="text-left py-2 px-3 font-semibold text-slate-700">Area type</th>
+                <th class="text-left py-2 px-3 font-semibold text-slate-700 w-28">Unit price ($/SF)</th>
+                <th class="text-left py-2 px-3 font-semibold text-slate-700 w-24">Specs</th>
+              </tr>
+            </thead>
+            <tbody id="bmpdb-tbody">
+              <!-- Rows filled by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div id="bmpdb-specs-panel" class="hidden mt-4 pt-4 border-t border-slate-200">
+          <h3 id="bmpdb-specs-panel-title" class="text-sm font-semibold mb-2" style="color: #5D5D5D;">Specs — <span id="bmpdb-specs-panel-name"></span></h3>
+          <p class="text-xs text-slate-500 mb-2">Depths in inches; porosity and void ratios in percent (0–100).</p>
+          <div id="bmpdb-specs-fields" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-3"></div>
+          <div class="flex gap-2">
+            <button type="button" id="bmpdb-apply-one" class="btn-primary text-sm">Apply to this BMP</button>
+            <button type="button" id="bmpdb-reset-one" class="btn-secondary text-sm">Reset this BMP to default</button>
+          </div>
+        </div>
+        <details class="mt-6">
+          <summary class="cursor-pointer font-medium text-slate-700 text-sm">Advanced: Regulation profiles &amp; raw JSON</summary>
+          <div class="mt-4 space-y-4">
+            <div>
+              <label for="bmpdb-profiles-json" class="block text-sm font-medium mb-1">REGULATION_PROFILES</label>
+              <textarea id="bmpdb-profiles-json" rows="10" class="w-full font-mono text-sm border rounded px-3 py-2" style="border-color: #999999;"></textarea>
+              <div class="flex gap-2 mt-2">
+                <button type="button" id="bmpdb-apply-profiles" class="btn-primary text-sm">Apply to session</button>
+                <button type="button" id="bmpdb-copy-profiles" class="btn-secondary text-sm">Copy JSON</button>
+              </div>
+            </div>
+            <div>
+              <label for="bmpdb-options-json" class="block text-sm font-medium mb-1">BMP_OPTIONS (all BMPs)</label>
+              <textarea id="bmpdb-options-json" rows="14" class="w-full font-mono text-sm border rounded px-3 py-2" style="border-color: #999999;"></textarea>
+              <div class="flex gap-2 mt-2">
+                <button type="button" id="bmpdb-apply-options" class="btn-primary text-sm">Apply to session</button>
+                <button type="button" id="bmpdb-copy-options" class="btn-secondary text-sm">Copy JSON</button>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-200">
+              <button type="button" id="bmpdb-reset" class="btn-secondary text-sm">Reset all to defaults</button>
+            </div>
+          </div>
+        </details>
+      </div>
+      <div class="admin-tab-panel" id="admin-panel-city-data">
+        <!-- City-specific regulation rules and credit values -->
+        <div class="mb-6 pb-6 border-b border-slate-200">
+          <h3 class="text-sm font-semibold text-slate-700 mb-3">Retention / Detention Rules &amp; Credit Values</h3>
+          <p class="text-sm text-gray-600 mb-3">
+            Edit BMP retention/detention rules and credit values per city. Changes apply immediately in this session.
+          </p>
+          <div>
+            <label for="city-admin-select" class="block text-sm font-medium mb-1">City</label>
+            <select id="city-admin-select" class="w-full border rounded px-3 py-2">
+              <!-- Populated by initCityAdminPanel() -->
+            </select>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+            <div>
+              <label for="admin-retention-text" class="block text-sm font-medium mb-1">Retention rules (one bullet per line)</label>
+              <textarea id="admin-retention-text" rows="5" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+            </div>
+            <div>
+              <label for="admin-detention-text" class="block text-sm font-medium mb-1">Detention rules (one bullet per line)</label>
+              <textarea id="admin-detention-text" rows="5" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+            </div>
+          </div>
+          <div class="mt-3">
+            <label for="admin-pv-text" class="block text-sm font-medium mb-1">PV / Green roof notes (one bullet per line)</label>
+            <textarea id="admin-pv-text" rows="4" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+            <div>
+              <label for="admin-soil-retention" class="block text-sm font-medium mb-1">Soil retention credit (fraction, e.g. 0.20)</label>
+              <input id="admin-soil-retention" type="number" step="0.01" class="w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+              <label for="admin-mw-retention" class="block text-sm font-medium mb-1">Mineral wool retention credit (fraction, e.g. 0.40)</label>
+              <input id="admin-mw-retention" type="number" step="0.01" class="w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+              <label for="admin-honeycomb-void" class="block text-sm font-medium mb-1">Honeycomb void ratio (fraction, e.g. 0.95)</label>
+              <input id="admin-honeycomb-void" type="number" step="0.01" class="w-full border rounded px-3 py-2" />
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-4">
+            <button type="button" id="admin-apply-btn" class="btn-primary">Apply to CITY_DATA</button>
+            <button type="button" id="admin-copy-json-btn" class="btn-secondary">Copy CITY_DATA JSON to clipboard</button>
+          </div>
+        </div>
+        <!-- City-specific regulation summaries (6 sections) -->
+        <div>
+          <h3 class="text-sm font-semibold text-slate-700 mb-3">Regulation Summaries (6 sections)</h3>
+          <p class="text-sm text-gray-600 mb-3">
+            Review and edit city-specific stormwater regulation summaries. One bullet per line. Prefix uncertain items with ⚠️. Changes apply immediately in this session.
+          </p>
+          <div>
+            <label for="citydb-select" class="block text-sm font-medium mb-1">City</label>
+            <select id="citydb-select" class="w-full border rounded px-3 py-2">
+              <!-- Populated by initCityDbPanel() -->
+            </select>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+            <div>
+              <label for="citydb-reg-s1" class="block text-sm font-medium mb-1" style="color:#26A3DF;">1. Regulatory Overview</label>
+              <textarea id="citydb-reg-s1" rows="6" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+            </div>
+            <div>
+              <label for="citydb-reg-s2" class="block text-sm font-medium mb-1" style="color:#8B6914;">2. Typical Soil Conditions</label>
+              <textarea id="citydb-reg-s2" rows="6" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+            </div>
+            <div>
+              <label for="citydb-reg-s3" class="block text-sm font-medium mb-1" style="color:#7FA329;">3. Green Roof Requirements</label>
+              <textarea id="citydb-reg-s3" rows="6" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+            </div>
+            <div>
+              <label for="citydb-reg-s4" class="block text-sm font-medium mb-1" style="color:#D97706;">4. TSS Requirements</label>
+              <textarea id="citydb-reg-s4" rows="6" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+            </div>
+            <div>
+              <label for="citydb-reg-s5" class="block text-sm font-medium mb-1" style="color:#7C3AED;">5. Nature-Based Retention</label>
+              <textarea id="citydb-reg-s5" rows="6" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+            </div>
+            <div>
+              <label for="citydb-reg-s6" class="block text-sm font-medium mb-1" style="color:#DC2626;">6. Allowable Outflow Rates</label>
+              <textarea id="citydb-reg-s6" rows="6" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-4">
+            <button type="button" id="citydb-apply-btn" class="btn-primary">Apply Changes</button>
+            <button type="button" id="citydb-copy-btn" class="btn-secondary">Copy City JSON to clipboard</button>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">
+            Changes update the on-page regulation summary immediately. To save permanently, copy JSON and paste into the data file.
+          </p>
+        </div>
+      </div>
+      <div class="admin-tab-panel" id="admin-panel-sales-data">
+        <p class="text-sm text-gray-600 mb-3">
+          Edit city-specific sales intelligence — talking points, objection handling, and best-fit system notes. One item per line. Changes apply for this session.
+        </p>
+        <div class="mb-4">
+          <label for="sales-city-select" class="block text-sm font-medium mb-1">City</label>
+          <select id="sales-city-select" class="w-full border rounded px-3 py-2">
+            <!-- Populated by initSalesDataPanel() -->
+          </select>
+        </div>
+        <div class="mb-4">
+          <label for="sales-talking-points" class="block text-sm font-medium mb-1" style="color:#26A3DF;">Talking Points</label>
+          <p class="text-xs text-slate-400 mb-1">One talking point per line.</p>
+          <textarea id="sales-talking-points" rows="5" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1" style="color:#D97706;">Objections &amp; Responses</label>
+          <p class="text-xs text-slate-400 mb-1">Format: <code>objection | response</code> — one pair per line, pipe-separated.</p>
+          <textarea id="sales-objections" rows="5" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1" style="color:#7FA329;">Best-Fit Systems</label>
+          <p class="text-xs text-slate-400 mb-1">Format: <code>condition | recommendation</code> — one pair per line, pipe-separated.</p>
+          <textarea id="sales-bestfit" rows="5" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" id="sales-apply-btn" class="btn-primary">Apply Changes</button>
+          <button type="button" id="sales-copy-btn" class="btn-secondary">Copy City Sales JSON</button>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+          To save permanently, copy JSON and paste into data/city-sales-data.js.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="data/city-reg-summaries.js"></script>
 </body>
 </html>

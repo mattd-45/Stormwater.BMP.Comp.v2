@@ -30,7 +30,8 @@ const CITY_REG_SUMMARIES = {
     regulatoryOverview: {
       items: [
         'Primary driver: Combined Sewer Overflow (CSO) reduction — ~60% of NYC is served by combined sewers.',
-        'Unified Stormwater Rule (USWR), effective February 2022, consolidated NYC DEP stormwater requirements.',
+        'Unified Stormwater Rule (USWR), effective February 2022, consolidated NYC DEP stormwater requirements. Technical appendices (sizing, design examples) updated September 2024.',
+        'NYS Construction General Permit GP-0-25-001 (effective January 2025) replaces GP-0-20-001 — adds climate risk requirements and references the 2024 NYS Stormwater Design Manual.',
         'Applies to projects with ≥20,000 SF soil disturbance OR ≥5,000 SF new impervious surface.',
         'MS4 areas require Water Quality Volume (WQv) retention; CSS areas require Sewer Operations Volume control.',
         'Local Law 92/94 (2019) mandates sustainable roofing (solar, green roof, or combo) on all new buildings and major roof renovations.'
