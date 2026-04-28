@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "/"
+  to = "/v3/"
+  status = 302
+
