@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V3 Admin Data Editor</title>
+<style>
+/* ── Reset & Base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --brand-primary: #2d7a3a;
+  --brand-primary-dark: #1e5c2b;
+  --brand-primary-light: #e8f5ec;
+  --brand-primary-mid: #a3d9ad;
+  --n-900: #0f172a;
+  --n-800: #1e293b;
+  --n-700: #334155;
+  --n-600: #475569;
+  --n-500: #64748b;
+  --n-300: #cbd5e1;
+  --n-200: #e2e8f0;
+  --n-100: #f1f5f9;
+  --n-50: #f8fafc;
+  --n-0: #ffffff;
+}
+body {
+  font-family: Inter, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 13px;
+  color: var(--n-800);
+  background:
+    radial-gradient(circle at 86% 0%, rgba(232, 245, 236, 0.72) 0, transparent 30%),
+    linear-gradient(180deg, #ffffff 0%, var(--n-50) 44%, var(--n-100) 100%);
+  line-height: 1.4;
+}
+
+/* ── Top Bar ──────────────────────────────────────────────── */
+.topbar {
+  background:
+    linear-gradient(90deg, rgba(45, 122, 58, 0.12), transparent 38%),
+    rgba(255, 255, 255, 0.96);
+  color: var(--n-800);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(163, 217, 173, 0.55);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.075);
+  backdrop-filter: blur(16px);
+}
+.topbar h1 { color: var(--n-900); font-size: 16px; font-weight: 750; letter-spacing: -0.015em; white-space: nowrap; }
+.topbar .spacer { flex: 1; }
+.topbar button {
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 650;
+  font-family: inherit;
+  border: 1px solid var(--n-300);
+  border-radius: 999px;
+  background: var(--n-0);
+  color: var(--n-700);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.topbar button:hover { background: var(--brand-primary-light); border-color: var(--brand-primary-mid); color: var(--brand-primary-dark); }
+.topbar button.btn-danger { border-color: #f87171; color: #b91c1c; }
+.topbar button.btn-danger:hover { background: #fef2f2; }
+.topbar .edit-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.topbar .edit-toggle label { cursor: pointer; user-select: none; }
+.topbar input[type="file"] { display: none; }
+.topbar .status {
+  font-size: 11px;
+  color: var(--n-500);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.topbar .status.visible { opacity: 1; }
+
+/* ── Tabs ─────────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.76);
+  border-bottom: 1px solid var(--n-200);
+  padding: 8px 20px 0;
+}
+.tab-bar button {
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  color: #64748b;
+}
+.tab-bar button:hover { color: #334155; }
+.tab-bar button.active {
+  color: var(--brand-primary-dark);
+  border-bottom-color: var(--brand-primary);
+  font-weight: 700;
+}
+
+/* ── Toolbar (filter/search) ──────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid var(--n-200);
+}
+.toolbar label { font-size: 12px; color: var(--n-600); font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.toolbar select, .toolbar input[type="text"] {
+  padding: 7px 11px;
+  font-size: 12px;
+  font-family: inherit;
+  border: 1px solid var(--n-300);
+  border-radius: 999px;
+  background: #fff;
+}
+.toolbar input[type="text"] { width: 220px; }
+.toolbar .spacer { flex: 1; }
+.toolbar .row-count { font-size: 11px; color: #94a3b8; }
+
+/* ── Table Container ──────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
+  background: var(--n-0);
+  border-top: 1px solid var(--n-200);
+}
+
+/* ── Table ─────────────────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+}
+thead { position: sticky; top: 0; z-index: 10; }
+th {
+  background: var(--n-50);
+  border: 1px solid var(--n-200);
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--n-600);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+td {
+  border: 1px solid var(--n-200);
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+tr:nth-child(even) { background: var(--n-50); }
+tr:hover { background: var(--brand-primary-light); }
+tr.inactive { opacity: 0.45; }
+tr.inactive:hover { opacity: 0.7; }
+
+/* ── Cell types ───────────────────────────────────────────── */
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.bool { text-align: center; }
+td.notes-cell { max-width: 250px; }
+
+/* ── Edit mode cells ──────────────────────────────────────── */
+td input[type="text"],
+td input[type="number"] {
+  width: 100%;
+  padding: 2px 4px;
+  font-size: 12px;
+  font-family: inherit;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+  background: #fffde7;
+}
+td input[type="number"] { text-align: right; }
+td input[type="checkbox"] { cursor: pointer; }
+td select {
+  width: 100%;
+  padding: 2px 4px;
+  font-size: 12px;
+  font-family: inherit;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+}
+
+/* ── Fixed column widths ──────────────────────────────────── */
+col.col-id        { width: 180px; min-width: 180px; }
+col.col-name      { width: 260px; min-width: 260px; }
+col.col-mode      { width: 100px; min-width: 100px; }
+col.col-category  { width: 120px; min-width: 120px; }
+col.col-unit      { width: 80px;  min-width: 80px; }
+col.col-cost      { width: 110px; min-width: 110px; }
+col.col-pct       { width: 80px;  min-width: 80px; }
+col.col-rate      { width: 100px; min-width: 100px; }
+col.col-bool      { width: 70px;  min-width: 70px; }
+col.col-notes     { width: 280px; min-width: 280px; }
+col.col-depth     { width: 80px;  min-width: 80px; }
+col.col-weight    { width: 90px;  min-width: 90px; }
+col.col-factor    { width: 100px; min-width: 100px; }
+col.col-date      { width: 100px; min-width: 100px; }
+col.col-text      { width: 200px; min-width: 200px; }
+col.col-desc      { width: 300px; min-width: 300px; }
+
+/* ── Diff highlight ───────────────────────────────────────── */
+td.changed { background: #fef9c3 !important; }
+
+/* ── Validation banner ────────────────────────────────────── */
+.val-banner {
+  display: none;
+  padding: 6px 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border-bottom: 1px solid;
+}
+.val-banner.show { display: flex; align-items: center; gap: 12px; }
+.val-banner.pass { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+.val-banner.warn { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.val-banner.fail { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.val-banner .val-counts { display: flex; gap: 12px; }
+.val-banner .val-count { font-variant-numeric: tabular-nums; }
+.val-banner .val-count.err { color: #dc2626; font-weight: 600; }
+.val-banner .val-count.wrn { color: #d97706; }
+.val-banner .spacer { flex: 1; }
+.val-banner button {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-family: inherit;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.val-banner button:hover { opacity: 1; }
+
+/* ── Validation results panel ─────────────────────────────── */
+.val-panel {
+  display: none;
+  max-height: 340px;
+  overflow-y: auto;
+  background: #fff;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 12px 20px;
+  font-size: 12px;
+}
+.val-panel.show { display: block; }
+.val-panel h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 10px 0 4px;
+  color: #334155;
+}
+.val-panel h3:first-child { margin-top: 0; }
+.val-list { list-style: none; padding: 0; margin: 0; }
+.val-list li {
+  padding: 3px 0 3px 18px;
+  position: relative;
+  line-height: 1.5;
+}
+.val-list li::before {
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+}
+.val-list li.err::before { content: '✕'; color: #dc2626; }
+.val-list li.wrn::before { content: '!'; color: #d97706; }
+.val-list li .val-loc {
+  color: #64748b;
+  font-size: 11px;
+}
+
+/* ── Topbar validate button ───────────────────────────────── */
+.topbar button.btn-validate {
+  background: #1e40af;
+  border-color: #3b82f6;
+  color: #fff;
+}
+.topbar button.btn-validate:hover { background: #2563eb; }
+
+/* ── Export blocked indicator ─────────────────────────────── */
+.topbar button.blocked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+</style>
+</head>
+<body>
+
+<!-- ── Top Bar ─────────────────────────────────────────────── -->
+<div class="topbar">
+  <h1>V3 Admin Data Editor</h1>
+  <div class="edit-toggle">
+    <input type="checkbox" id="edit-mode-toggle">
+    <label for="edit-mode-toggle">Edit Mode</label>
+  </div>
+  <div class="spacer"></div>
+  <button id="btn-validate" class="btn-validate">Validate Data</button>
+  <button id="btn-add-row">+ Add Item</button>
+  <button id="btn-import">Import JSON</button>
+  <button id="btn-export">Export JSON</button>
+  <button id="btn-export-js">Export .js</button>
+  <input type="file" id="file-import" accept=".json,.js">
+  <span class="status" id="status-msg"></span>
+</div>
+
+<!-- ── Validation Banner ──────────────────────────────────── -->
+<div class="val-banner" id="val-banner">
+  <span id="val-summary"></span>
+  <div class="val-counts">
+    <span class="val-count err" id="val-err-count"></span>
+    <span class="val-count wrn" id="val-wrn-count"></span>
+    <span class="val-count" id="val-row-total"></span>
+  </div>
+  <div class="spacer"></div>
+  <button id="val-toggle-detail">Details</button>
+  <button id="val-dismiss">Dismiss</button>
+</div>
+
+<!-- ── Validation Details Panel ────────────────────────────── -->
+<div class="val-panel" id="val-panel"></div>
+
+<!-- ── Tab Bar ─────────────────────────────────────────────── -->
+<div class="tab-bar" id="tab-bar"></div>
+
+<!-- ── Toolbar ─────────────────────────────────────────────── -->
+<div class="toolbar">
+  <label>Category:</label>
+  <select id="filter-category"><option value="">All</option></select>
+  <label>Search:</label>
+  <input type="text" id="filter-search" placeholder="Filter by ID or name...">
+  <div class="spacer"></div>
+  <span class="row-count" id="row-count"></span>
+</div>
+
+<!-- ── Table ───────────────────────────────────────────────── -->
+<div class="table-wrap" id="table-wrap">
+  <table id="data-table">
+    <colgroup id="colgroup"></colgroup>
+    <thead id="table-head"><tr></tr></thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN EDITOR — in-memory data editing
+// ═══════════════════════════════════════════════════════════════════════
+
+(function () {
+
+  // ── Tab definitions ────────────────────────────────────────────────
+  //
+  // Each tab defines:
+  //   key        — internal id
+  //   label      — tab button text
+  //   varName    — the JS global variable name in the data file
+  //   columns    — ordered list of { key, label, type, colClass, options?, nested? }
+  //                type: 'string' | 'number' | 'boolean' | 'select' | 'readonly'
+  //   getItems   — function() returning the live array
+  //   setItems   — function(arr) replacing the live array
+  //   newItem    — function() returning a blank row
+
+  var TABS = [
+    {
+      key: 'cost-items',
+      label: 'Cost Items',
+      varName: 'COST_ITEMS',
+      columns: [
+        { key: 'id',                    label: 'ID',             type: 'string',  colClass: 'col-id' },
+        { key: 'name',                  label: 'Name',           type: 'string',  colClass: 'col-name' },
+        { key: 'pricingMode',           label: 'Mode',           type: 'select',  colClass: 'col-mode',
+          options: ['assembly', 'parametric', 'turnkey'] },
+        { key: 'category',              label: 'Category',       type: 'string',  colClass: 'col-category' },
+        { key: 'unitMeasure',           label: 'Unit',           type: 'string',  colClass: 'col-unit' },
+        { key: 'baseCostPerSf',         label: 'Base $/SF',      type: 'number',  colClass: 'col-cost' },
+        { key: 'unitPrice',             label: 'Unit Price',     type: 'number',  colClass: 'col-cost' },
+        { key: 'furnishedCostPerUnit',  label: 'Furn $/Unit',    type: 'number',  colClass: 'col-cost' },
+        { key: 'derivedCostPerSf',      label: 'Derived $/SF',   type: 'number',  colClass: 'col-cost' },
+        { key: 'wastePct',              label: 'Waste %',        type: 'number',  colClass: 'col-pct' },
+        { key: 'install.laborRate',     label: 'Labor Rate',     type: 'number',  colClass: 'col-cost',  nested: true },
+        { key: 'install.derivedInstallPerSf', label: 'Install $/SF', type: 'number', colClass: 'col-cost', nested: true },
+        { key: 'active',                label: 'Active',         type: 'boolean', colClass: 'col-bool' },
+        { key: 'confirmed',             label: 'Confirmed',      type: 'boolean', colClass: 'col-bool' },
+        { key: 'source',                label: 'Source',         type: 'string',  colClass: 'col-unit' },
+        { key: 'lastUpdated',           label: 'Updated',        type: 'string',  colClass: 'col-date' },
+        { key: 'notes',                 label: 'Notes',          type: 'string',  colClass: 'col-notes' }
+      ],
+      data: [],
+      newItem: function () {
+        return {
+          id: 'new-item-' + Date.now(),
+          name: '',
+          pricingMode: 'parametric',
+          category: 'bmp-ground',
+          unitMeasure: 'sf',
+          systemRef: null,
+          baseCostPerSf: 0,
+          unitPrice: null,
+          furnishedCostPerUnit: null,
+          derivedCostPerSf: 0,
+          wastePct: 0.05,
+          install: { productionRate: null, crewBasis: 'crew-2', laborRate: 145, derivedInstallPerSf: 0, notes: '' },
+          parameters: [],
+          adjustments: [],
+          confirmed: false,
+          active: true,
+          effectiveDate: new Date().toISOString().slice(0, 10),
+          lastUpdated: new Date().toISOString().slice(0, 10),
+          source: 'estimate',
+          notes: ''
+        };
+      }
+    },
+    {
+      key: 'roof-layers',
+      label: 'Roof Layers',
+      varName: 'ROOF_LAYERS',
+      columns: [
+        { key: 'id',              label: 'ID',           type: 'string',  colClass: 'col-id' },
+        { key: 'name',            label: 'Name',         type: 'string',  colClass: 'col-name' },
+        { key: 'category',        label: 'Category',     type: 'string',  colClass: 'col-category' },
+        { key: 'unitType',        label: 'Unit Type',    type: 'select',  colClass: 'col-unit',
+          options: ['fixed', 'depth'] },
+        { key: 'defaultDepthIn',  label: 'Default Depth', type: 'number', colClass: 'col-depth' },
+        { key: 'minDepthIn',      label: 'Min Depth',    type: 'number',  colClass: 'col-depth' },
+        { key: 'maxDepthIn',      label: 'Max Depth',    type: 'number',  colClass: 'col-depth' },
+        { key: 'dryWeightPSF',    label: 'Dry Wt PSF',   type: 'number',  colClass: 'col-weight' },
+        { key: 'satWeightPSF',    label: 'Sat Wt PSF',   type: 'number',  colClass: 'col-weight' },
+        { key: 'costPSF',         label: 'Cost/SF',      type: 'number',  colClass: 'col-cost' },
+        { key: 'adjustable',      label: 'Adjustable',   type: 'boolean', colClass: 'col-bool' },
+        { key: 'notes',           label: 'Notes',        type: 'string',  colClass: 'col-notes' }
+      ],
+      data: [],
+      newItem: function () {
+        return {
+          id: 'new-layer-' + Date.now(),
+          name: '',
+          category: 'media',
+          unitType: 'depth',
+          defaultDepthIn: 0,
+          minDepthIn: 0,
+          maxDepthIn: 0,
+          adjustable: false,
+          dryWeightPSF: 0,
+          satWeightPSF: 0,
+          costPSF: 0,
+          retFactors: { general: 0, nyc_dep: 0 },
+          detFactors: { general: 0, nyc_dep: 0 },
+          retConditions: null,
+          notes: ''
+        };
+      }
+    },
+    {
+      key: 'roof-profiles',
+      label: 'Roof Profiles',
+      varName: 'ROOF_PROFILES',
+      columns: [
+        { key: 'id',               label: 'ID',          type: 'string',   colClass: 'col-id' },
+        { key: 'name',             label: 'Name',        type: 'string',   colClass: 'col-name' },
+        { key: 'shortName',        label: 'Short Name',  type: 'string',   colClass: 'col-category' },
+        { key: 'profileCategory',  label: 'Category',    type: 'string',   colClass: 'col-category' },
+        { key: 'bmpId',            label: 'BMP ID',      type: 'string',   colClass: 'col-unit' },
+        { key: 'totalDepthIn',     label: 'Total Depth',  type: 'number',  colClass: 'col-depth' },
+        { key: 'description',      label: 'Description', type: 'string',   colClass: 'col-desc' },
+        { key: 'assumptions',      label: 'Assumptions', type: 'string',   colClass: 'col-desc' }
+      ],
+      data: [],
+      newItem: function () {
+        return {
+          id: 'new-profile-' + Date.now(),
+          name: '',
+          shortName: '',
+          profileCategory: 'custom',
+          systemType: '',
+          bmpId: null,
+          description: '',
+          assumptions: '',
+          layers: [],
+          totalDepthIn: 0,
+          resourceLinks: { specSheet: null, detailDrawing: null, installGuide: null }
+        };
+      }
+    },
+    {
+      key: 'cost-adjustments',
+      label: 'Adjustments',
+      varName: 'COST_ADJUSTMENTS',
+      columns: [
+        { key: 'id',           label: 'ID',          type: 'string',   colClass: 'col-id' },
+        { key: 'name',         label: 'Name',        type: 'string',   colClass: 'col-name' },
+        { key: 'appliesTo',    label: 'Applies To',  type: 'select',   colClass: 'col-category',
+          options: ['both', 'furnished', 'install'] },
+        { key: 'defaultKey',   label: 'Default',     type: 'string',   colClass: 'col-unit' },
+        { key: 'editable',     label: 'Editable',    type: 'boolean',  colClass: 'col-bool' },
+        { key: 'description',  label: 'Description', type: 'string',   colClass: 'col-desc' },
+        { key: 'lastUpdated',  label: 'Updated',     type: 'string',   colClass: 'col-date' }
+      ],
+      data: [],
+      newItem: function () {
+        return {
+          id: 'new-adj-' + Date.now(),
+          name: '',
+          description: '',
+          appliesTo: 'both',
+          options: [],
+          defaultKey: 'standard',
+          editable: true,
+          lastUpdated: new Date().toISOString().slice(0, 10)
+        };
+      }
+    },
+    {
+      key: 'cost-markups',
+      label: 'Markups',
+      varName: 'COST_MARKUPS',
+      columns: [
+        { key: 'id',                  label: 'ID',           type: 'string',  colClass: 'col-id' },
+        { key: 'name',                label: 'Name',         type: 'string',  colClass: 'col-name' },
+        { key: 'description',         label: 'Description',  type: 'string',  colClass: 'col-desc' },
+        { key: 'defaultForCategory',  label: 'Default For',  type: 'readonly', colClass: 'col-text' },
+        { key: 'lastUpdated',         label: 'Updated',      type: 'string',  colClass: 'col-date' }
+      ],
+      data: [],
+      newItem: function () {
+        return {
+          id: 'new-markup-' + Date.now(),
+          name: '',
+          description: '',
+          tiers: [],
+          defaultForCategory: [],
+          lastUpdated: new Date().toISOString().slice(0, 10)
+        };
+      }
+    }
+  ];
+
+
+  // ── State ──────────────────────────────────────────────────────────
+
+  var activeTabKey = TABS[0].key;
+  var editMode = false;
+  var changedCells = {};   // 'tabKey:rowIdx:colKey' → true
+
+
+  // ── DOM refs ───────────────────────────────────────────────────────
+
+  var $tabBar       = document.getElementById('tab-bar');
+  var $colgroup     = document.getElementById('colgroup');
+  var $thead        = document.getElementById('table-head');
+  var $tbody        = document.getElementById('table-body');
+  var $filterCat    = document.getElementById('filter-category');
+  var $filterSearch = document.getElementById('filter-search');
+  var $rowCount     = document.getElementById('row-count');
+  var $editToggle   = document.getElementById('edit-mode-toggle');
+  var $btnAdd       = document.getElementById('btn-add-row');
+  var $btnImport    = document.getElementById('btn-import');
+  var $btnExport    = document.getElementById('btn-export');
+  var $btnExportJs  = document.getElementById('btn-export-js');
+  var $fileInput    = document.getElementById('file-import');
+  var $status       = document.getElementById('status-msg');
+
+
+  // ── Helpers ────────────────────────────────────────────────────────
+
+  function getTab(key) {
+    for (var i = 0; i < TABS.length; i++) {
+      if (TABS[i].key === key) return TABS[i];
+    }
+    return TABS[0];
+  }
+
+  function getActiveTab() { return getTab(activeTabKey); }
+
+  // Get nested value: getPath(obj, 'install.laborRate')
+  function getPath(obj, path) {
+    var parts = path.split('.');
+    var cur = obj;
+    for (var i = 0; i < parts.length; i++) {
+      if (cur == null) return undefined;
+      cur = cur[parts[i]];
+    }
+    return cur;
+  }
+
+  // Set nested value
+  function setPath(obj, path, val) {
+    var parts = path.split('.');
+    var cur = obj;
+    for (var i = 0; i < parts.length - 1; i++) {
+      if (cur[parts[i]] == null || typeof cur[parts[i]] !== 'object') {
+        cur[parts[i]] = {};
+      }
+      cur = cur[parts[i]];
+    }
+    cur[parts[parts.length - 1]] = val;
+  }
+
+  function flash(msg) {
+    $status.textContent = msg;
+    $status.classList.add('visible');
+    setTimeout(function () { $status.classList.remove('visible'); }, 2500);
+  }
+
+  function fmtVal(val, type) {
+    if (val == null || val === undefined) return '';
+    if (type === 'boolean') return val ? 'Yes' : 'No';
+    if (type === 'number') {
+      if (typeof val !== 'number') return String(val);
+      // Show percentages stored as decimals (0.05 → 5%)
+      return String(val);
+    }
+    if (Array.isArray(val)) return val.join(', ');
+    return String(val);
+  }
+
+
+  // ── Category filter population ─────────────────────────────────────
+
+  function populateCategoryFilter() {
+    var tab = getActiveTab();
+    var cats = {};
+    var catCol = null;
+    for (var c = 0; c < tab.columns.length; c++) {
+      if (tab.columns[c].key === 'category' || tab.columns[c].key === 'profileCategory') {
+        catCol = tab.columns[c].key;
+        break;
+      }
+    }
+    $filterCat.innerHTML = '<option value="">All</option>';
+    if (!catCol) return;
+
+    tab.data.forEach(function (item) {
+      var v = getPath(item, catCol);
+      if (v && !cats[v]) cats[v] = true;
+    });
+    Object.keys(cats).sort().forEach(function (cat) {
+      var opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      $filterCat.appendChild(opt);
+    });
+  }
+
+
+  // ── Filtering ──────────────────────────────────────────────────────
+
+  function getFilteredRows() {
+    var tab = getActiveTab();
+    var catVal = $filterCat.value;
+    var searchVal = $filterSearch.value.toLowerCase().trim();
+
+    var catCol = null;
+    for (var c = 0; c < tab.columns.length; c++) {
+      if (tab.columns[c].key === 'category' || tab.columns[c].key === 'profileCategory') {
+        catCol = tab.columns[c].key;
+        break;
+      }
+    }
+
+    var results = [];
+    for (var i = 0; i < tab.data.length; i++) {
+      var item = tab.data[i];
+
+      // Category filter
+      if (catVal && catCol && getPath(item, catCol) !== catVal) continue;
+
+      // Search filter — match against id and name
+      if (searchVal) {
+        var id = (getPath(item, 'id') || '').toLowerCase();
+        var name = (getPath(item, 'name') || '').toLowerCase();
+        if (id.indexOf(searchVal) === -1 && name.indexOf(searchVal) === -1) continue;
+      }
+
+      results.push({ item: item, originalIndex: i });
+    }
+    return results;
+  }
+
+
+  // ── Render tabs ────────────────────────────────────────────────────
+
+  function renderTabs() {
+    $tabBar.innerHTML = '';
+    TABS.forEach(function (tab) {
+      var btn = document.createElement('button');
+      btn.textContent = tab.label + ' (' + tab.data.length + ')';
+      btn.className = tab.key === activeTabKey ? 'active' : '';
+      btn.addEventListener('click', function () {
+        activeTabKey = tab.key;
+        $filterCat.value = '';
+        $filterSearch.value = '';
+        populateCategoryFilter();
+        renderTabs();
+        renderTable();
+      });
+      $tabBar.appendChild(btn);
+    });
+  }
+
+
+  // ── Render table ───────────────────────────────────────────────────
+
+  function renderTable() {
+    var tab = getActiveTab();
+    var cols = tab.columns;
+    var rows = getFilteredRows();
+
+    // Colgroup
+    $colgroup.innerHTML = '';
+    cols.forEach(function (col) {
+      var cg = document.createElement('col');
+      cg.className = col.colClass || '';
+      $colgroup.appendChild(cg);
+    });
+
+    // Header
+    var headerHtml = '<tr>';
+    cols.forEach(function (col) {
+      headerHtml += '<th>' + escHtml(col.label) + '</th>';
+    });
+    headerHtml += '</tr>';
+    $thead.innerHTML = headerHtml;
+
+    // Body
+    var bodyHtml = '';
+    rows.forEach(function (row) {
+      var item = row.item;
+      var idx = row.originalIndex;
+      var isInactive = (getPath(item, 'active') === false);
+      bodyHtml += '<tr' + (isInactive ? ' class="inactive"' : '') + ' data-idx="' + idx + '">';
+
+      cols.forEach(function (col) {
+        var val = getPath(item, col.key);
+        var cellKey = activeTabKey + ':' + idx + ':' + col.key;
+        var isChanged = changedCells[cellKey] ? ' changed' : '';
+        var cls = '';
+        if (col.type === 'number') cls = ' num';
+        if (col.type === 'boolean') cls = ' bool';
+        if (col.key === 'notes') cls = ' notes-cell';
+
+        if (editMode && col.type !== 'readonly') {
+          bodyHtml += '<td class="' + cls + isChanged + '">';
+          bodyHtml += renderEditCell(col, val, idx);
+          bodyHtml += '</td>';
+        } else {
+          var display = fmtVal(val, col.type);
+          bodyHtml += '<td class="' + cls + isChanged + '" title="' + escAttr(display) + '">';
+          bodyHtml += escHtml(display);
+          bodyHtml += '</td>';
+        }
+      });
+
+      bodyHtml += '</tr>';
+    });
+
+    $tbody.innerHTML = bodyHtml;
+    $rowCount.textContent = rows.length + ' of ' + tab.data.length + ' items';
+
+    // Bind edit events if in edit mode
+    if (editMode) {
+      bindEditEvents();
+    }
+  }
+
+
+  function renderEditCell(col, val, rowIdx) {
+    var name = 'cell-' + rowIdx + '-' + col.key.replace(/\./g, '_');
+
+    if (col.type === 'boolean') {
+      return '<input type="checkbox" data-idx="' + rowIdx + '" data-key="' + col.key + '"' +
+        (val ? ' checked' : '') + '>';
+    }
+
+    if (col.type === 'select' && col.options) {
+      var html = '<select data-idx="' + rowIdx + '" data-key="' + col.key + '">';
+      col.options.forEach(function (opt) {
+        html += '<option value="' + escAttr(opt) + '"' +
+          (val === opt ? ' selected' : '') + '>' + escHtml(opt) + '</option>';
+      });
+      html += '</select>';
+      return html;
+    }
+
+    if (col.type === 'number') {
+      var numVal = (val != null && val !== '') ? val : '';
+      return '<input type="number" step="any" data-idx="' + rowIdx + '" data-key="' + col.key + '"' +
+        ' value="' + numVal + '">';
+    }
+
+    // Default: text
+    return '<input type="text" data-idx="' + rowIdx + '" data-key="' + col.key + '"' +
+      ' value="' + escAttr(val != null ? val : '') + '">';
+  }
+
+
+  function bindEditEvents() {
+    var tab = getActiveTab();
+    var inputs = $tbody.querySelectorAll('input, select');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].addEventListener('change', handleCellChange);
+    }
+  }
+
+
+  function handleCellChange(e) {
+    var el = e.target;
+    var idx = parseInt(el.getAttribute('data-idx'), 10);
+    var key = el.getAttribute('data-key');
+    var tab = getActiveTab();
+    var item = tab.data[idx];
+    if (!item) return;
+
+    var col = null;
+    for (var c = 0; c < tab.columns.length; c++) {
+      if (tab.columns[c].key === key) { col = tab.columns[c]; break; }
+    }
+    if (!col) return;
+
+    var val;
+    if (col.type === 'boolean') {
+      val = el.checked;
+    } else if (col.type === 'number') {
+      val = el.value === '' ? null : parseFloat(el.value);
+    } else {
+      val = el.value;
+    }
+
+    setPath(item, key, val);
+
+    // Track change
+    var cellKey = activeTabKey + ':' + idx + ':' + key;
+    changedCells[cellKey] = true;
+
+    // Mark cell visually
+    var td = el.closest('td');
+    if (td) td.classList.add('changed');
+
+    // Update lastUpdated if the field exists
+    if (item.lastUpdated !== undefined) {
+      item.lastUpdated = new Date().toISOString().slice(0, 10);
+    }
+  }
+
+
+  // ── Add row ────────────────────────────────────────────────────────
+
+  function addRow() {
+    var tab = getActiveTab();
+    if (!tab.newItem) { flash('No template for this tab'); return; }
+    tab.data.push(tab.newItem());
+    renderTabs();
+    renderTable();
+
+    // Scroll to bottom
+    var wrap = document.getElementById('table-wrap');
+    wrap.scrollTop = wrap.scrollHeight;
+    flash('New row added');
+  }
+
+
+  // ── Export ─────────────────────────────────────────────────────────
+
+  function exportJSON() {
+    var tab = getActiveTab();
+    var json = JSON.stringify(tab.data, null, 2);
+    downloadText(json, tab.key + '.json', 'application/json');
+    flash('Exported ' + tab.label + ' as JSON');
+  }
+
+  function exportJS() {
+    var tab = getActiveTab();
+    var json = JSON.stringify(tab.data, null, 2);
+    // Wrap in a const assignment matching the original variable name
+    var js = 'const ' + tab.varName + ' = ' + json + ';\n';
+    downloadText(js, tab.key + '.js', 'application/javascript');
+    flash('Exported ' + tab.label + ' as .js');
+  }
+
+  function downloadText(text, filename, mime) {
+    var blob = new Blob([text], { type: mime });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+
+  // ── Import ─────────────────────────────────────────────────────────
+
+  function importFile(file) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var text = e.target.result;
+        var data;
+
+        // Try to parse as raw JSON first
+        try {
+          data = JSON.parse(text);
+        } catch (jsonErr) {
+          // Try to extract array from JS assignment: const VARNAME = [...];
+          var match = text.match(/(?:const|var|let)\s+\w+\s*=\s*(\[[\s\S]*\]);?/);
+          if (match) {
+            data = JSON.parse(match[1]);
+          } else {
+            throw jsonErr;
+          }
+        }
+
+        if (!Array.isArray(data)) {
+          alert('Import failed: expected a JSON array.');
+          return;
+        }
+
+        var tab = getActiveTab();
+        tab.data = data;
+        changedCells = {};
+        populateCategoryFilter();
+        renderTabs();
+        renderTable();
+        flash('Imported ' + data.length + ' items into ' + tab.label);
+      } catch (err) {
+        alert('Import failed: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+
+  // ── HTML escape ────────────────────────────────────────────────────
+
+  function escHtml(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function escAttr(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════════
+  // VALIDATION ENGINE
+  // ═══════════════════════════════════════════════════════════════════
+  //
+  // Checks:
+  //   1. Field-level — required fields, valid types, valid enums
+  //   2. Uniqueness  — duplicate IDs within each dataset
+  //   3. Cross-ref   — roof profiles → layer IDs, BMP pricing map → cost items / profiles
+  //   4. Structure    — exported shape matches what the v3 tool expects
+
+  // BMP_PRICING_MAP — hardcoded reference of what the main tool expects.
+  // If this changes in run-analysis.js it should be updated here too.
+  var EXPECTED_COST_ITEM_IDS = [
+    'bmp-bioretention', 'bmp-underground-cells', 'bmp-permeable-pavers',
+    'bmp-below-grade-tank', 'bmp-below-grade-tank-usable', 'bmp-on-structure-tank',
+    'bmp-blue-roof', 'pv-overeasy-xm3', 'pv-contec-greenlite', 'fp-diadem-anchor'
+  ];
+  var EXPECTED_PROFILE_IDS = [
+    'trad-gr-6', 'sponge-42', 'pr-veg-412', 'pr-veg-414',
+    'pr-pav-p12', 'pr-pav-p14'
+  ];
+  var VALID_PRICING_MODES = ['assembly', 'parametric', 'turnkey'];
+  var VALID_UNIT_TYPES    = ['fixed', 'depth'];
+  var VALID_APPLIES_TO    = ['both', 'furnished', 'install'];
+
+  var lastValidation = null;  // { errors: [], warnings: [], totalRows: 0 }
+
+
+  function validateAll() {
+    var errors   = [];
+    var warnings = [];
+    var totalRows = 0;
+
+    // Collect all IDs for cross-reference
+    var costItemIds  = {};
+    var roofLayerIds = {};
+    var profileIds   = {};
+    var adjIds       = {};
+    var markupIds    = {};
+
+    var ciTab  = getTab('cost-items');
+    var rlTab  = getTab('roof-layers');
+    var rpTab  = getTab('roof-profiles');
+    var adjTab = getTab('cost-adjustments');
+    var mkTab  = getTab('cost-markups');
+
+    // ── 1. Cost Items ────────────────────────────────────────────────
+    ciTab.data.forEach(function (item, i) {
+      totalRows++;
+      var loc = 'Cost Items [' + i + '] ' + (item.id || '(no id)');
+
+      // Required fields
+      if (!item.id || !item.id.trim())       errors.push({ msg: 'Missing ID',       loc: loc });
+      if (!item.name || !item.name.trim())   warnings.push({ msg: 'Missing name',   loc: loc });
+      if (!item.category || !item.category.trim()) errors.push({ msg: 'Missing category', loc: loc });
+
+      // Duplicate ID
+      if (item.id) {
+        if (costItemIds[item.id]) errors.push({ msg: 'Duplicate ID "' + item.id + '"', loc: loc });
+        costItemIds[item.id] = true;
+      }
+
+      // Valid pricing mode
+      if (VALID_PRICING_MODES.indexOf(item.pricingMode) === -1) {
+        errors.push({ msg: 'Invalid pricingMode "' + item.pricingMode + '"', loc: loc });
+      }
+
+      // Mode-specific cost fields
+      if (item.pricingMode === 'parametric') {
+        if (item.baseCostPerSf == null || item.baseCostPerSf <= 0) {
+          warnings.push({ msg: 'baseCostPerSf is zero or missing for parametric item', loc: loc });
+        }
+      }
+      if (item.pricingMode === 'turnkey') {
+        if (item.unitPrice == null || item.unitPrice <= 0) {
+          warnings.push({ msg: 'unitPrice is zero or missing for turnkey item', loc: loc });
+        }
+      }
+      if (item.pricingMode === 'assembly') {
+        if (item.furnishedCostPerUnit == null || item.furnishedCostPerUnit <= 0) {
+          warnings.push({ msg: 'furnishedCostPerUnit is zero or missing for assembly item', loc: loc });
+        }
+      }
+
+      // Numeric sanity
+      if (item.wastePct != null && (item.wastePct < 0 || item.wastePct > 1)) {
+        warnings.push({ msg: 'wastePct ' + item.wastePct + ' looks wrong (expected 0-1 decimal)', loc: loc });
+      }
+
+      // Boolean flags
+      if (typeof item.active !== 'boolean')    warnings.push({ msg: 'active flag is not boolean',    loc: loc });
+      if (typeof item.confirmed !== 'boolean') warnings.push({ msg: 'confirmed flag is not boolean', loc: loc });
+    });
+
+    // ── 2. Roof Layers ───────────────────────────────────────────────
+    rlTab.data.forEach(function (item, i) {
+      totalRows++;
+      var loc = 'Roof Layers [' + i + '] ' + (item.id || '(no id)');
+
+      if (!item.id || !item.id.trim())       errors.push({ msg: 'Missing ID', loc: loc });
+      if (!item.name || !item.name.trim())   warnings.push({ msg: 'Missing name', loc: loc });
+
+      if (item.id) {
+        if (roofLayerIds[item.id]) errors.push({ msg: 'Duplicate ID "' + item.id + '"', loc: loc });
+        roofLayerIds[item.id] = true;
+      }
+
+      if (VALID_UNIT_TYPES.indexOf(item.unitType) === -1) {
+        errors.push({ msg: 'Invalid unitType "' + item.unitType + '"', loc: loc });
+      }
+
+      if (item.costPSF == null || item.costPSF <= 0) {
+        warnings.push({ msg: 'costPSF is zero or missing', loc: loc });
+      }
+
+      if (item.unitType === 'depth') {
+        if (item.maxDepthIn != null && item.minDepthIn != null && item.maxDepthIn < item.minDepthIn) {
+          errors.push({ msg: 'maxDepthIn (' + item.maxDepthIn + ') < minDepthIn (' + item.minDepthIn + ')', loc: loc });
+        }
+      }
+
+      if (item.satWeightPSF != null && item.dryWeightPSF != null && item.satWeightPSF < item.dryWeightPSF) {
+        warnings.push({ msg: 'satWeightPSF < dryWeightPSF — check values', loc: loc });
+      }
+    });
+
+    // ── 3. Roof Profiles ─────────────────────────────────────────────
+    rpTab.data.forEach(function (item, i) {
+      totalRows++;
+      var loc = 'Roof Profiles [' + i + '] ' + (item.id || '(no id)');
+
+      if (!item.id || !item.id.trim())     errors.push({ msg: 'Missing ID', loc: loc });
+      if (!item.name || !item.name.trim()) warnings.push({ msg: 'Missing name', loc: loc });
+
+      if (item.id) {
+        if (profileIds[item.id]) errors.push({ msg: 'Duplicate ID "' + item.id + '"', loc: loc });
+        profileIds[item.id] = true;
+      }
+
+      // Layer references
+      if (!item.layers || !Array.isArray(item.layers) || item.layers.length === 0) {
+        errors.push({ msg: 'No layers defined', loc: loc });
+      } else {
+        item.layers.forEach(function (layer, li) {
+          if (!layer.layerId) {
+            errors.push({ msg: 'Layer [' + li + '] missing layerId', loc: loc });
+          } else if (!roofLayerIds[layer.layerId]) {
+            errors.push({ msg: 'Layer [' + li + '] references unknown layerId "' + layer.layerId + '"', loc: loc });
+          }
+        });
+      }
+    });
+
+    // ── 4. Adjustments ───────────────────────────────────────────────
+    adjTab.data.forEach(function (item, i) {
+      totalRows++;
+      var loc = 'Adjustments [' + i + '] ' + (item.id || '(no id)');
+
+      if (!item.id || !item.id.trim()) errors.push({ msg: 'Missing ID', loc: loc });
+
+      if (item.id) {
+        if (adjIds[item.id]) errors.push({ msg: 'Duplicate ID "' + item.id + '"', loc: loc });
+        adjIds[item.id] = true;
+      }
+
+      if (VALID_APPLIES_TO.indexOf(item.appliesTo) === -1) {
+        errors.push({ msg: 'Invalid appliesTo "' + item.appliesTo + '"', loc: loc });
+      }
+
+      if (!item.options || !Array.isArray(item.options) || item.options.length === 0) {
+        warnings.push({ msg: 'No options defined', loc: loc });
+      } else {
+        // Check defaultKey references a valid option
+        var optionKeys = item.options.map(function (o) { return o.key; });
+        if (item.defaultKey && optionKeys.indexOf(item.defaultKey) === -1) {
+          errors.push({ msg: 'defaultKey "' + item.defaultKey + '" not in options', loc: loc });
+        }
+      }
+    });
+
+    // ── 5. Markups ───────────────────────────────────────────────────
+    mkTab.data.forEach(function (item, i) {
+      totalRows++;
+      var loc = 'Markups [' + i + '] ' + (item.id || '(no id)');
+
+      if (!item.id || !item.id.trim()) errors.push({ msg: 'Missing ID', loc: loc });
+
+      if (item.id) {
+        if (markupIds[item.id]) errors.push({ msg: 'Duplicate ID "' + item.id + '"', loc: loc });
+        markupIds[item.id] = true;
+      }
+
+      if (!item.tiers || !Array.isArray(item.tiers) || item.tiers.length === 0) {
+        warnings.push({ msg: 'No tiers defined', loc: loc });
+      } else {
+        item.tiers.forEach(function (tier, ti) {
+          if (!tier.key)   errors.push({ msg: 'Tier [' + ti + '] missing key', loc: loc });
+          if (!tier.label) warnings.push({ msg: 'Tier [' + ti + '] missing label', loc: loc });
+          if (tier.markupPct == null || tier.markupPct < 0 || tier.markupPct > 5) {
+            warnings.push({ msg: 'Tier [' + ti + '] markupPct ' + tier.markupPct + ' looks unusual', loc: loc });
+          }
+        });
+      }
+    });
+
+    // ── 6. Cross-reference: BMP pricing map → data ───────────────────
+    EXPECTED_COST_ITEM_IDS.forEach(function (expectedId) {
+      if (!costItemIds[expectedId]) {
+        errors.push({ msg: 'BMP pricing map expects cost item "' + expectedId + '" but it was not found', loc: 'Cross-ref: Cost Items' });
+      }
+    });
+
+    EXPECTED_PROFILE_IDS.forEach(function (expectedId) {
+      if (!profileIds[expectedId]) {
+        errors.push({ msg: 'BMP pricing map expects roof profile "' + expectedId + '" but it was not found', loc: 'Cross-ref: Roof Profiles' });
+      }
+    });
+
+    lastValidation = { errors: errors, warnings: warnings, totalRows: totalRows };
+    return lastValidation;
+  }
+
+
+  // ── Validation UI ──────────────────────────────────────────────────
+
+  var $valBanner   = document.getElementById('val-banner');
+  var $valSummary  = document.getElementById('val-summary');
+  var $valErrCount = document.getElementById('val-err-count');
+  var $valWrnCount = document.getElementById('val-wrn-count');
+  var $valRowTotal = document.getElementById('val-row-total');
+  var $valPanel    = document.getElementById('val-panel');
+  var $valToggle   = document.getElementById('val-toggle-detail');
+  var $valDismiss  = document.getElementById('val-dismiss');
+  var $btnValidate = document.getElementById('btn-validate');
+
+  function showValidationResults(result) {
+    var errCount = result.errors.length;
+    var wrnCount = result.warnings.length;
+
+    // Banner class
+    $valBanner.className = 'val-banner show';
+    if (errCount > 0)      $valBanner.classList.add('fail');
+    else if (wrnCount > 0) $valBanner.classList.add('warn');
+    else                   $valBanner.classList.add('pass');
+
+    // Summary text
+    if (errCount === 0 && wrnCount === 0) {
+      $valSummary.textContent = 'All checks passed.';
+    } else if (errCount === 0) {
+      $valSummary.textContent = 'No errors. Export OK.';
+    } else {
+      $valSummary.textContent = 'Fix errors before exporting.';
+    }
+
+    $valErrCount.textContent = errCount + ' error' + (errCount !== 1 ? 's' : '');
+    $valWrnCount.textContent = wrnCount + ' warning' + (wrnCount !== 1 ? 's' : '');
+    $valRowTotal.textContent = result.totalRows + ' rows checked';
+
+    // Build details panel
+    var html = '';
+    if (errCount > 0) {
+      html += '<h3>Errors (' + errCount + ')</h3>';
+      html += '<ul class="val-list">';
+      result.errors.forEach(function (e) {
+        html += '<li class="err">' + escHtml(e.msg) + ' <span class="val-loc">' + escHtml(e.loc) + '</span></li>';
+      });
+      html += '</ul>';
+    }
+    if (wrnCount > 0) {
+      html += '<h3>Warnings (' + wrnCount + ')</h3>';
+      html += '<ul class="val-list">';
+      result.warnings.forEach(function (w) {
+        html += '<li class="wrn">' + escHtml(w.msg) + ' <span class="val-loc">' + escHtml(w.loc) + '</span></li>';
+      });
+      html += '</ul>';
+    }
+    if (errCount === 0 && wrnCount === 0) {
+      html += '<p>All ' + result.totalRows + ' items passed validation. Cross-references intact. Data is compatible with the v3 tool.</p>';
+    }
+    $valPanel.innerHTML = html;
+
+    // Update export button state
+    updateExportBlockState();
+  }
+
+  function updateExportBlockState() {
+    var blocked = lastValidation && lastValidation.errors.length > 0;
+    $btnExport.classList.toggle('blocked', blocked);
+    $btnExportJs.classList.toggle('blocked', blocked);
+  }
+
+  function dismissValidation() {
+    $valBanner.className = 'val-banner';
+    $valPanel.className = 'val-panel';
+    lastValidation = null;
+    updateExportBlockState();
+  }
+
+
+  // ── Load data from globals ─────────────────────────────────────────
+  //
+  // When this editor is embedded in the standalone (with data files
+  // loaded as <script> tags), pull from globals. Otherwise data starts
+  // empty and user imports.
+
+  function loadFromGlobals() {
+    TABS.forEach(function (tab) {
+      var global = window[tab.varName];
+      if (global && Array.isArray(global)) {
+        // Deep copy so edits don't mutate the original
+        tab.data = JSON.parse(JSON.stringify(global));
+      }
+    });
+  }
+
+
+  // ── Init ───────────────────────────────────────────────────────────
+
+  function init() {
+    loadFromGlobals();
+
+    renderTabs();
+    populateCategoryFilter();
+    renderTable();
+
+    // Edit mode toggle
+    $editToggle.addEventListener('change', function () {
+      editMode = $editToggle.checked;
+      renderTable();
+    });
+
+    // Filter events
+    $filterCat.addEventListener('change', function () { renderTable(); });
+    $filterSearch.addEventListener('input', function () { renderTable(); });
+
+    // Button events
+    $btnAdd.addEventListener('click', addRow);
+    $btnImport.addEventListener('click', function () { $fileInput.click(); });
+    $fileInput.addEventListener('change', function (e) {
+      if (e.target.files[0]) importFile(e.target.files[0]);
+      $fileInput.value = '';
+    });
+
+    // Export buttons — gated by validation
+    $btnExport.addEventListener('click', function () {
+      if (lastValidation && lastValidation.errors.length > 0) {
+        alert('Cannot export: ' + lastValidation.errors.length + ' validation error(s). Fix errors first or dismiss validation to bypass.');
+        return;
+      }
+      exportJSON();
+    });
+    $btnExportJs.addEventListener('click', function () {
+      if (lastValidation && lastValidation.errors.length > 0) {
+        alert('Cannot export: ' + lastValidation.errors.length + ' validation error(s). Fix errors first or dismiss validation to bypass.');
+        return;
+      }
+      exportJS();
+    });
+
+    // Validate button
+    $btnValidate.addEventListener('click', function () {
+      var result = validateAll();
+      showValidationResults(result);
+      flash(result.errors.length + ' errors, ' + result.warnings.length + ' warnings');
+    });
+
+    // Validation panel controls
+    $valToggle.addEventListener('click', function () {
+      $valPanel.classList.toggle('show');
+    });
+    $valDismiss.addEventListener('click', dismissValidation);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+</body>
+</html>

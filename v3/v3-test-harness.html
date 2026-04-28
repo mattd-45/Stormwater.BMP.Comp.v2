@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>V3 Test Harness</title>
+  <style>
+    body {
+      font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      font-size: 13px;
+      background:
+        radial-gradient(circle at 86% 0%, rgba(232, 245, 236, 0.72) 0, transparent 30%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 46%, #f1f5f9 100%);
+      color: #1e293b;
+      padding: 28px;
+      line-height: 1.5;
+    }
+    h2 {
+      color: #0f172a;
+      margin: 0 0 16px;
+      font-size: clamp(24px, 4vw, 40px);
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .pass { color: #4ade80; }
+    .fail { color: #f87171; }
+    .warn { color: #fbbf24; }
+    .muted { color: #64748b; }
+    table {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid #e2e8f0;
+      border-collapse: collapse;
+      border-radius: 12px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    th, td { border-bottom: 1px solid #e2e8f0; text-align: left; padding: 6px 16px 6px 10px; }
+    th { color: #1e5c2b; background: #e8f5ec; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .blocked td { color: #94a3b8; }
+    .meets td:first-child { color: #4ade80; font-weight: bold; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 12px; overflow-x: auto; }
+    #log {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      box-shadow: 0 18px 44px rgba(15, 23, 42, 0.07);
+      margin-top: 18px;
+      padding: 18px;
+      white-space: pre-wrap;
+    }
+    body > div:first-of-type {
+      align-items: center;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px;
+    }
+    button { background: #2d7a3a; color: #ffffff; border: none; padding: 9px 18px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 999px; margin: 4px 4px 4px 0; }
+    button:hover { background: #1e5c2b; }
+    select { background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; padding: 8px 12px; font-family: inherit; font-size: 13px; border-radius: 999px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+  V3 TEST HARNESS
+  Proves: ProjectSchema → adaptV3ToEngine() → runModel() works end-to-end.
+
+  Location: /Stormwater-BMP-Comparison-V2/v3-test-harness.html
+  Run:      Open this file in any browser. No server needed.
+  Deps:     Loads existing engine + data files via <script> tags.
+            Loads v3-project-schema.js and v3-adapter.js.
+            No npm, no build, no framework.
+═══════════════════════════════════════════════════════════════════════ -->
+
+<!-- Existing engine + data (unchanged) -->
+<script src="../data/bmp-options.js"></script>
+<script src="../data/regulation-profiles.js"></script>
+<script src="../data/city-data.js"></script>
+<script src="../engine/adapters/index.js"></script>
+<script src="../engine/model.js"></script>
+
+<!-- V3 schema + adapter -->
+<script src="v3-project-schema.js"></script>
+<script src="v3-adapter.js"></script>
+
+<h2>V3 Test Harness — end-to-end proof</h2>
+
+<div>
+  City:
+  <select id="city-select"></select>
+  <button onclick="runTest()">Run Test</button>
+  <button onclick="runAllCities()">Run All Cities</button>
+  <button onclick="runAdapterValidation(); runEdgeCaseTests();">Run Unit Tests</button>
+</div>
+
+<div id="log"></div>
+
+<script>
+// ─── LOGGING ──────────────────────────────────────────────────────────
+
+const logEl = document.getElementById('log');
+function log(msg, cls) {
+  const span = document.createElement('span');
+  if (cls) span.className = cls;
+  span.textContent = msg + '\n';
+  logEl.appendChild(span);
+}
+function logLine() { log('─'.repeat(76), 'muted'); }
+function clearLog() { logEl.innerHTML = ''; }
+
+
+// ─── DATABASE SETUP (same as current app) ─────────────────────────────
+
+const DATABASE = {
+  bmpOptions: BMP_OPTIONS_DEFAULT,
+  cityRulesByCityKey: {},
+  cityConfigs: CITY_DATA
+};
+
+for (const [key, city] of Object.entries(CITY_DATA)) {
+  const profileId = city.regulationProfileId || 'general';
+  const profile = REGULATION_PROFILES_DEFAULT[profileId] || REGULATION_PROFILES_DEFAULT.general;
+  DATABASE.cityRulesByCityKey[key] = { regulationProfileId: profileId, profile };
+}
+
+
+// ─── POPULATE CITY DROPDOWN ───────────────────────────────────────────
+
+const citySelect = document.getElementById('city-select');
+for (const [key, city] of Object.entries(CITY_DATA)) {
+  const opt = document.createElement('option');
+  opt.value = key;
+  opt.textContent = city.name;
+  if (key === 'nyc') opt.selected = true;
+  citySelect.appendChild(opt);
+}
+
+
+// ─── SAMPLE V3 PROJECT FACTORY ────────────────────────────────────────
+// Creates a test project for any city with standard inputs.
+
+function createTestProject(cityKey) {
+  return {
+    schemaVersion: '3.0',
+
+    projectInfo: {
+      projectName:    'V3 Test — ' + (CITY_DATA[cityKey] ? CITY_DATA[cityKey].name : cityKey),
+      projectAddress: '123 Test Street',
+      clientName:     'Test Client',
+      clientAddress:  '',
+      clientCompany:  '',
+      preparedBy:     'V3 Test Harness',
+      projectId:      'test-' + cityKey,
+      createdDate:    new Date().toISOString().slice(0, 10),
+      modifiedDate:   new Date().toISOString().slice(0, 10),
+      notes:          'Automated test run'
+    },
+
+    site: {
+      cityKey:   cityKey,
+      presetKey: 'balanced',
+      siteType:  'new_development',
+      soilType:  null,
+
+      designModeAreas: {
+        totalBuildingSF:  25000,
+        totalLandscapeSF: 12500,
+        totalParkingSF:   12500
+      },
+
+      areas: {
+        perviousLandscapingUsable:    500,
+        imperviousVehicularPavement:  500,
+        imperviousPedestrianPavement: 0,
+        perviousTreeCoverNonUsable:   0,
+        flatDeckOnStructureArea:      500,
+        slopedRoofArea:               500,
+        paversOnStructureArea:        0,
+        imperviousCAUntreated:        0
+      }
+    },
+
+    targets: {
+      retentionNeeded:     true,
+      retentionCF:         100,
+      detentionNeeded:     true,
+      detentionCF:         100,
+      retentionSourceNote: '',
+      detentionSourceNote: ''
+    },
+
+    constraints: {
+      hasUndergroundUtilities:  false,
+      hasHighWaterTable:        false,
+      hasContaminatedSoil:      false,
+      hasSiteGradingConstraint: false,
+      hasStructuralLoadLimit:   false,
+      maxRoofLoadPSF:           null
+    },
+
+    assumptions: {
+      greenRoofAlreadyInScope:     false,
+      programmableSpaceIsHighValue: false,
+      allowSteepSlopeGreenRoof:    false,
+      highValueIndoorSpace:        false
+    },
+
+    systemCategories: {
+      stormwater:     true,
+      vpv:            false,
+      traditionalPV:  false,
+      fallProtection: false,
+      livingWall:     false,
+      ballastedSolar: false
+    },
+
+    settings: {
+      mode:                  'engineering',
+      sortResultsBy:         'totalCost',
+      pricingOverrides:      {},
+      purpleRoofPricingMode: 'black',
+      showDetailCards:        true,
+      showCostData:           true,
+      showWeightData:         false
+    }
+  };
+}
+
+
+// ─── MAIN TEST ────────────────────────────────────────────────────────
+
+function runTest(cityKeyOverride) {
+  if (!cityKeyOverride) clearLog();
+
+  const cityKey = cityKeyOverride || citySelect.value;
+  const testProject = createTestProject(cityKey);
+  const cityName = CITY_DATA[cityKey] ? CITY_DATA[cityKey].name : cityKey;
+
+  log('');
+  log('═══════════════════════════════════════════════════════════════');
+  log('  V3 END-TO-END TEST: ' + cityName);
+  log('═══════════════════════════════════════════════════════════════');
+
+
+  // ── Step 1: Validate ────────────────────────────────────────────────
+
+  log('');
+  log('STEP 1: validateV3Project()', 'muted');
+  logLine();
+
+  const validation = validateV3Project(testProject);
+
+  if (validation.valid) {
+    log('  Validation: PASSED', 'pass');
+  } else {
+    log('  Validation: FAILED', 'fail');
+    validation.errors.forEach(e => log('    ERROR: ' + e, 'fail'));
+  }
+  if (validation.warnings.length > 0) {
+    validation.warnings.forEach(w => log('    WARN: ' + w, 'warn'));
+  }
+
+
+  // ── Step 2: Adapt ──────────────────────────────────────────────────
+
+  log('');
+  log('STEP 2: adaptV3ToEngine()', 'muted');
+  logLine();
+
+  const { project, validation: v2 } = adaptV3ToEngine(testProject);
+
+  if (!project) {
+    log('  Adapter returned null project. Cannot continue.', 'fail');
+    return false;
+  }
+
+  log('  cityKey:           ' + project.cityKey);
+  log('  inputs.areas:      ' + Object.values(project.inputs.areas).reduce((a,b) => a+b, 0) + ' SF total');
+  log('  targets.retCF:     ' + project.inputs.targets.retentionCF + ' CF');
+  log('  targets.detCF:     ' + project.inputs.targets.detentionCF + ' CF');
+  log('  constraints:       ' + Object.entries(project.inputs.constraints).filter(([,v]) => v).map(([k]) => k).join(', ') || 'none');
+  log('  overrides:         ' + (Object.keys(project.overrides).length || 'none'));
+
+  // Verify no UI-only fields leaked
+  const leakedFields = ['projectInfo','systemCategories','settings','schemaVersion','site'].filter(k => k in project);
+  if (leakedFields.length === 0) {
+    log('  UI-only fields:    correctly excluded', 'pass');
+  } else {
+    log('  UI-only fields:    LEAKED: ' + leakedFields.join(', '), 'fail');
+  }
+
+  // Verify future fields excluded
+  const futureInConstraints = ['hasStructuralLoadLimit','maxRoofLoadPSF'].filter(k => k in project.inputs.constraints);
+  const futureInAssumptions = ['highValueIndoorSpace'].filter(k => k in project.inputs.assumptions);
+  if (futureInConstraints.length === 0 && futureInAssumptions.length === 0) {
+    log('  Future fields:     correctly excluded', 'pass');
+  } else {
+    log('  Future fields:     LEAKED: ' + [...futureInConstraints, ...futureInAssumptions].join(', '), 'fail');
+  }
+
+
+  // ── Step 3: Run engine ─────────────────────────────────────────────
+
+  log('');
+  log('STEP 3: runModel()', 'muted');
+  logLine();
+
+  let result;
+  try {
+    result = runModel(project, DATABASE);
+  } catch (err) {
+    log('  ENGINE ERROR: ' + err.message, 'fail');
+    return false;
+  }
+
+  const sw = result.stormwater;
+  const viable = sw.results.filter(r => r.isViable);
+  const blocked = sw.results.filter(r => !r.isViable);
+  const meetsBoth = viable.filter(r => r.retPct >= 99 && r.detPct >= 99);
+
+  log('  Profile:           ' + result.meta.regulationProfileId);
+  log('  BMPs evaluated:    ' + sw.results.length);
+  log('  Viable:            ' + viable.length, viable.length > 0 ? 'pass' : 'warn');
+  log('  Blocked:           ' + blocked.length);
+  log('  Meets both:        ' + meetsBoth.length, meetsBoth.length > 0 ? 'pass' : 'warn');
+
+
+  // ── Step 4: Ranked results ─────────────────────────────────────────
+
+  log('');
+  log('STEP 4: Results ranked by total cost', 'muted');
+  logLine();
+
+  const sorted = sortResults(sw.results, 'totalCost');
+
+  // Header
+  log('  #  ID    Name                                       Viable  Ret%  Det%  Cost');
+  log('  ─  ────  ─────────────────────────────────────────  ──────  ────  ────  ──────────');
+
+  sorted.forEach((r, i) => {
+    const viableStr = r.isViable ? (r.retPct >= 99 && r.detPct >= 99 ? 'MEETS' : 'yes') : 'NO';
+    const viableCls = r.isViable ? (viableStr === 'MEETS' ? 'pass' : '') : 'muted';
+    const line =
+      '  ' + String(i + 1).padStart(2) + '  ' +
+      String(r.id).padEnd(6) +
+      r.name.padEnd(43) +
+      viableStr.padEnd(8) +
+      (r.retPct + '%').padStart(4) + '  ' +
+      (r.detPct + '%').padStart(4) + '  ' +
+      ('$' + r.costDesigned.toLocaleString()).padStart(10);
+    log(line, viableCls);
+  });
+
+
+  // ── Step 5: Top 3 ──────────────────────────────────────────────────
+
+  log('');
+  log('TOP 3 BY TOTAL COST (viable only)', 'muted');
+  logLine();
+
+  const top3 = sorted.filter(r => r.isViable).slice(0, 3);
+  if (top3.length === 0) {
+    log('  No viable BMPs for this configuration.', 'warn');
+  } else {
+    top3.forEach((r, i) => {
+      log('  ' + (i + 1) + '. ' + r.name, 'pass');
+      log('     Cost: $' + r.costDesigned.toLocaleString() + '  |  $' + (r.costPerCf > 0 ? r.costPerCf.toFixed(2) : '—') + '/CF  |  ' + r.grossDesignedArea + ' SF');
+      log('     Ret: ' + r.retPct + '%  |  Det: ' + r.detPct + '%');
+      if (r.warnings.length) log('     Warnings: ' + r.warnings.join('; '), 'warn');
+    });
+  }
+
+
+  // ── Step 6: Recommendation ─────────────────────────────────────────
+
+  log('');
+  log('ENGINE RECOMMENDATION', 'muted');
+  logLine();
+
+  if (sw.recommended) {
+    log('  Recommended: ' + sw.recommended.name, 'pass');
+    log('    $' + sw.recommended.costDesigned.toLocaleString() + '  |  $' + sw.recommended.costPerCf.toFixed(2) + '/CF  |  ' + sw.recommended.grossDesignedArea + ' SF');
+  } else {
+    log('  No single BMP meets both targets.', 'warn');
+  }
+
+  if (sw.bestValue && sw.bestValue.id !== (sw.recommended || {}).id) {
+    log('  Best value: ' + sw.bestValue.name + '  $' + sw.bestValue.costPerCf.toFixed(2) + '/CF', 'pass');
+  }
+
+
+  // ── Step 7: Engine warnings ────────────────────────────────────────
+
+  if (sw.warnings && sw.warnings.length > 0) {
+    log('');
+    log('ENGINE WARNINGS', 'muted');
+    logLine();
+    // Deduplicate
+    const unique = [...new Set(sw.warnings)];
+    unique.forEach(w => log('  • ' + w, 'warn'));
+  }
+
+
+  // ── Verdict ────────────────────────────────────────────────────────
+
+  log('');
+  const engineRan = sw.results.length > 0;
+  const adapterClean = leakedFields.length === 0 && futureInConstraints.length === 0 && futureInAssumptions.length === 0;
+
+  if (validation.valid && engineRan && adapterClean) {
+    log('RESULT: PASS — v3 schema → adapter → engine pipeline works for ' + cityName, 'pass');
+  } else {
+    log('RESULT: FAIL', 'fail');
+    if (!validation.valid) log('  Schema validation failed', 'fail');
+    if (!engineRan) log('  Engine produced no results', 'fail');
+    if (!adapterClean) log('  Adapter leaked fields', 'fail');
+  }
+
+  return validation.valid && engineRan && adapterClean;
+}
+
+
+// ─── RUN ALL CITIES ───────────────────────────────────────────────────
+
+function runAllCities() {
+  clearLog();
+
+  log('═══════════════════════════════════════════════════════════════');
+  log('  V3 TEST HARNESS — ALL CITIES');
+  log('═══════════════════════════════════════════════════════════════');
+
+  const cities = Object.keys(CITY_DATA);
+  let passed = 0;
+  let failed = 0;
+
+  for (const key of cities) {
+    const ok = runTest(key);
+    if (ok) passed++; else failed++;
+  }
+
+  log('');
+  log('═══════════════════════════════════════════════════════════════');
+  log('  SUMMARY: ' + passed + '/' + cities.length + ' cities passed', failed === 0 ? 'pass' : 'fail');
+  if (failed > 0) log('  ' + failed + ' city(ies) failed', 'fail');
+  log('═══════════════════════════════════════════════════════════════');
+}
+
+// Auto-run on load
+runTest();
+</script>
+
+</body>
+</html>

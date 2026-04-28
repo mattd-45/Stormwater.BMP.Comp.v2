@@ -101,20 +101,20 @@ const BMP_SPEC_AS_PERCENT = new Set(['soilPorosity', 'gravelPorosity', 'spaceLos
 
 // BMP card images (keyed by BMP id)
 const BMP_IMAGES = {
-  1: 'images/IMAGE-bioretention-cell.jpg',
-  2: 'images/IMAGE-underground-passive-cells.png',
-  3: 'images/IMAGE-perm-pavers.png',
-  4: 'images/IMAGE-underground tank and pump.png',
-  5: 'images/IMAGE-underground tank and pump.png',
-  6: 'images/IMAGE-underground tank and pump.png',
-  7: 'images/IMAGE-blue-roof.png',
-  8: 'images/IMAGE-trad-green-roof-6.png',
-  9: 'images/IMAGE-sponge4+2.png',
-  10: 'images/IMAGE-purple-veg-4+1+2.png',
-  '10B': 'images/IMAGE-purple-veg-4+1+4.png',
-  11: 'images/IMAGE-purple-paver+1+2.png',
-  '11B': 'images/IMAGE-purple-paver+1+4.png',
-  12: 'images/IMAGE-overeasy-pv-1.jpg',
-  15: 'images/solar_green_roof-2.jpg',
-  16: 'images/IMAGE-Diasafe_line-21.jpg'
+  1: 'images/bmp-bioretention-cell.jpg',
+  2: 'images/bmp-graphic-underground-passive-cells-graphic.png',
+  3: 'images/bmp-permeable-pavers.png',
+  4: 'images/bmp-detail-underground-tank-and-pump.png',
+  5: 'images/bmp-detail-underground-tank-and-pump.png',
+  6: 'images/bmp-detail-underground-tank-and-pump.png',
+  7: 'images/bmp-graphic-blue-roof.png',
+  8: 'images/bmp-trad-green-roof-6.png',
+  9: 'images/bmp-sponge-4-2.png',
+  10: 'images/bmp-purple-veg-4-1-2.png',
+  '10B': 'images/bmp-purple-veg-4-1-4.png',
+  11: 'images/bmp-purple-paver-1-2.png',
+  '11B': 'images/bmp-purple-paver-1-4.png',
+  12: 'images/bmp-overeasy-pv-1.jpg',
+  15: 'images/bmp-solar-green-roof-2.jpg',
+  16: 'images/bmp-diasafe-line-21.jpg'
 };

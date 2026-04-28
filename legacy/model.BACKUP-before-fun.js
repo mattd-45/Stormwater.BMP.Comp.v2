@@ -257,11 +257,8 @@
       if (isUnderground || isAtGradePond) {
         if (v1Inputs.hasUndergroundUtilities) blockers.push('Blocked by Underground Utilities');
         if (v1Inputs.hasHighWaterTable) blockers.push('Blocked by High Water Table');
-        if (v1Inputs.hasContaminatedSoil && isAtGradePond) blockers.push('Blocked by Contaminated Soil');
+        if (v1Inputs.hasContaminatedSoil) blockers.push('Blocked by Contaminated Soil');
         if (v1Inputs.hasSiteGradingConstraint) warnings.push('Site grading constraint — underground BMP limited to low point of site');
-      }
-      if (isUnderground && v1Inputs.hasContaminatedSoil) {
-        warnings.push('Contaminated soil — underground systems may require additional handling, liner, or disposal costs');
       }
 
       // At-grade or underground BMPs consume programmable space
@@ -331,8 +328,6 @@
         fullSpec,
         capacity,
         eligibleArea,
-        areaForRetention: A_ret,
-        areaForDetention: A_det,
         grossAreaNeeded: A_required,
         grossDesignedArea: A_used,
         retProvided: R_provided,
@@ -359,50 +354,8 @@
       return r.isViable && meetsRet && meetsDet && hasArea;
     });
 
-    // Sales-first fallback: if no single system meets both targets,
-    // evaluate 2-system combinations and choose the lowest total cost package.
-    const comboCandidates = [];
-    const viableForCombos = results.filter(r => {
-      const hasArea = r.grossDesignedArea > 0 && r.grossDesignedArea >= r.grossAreaNeeded;
-      return r.isViable && hasArea;
-    });
-    for (let i = 0; i < viableForCombos.length; i++) {
-      for (let j = i + 1; j < viableForCombos.length; j++) {
-        const a = viableForCombos[i];
-        const b = viableForCombos[j];
-        const retCreditRaw = (a.retCredit || 0) + (b.retCredit || 0);
-        const detCreditRaw = (a.detCredit || 0) + (b.detCredit || 0);
-        const retCredit = R_target > 0 ? Math.min(retCreditRaw, R_target) : retCreditRaw;
-        const detCredit = D_target > 0 ? Math.min(detCreditRaw, D_target) : detCreditRaw;
-        const meetsRet = R_target === 0 || retCredit >= R_target * 0.99;
-        const meetsDet = D_target === 0 || detCredit >= D_target * 0.99;
-        if (!meetsRet || !meetsDet) continue;
-        const costDesigned = (a.costDesigned || 0) + (b.costDesigned || 0);
-        const totalCredit = retCredit + detCredit;
-        const costPerCf = totalCredit > 0 ? costDesigned / totalCredit : 0;
-        comboCandidates.push({
-          id: `combo-${String(a.id)}+${String(b.id)}`,
-          members: [
-            { id: a.id, name: a.name, retPct: a.retPct, detPct: a.detPct, costDesigned: a.costDesigned, grossDesignedArea: a.grossDesignedArea },
-            { id: b.id, name: b.name, retPct: b.retPct, detPct: b.detPct, costDesigned: b.costDesigned, grossDesignedArea: b.grossDesignedArea }
-          ],
-          retCredit,
-          detCredit,
-          retPct: R_target > 0 ? Math.round((retCredit / R_target) * 100) : 100,
-          detPct: D_target > 0 ? Math.round((detCredit / D_target) * 100) : 100,
-          costDesigned,
-          costPerCf
-        });
-      }
-    }
-    comboCandidates.sort((a, b) => {
-      if (a.costDesigned !== b.costDesigned) return a.costDesigned - b.costDesigned;
-      return a.costPerCf - b.costPerCf;
-    });
-
     let recommended = null;
     let bestValue = null;
-    let recommendedCombo = null;
     if (meetsBoth.length > 0) {
       recommended = [...meetsBoth].sort((a, b) => a.costDesigned - b.costDesigned)[0];
       bestValue = meetsBoth.reduce((best, cur) => {
@@ -410,18 +363,9 @@
         const curC = cur.costPerCf || Infinity;
         return curC < bestC ? cur : best;
       }, recommended);
-    } else if (comboCandidates.length > 0) {
-      recommendedCombo = comboCandidates[0];
     }
 
-    return {
-      results,
-      recommended,
-      bestValue,
-      recommendedCombo,
-      comboCandidates: comboCandidates.slice(0, 25),
-      profile
-    };
+    return { results, recommended, bestValue, profile };
   }
 
   // Flatten normalized ProjectInputs into the legacy engine input shape

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stormwater BMP Resources</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background:
+        radial-gradient(circle at 84% 6%, color-mix(in srgb, var(--mode-accent-bg) 82%, transparent) 0, transparent 32%),
+        linear-gradient(180deg, #ffffff 0%, var(--n-50) 46%, var(--n-100) 100%);
+    }
+    body[data-resource-family="green-roof"] {
+      --mode-accent: #2d7a3a;
+      --mode-accent-dark: #1e5c2b;
+      --mode-accent-bg: #e8f5ec;
+      --mode-accent-border: #a3d9ad;
+      --mode-accent-text: #1e5c2b;
+    }
+    body[data-resource-family="pv"] {
+      --mode-accent: #2563eb;
+      --mode-accent-dark: #1d4ed8;
+      --mode-accent-bg: #eff6ff;
+      --mode-accent-border: #93c5fd;
+      --mode-accent-text: #1e40af;
+    }
+    body[data-resource-family="fall-pro"] {
+      --mode-accent: #d97706;
+      --mode-accent-dark: #92400e;
+      --mode-accent-bg: #fffbeb;
+      --mode-accent-border: #fbbf24;
+      --mode-accent-text: #92400e;
+    }
+    .resources-wrap {
+      max-width: var(--layout-max-width);
+      margin: 0 auto;
+      padding: 28px var(--space-page-x) var(--space-page-bottom);
+    }
+    .resources-head {
+      border: 1px solid color-mix(in srgb, var(--mode-accent-border) 32%, var(--n-200));
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--mode-accent-bg) 74%, transparent) 0, transparent 34%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.97), rgba(248, 250, 252, 0.84));
+      box-shadow: 0 24px 64px rgba(15, 23, 42, 0.09);
+      margin-bottom: 22px;
+      overflow: hidden;
+      padding: clamp(28px, 5vw, 56px);
+    }
+    .resources-head-inner {
+      align-items: center;
+      display: grid;
+      gap: clamp(24px, 4vw, 48px);
+      grid-template-columns: minmax(0, 1.08fr) minmax(260px, 0.72fr);
+    }
+    .resources-hero-copy {
+      min-width: 0;
+    }
+    .resources-hero-visual {
+      border: 1px solid color-mix(in srgb, var(--mode-accent-border) 36%, var(--n-200));
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--mode-accent-bg) 78%, #ffffff) 0, transparent 58%),
+        rgba(255, 255, 255, 0.76);
+      box-shadow: 0 22px 54px rgba(15, 23, 42, 0.1);
+      min-height: 260px;
+      overflow: hidden;
+      padding: 18px;
+    }
+    .resources-hero-visual img {
+      border-radius: 16px;
+      display: block;
+      height: 220px;
+      object-fit: cover;
+      width: 100%;
+    }
+    .resources-hero-visual img[src=""] {
+      display: none;
+    }
+    .resources-family-badge {
+      color: var(--mode-accent-text);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      margin-top: 14px;
+      text-transform: uppercase;
+    }
+    .resources-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .resources-brand img {
+      width: auto;
+      display: block;
+      opacity: 0.95;
+    }
+    .resources-brand .logo-sempergreen {
+      height: 42px;
+    }
+    .resources-brand .logo-lbg {
+      height: 44px;
+    }
+    .resources-kicker {
+      color: var(--mode-accent-text);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      margin: 0 0 12px;
+      text-transform: uppercase;
+    }
+    .resources-head h1 {
+      font-family: var(--font-family-ui);
+      font-size: clamp(42px, 6vw, 72px);
+      font-weight: 800;
+      letter-spacing: -0.055em;
+      line-height: 0.94;
+      color: var(--n-900);
+      margin: 0 0 18px;
+      max-width: 820px;
+    }
+    .resources-sub {
+      font-size: clamp(16px, 1.7vw, 20px);
+      color: var(--n-700);
+      line-height: 1.55;
+      max-width: 760px;
+    }
+    .resources-capabilities {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 26px;
+      max-width: 920px;
+    }
+    .resources-capability {
+      border: 1px solid color-mix(in srgb, var(--mode-accent-border) 30%, var(--n-200));
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.055);
+      padding: 14px 16px;
+    }
+    .resources-capability strong {
+      display: block;
+      color: var(--n-900);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .resources-capability span {
+      color: var(--n-500);
+      display: block;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .family-selector {
+      display: inline-flex;
+      border: 1px solid color-mix(in srgb, var(--mode-accent-border) 42%, var(--n-200));
+      border-radius: 999px;
+      flex-wrap: wrap;
+      gap: 3px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.82);
+      margin-top: 26px;
+      padding: 3px;
+    }
+    .family-btn {
+      border: none;
+      background: transparent;
+      color: var(--n-600);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+    .family-btn.active {
+      background: var(--mode-accent);
+      color: var(--n-0);
+      box-shadow: 0 10px 22px color-mix(in srgb, var(--mode-accent) 18%, transparent);
+    }
+    .family-help {
+      font-size: 13px;
+      color: var(--n-600);
+      margin-top: 12px;
+      line-height: 1.5;
+      max-width: 78ch;
+    }
+    .resources-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .resource-card {
+      border: 1px solid color-mix(in srgb, var(--n-200) 82%, #ffffff);
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.78)),
+        var(--n-0);
+      box-shadow: 0 18px 44px rgba(15, 23, 42, 0.07);
+      min-height: 160px;
+      padding: 20px;
+    }
+    .resource-card--featured {
+      grid-column: 1 / -1;
+      background:
+        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--mode-accent-bg) 72%, transparent) 0, transparent 30%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.86));
+    }
+    .resource-section-description {
+      color: var(--n-500);
+      font-size: 12px;
+      line-height: 1.45;
+      margin: -4px 0 14px;
+    }
+    .resource-card h2 {
+      border-bottom: 1px solid color-mix(in srgb, var(--mode-accent-border) 28%, var(--n-200));
+      margin: 0 0 12px;
+      padding-bottom: 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--mode-accent-text);
+    }
+    .resource-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .resource-list li {
+      border-bottom: 1px solid color-mix(in srgb, var(--n-200) 65%, #ffffff);
+      font-size: 14px;
+      line-height: 1.45;
+      margin-bottom: 0;
+      padding: 10px 0;
+    }
+    .resource-list li.resource-item--placeholder {
+      color: var(--n-500);
+    }
+    .resource-list li:first-child { padding-top: 0; }
+    .resource-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+    .resource-list a {
+      color: var(--mode-accent-text);
+      text-decoration: none;
+      font-weight: 750;
+    }
+    .resource-list a:hover { text-decoration: underline; }
+    .resource-title-placeholder {
+      color: var(--n-600);
+      font-weight: 750;
+    }
+    .resource-chip-row {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .resource-note {
+      font-size: 12px;
+      color: var(--n-500);
+      margin-top: 4px;
+      max-width: 58ch;
+    }
+    .resource-meta {
+      font-size: 10px;
+      color: var(--mode-accent-text);
+      margin-left: 6px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: color-mix(in srgb, var(--mode-accent-bg) 58%, #ffffff);
+      border: 1px solid color-mix(in srgb, var(--mode-accent-border) 42%, var(--n-200));
+      border-radius: 999px;
+      padding: 2px 7px;
+    }
+    .resource-meta--placeholder {
+      color: var(--n-500);
+      background: var(--n-100);
+      border-color: var(--n-200);
+    }
+    .resource-updated {
+      color: var(--n-500);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      margin-top: 5px;
+      text-transform: uppercase;
+    }
+    .resource-empty {
+      font-size: 12px;
+      color: var(--n-500);
+      font-style: italic;
+    }
+    .resource-actions {
+      margin-top: 22px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .resource-actions .btn-action {
+      align-items: center;
+      border-radius: 999px;
+      display: inline-flex;
+      font-size: 13px;
+      font-weight: 700;
+      min-height: 40px;
+      padding: 10px 18px;
+      text-decoration: none;
+    }
+    @media (max-width: 760px) {
+      .resources-grid { grid-template-columns: 1fr; }
+      .resources-capabilities { grid-template-columns: 1fr; }
+      .resources-head-inner { grid-template-columns: 1fr; }
+      .resources-hero-visual { min-height: 0; }
+      .resource-card--featured { grid-column: auto; }
+      .resources-brand .logo-sempergreen { height: 22px; }
+      .resources-brand .logo-lbg { height: 24px; }
+    }
+  </style>
+</head>
+<body data-mode="sales" data-resource-family="green-roof">
+  <main class="resources-wrap">
+    <header class="resources-head">
+      <div class="resources-head-inner">
+        <div class="resources-hero-copy">
+          <div class="resources-brand" aria-label="Brand logos">
+            <img src="../images/logo-sempergreen.png" alt="Sempergreen logo" class="logo-sempergreen" onerror="this.style.display='none'">
+            <img src="../images/logo-lbg-transparent.png" alt="LBG logo" class="logo-lbg" onerror="this.style.display='none'">
+          </div>
+          <p class="resources-kicker">Project resource hub</p>
+          <h1 id="resources-title">Find the right collateral for the stormwater planning conversation.</h1>
+          <p class="resources-sub" id="resources-sub">Use this hub to move from system strategy to product data, details, guides, and proof points without leaving the evaluation workflow.</p>
+          <div class="resources-capabilities" aria-label="Resource hub capabilities">
+            <div class="resources-capability"><strong id="resources-capability-primary">Configurable</strong><span id="resources-capability-detail">Switch by product family.</span></div>
+            <div class="resources-capability"><strong>Client-ready</strong><span>Open collateral in a new tab.</span></div>
+            <div class="resources-capability"><strong>Connected</strong><span>Suggested from recommendations.</span></div>
+            <div class="resources-capability"><strong>Expandable</strong><span>Add links in the catalog.</span></div>
+          </div>
+          <div class="family-selector" id="family-selector" role="tablist" aria-label="Product family selector"></div>
+          <p class="family-help" id="family-help">Pick a product family, then use Product Data, Details, Web Links, Brochures, Guides, and Case Studies sections as needed.</p>
+        </div>
+        <aside class="resources-hero-visual" aria-label="Selected product family visual">
+          <img id="resources-family-image" src="" alt="" onerror="this.style.display='none'">
+          <div class="resources-family-badge" id="resources-family-badge">Green Roof</div>
+        </aside>
+      </div>
+    </header>
+
+    <section class="resources-grid" id="resources-grid" aria-live="polite"></section>
+
+    <div class="resource-actions">
+      <button type="button" class="btn-action btn-action-file" onclick="window.close()">Close</button>
+      <a class="btn-action btn-action-admin" href="index.html">Back to Tool</a>
+    </div>
+  </main>
+
+  <script src="resources-catalog.js"></script>
+  <script>
+    (function () {
+      var STORAGE_KEY = "v3ResourcesSuggestedFamily";
+
+      function esc(s) {
+        return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+      function byId(id) {
+        return document.getElementById(id);
+      }
+      function findFamily(catalog, familyId) {
+        return catalog.families.find(function (f) { return f.id === familyId; }) || catalog.families[0] || null;
+      }
+
+      function getCatalog() {
+        var c = window.V3_RESOURCES_CATALOG || {};
+        c.families = Array.isArray(c.families) ? c.families : [];
+        c.sections = Array.isArray(c.sections) ? c.sections : [];
+        c.items = Array.isArray(c.items) ? c.items : [];
+        return c;
+      }
+
+      function isDocStyleItem(item) {
+        if (!item) return false;
+        if (!item.href) return true;
+        var href = String(item.href).toLowerCase();
+        var type = String(item.docType || "").toLowerCase();
+        if (href.endsWith(".pdf")) return true;
+        if (href.endsWith(".doc") || href.endsWith(".docx")) return true;
+        if (href.endsWith(".ppt") || href.endsWith(".pptx")) return true;
+        if (href.endsWith(".xls") || href.endsWith(".xlsx")) return true;
+        if (href.endsWith(".html")) return true;
+        if (type.indexOf("web") !== -1 || type.indexOf("tool") !== -1) return true;
+        return false;
+      }
+
+      function getDefaultFamily(catalog) {
+        var params = new URLSearchParams(window.location.search);
+        var fromQuery = params.get("family");
+        if (fromQuery && catalog.families.some(function (f) { return f.id === fromQuery; })) return fromQuery;
+        try {
+          var fromStorage = localStorage.getItem(STORAGE_KEY);
+          if (fromStorage && catalog.families.some(function (f) { return f.id === fromStorage; })) return fromStorage;
+        } catch (e) {}
+        return catalog.families.length ? catalog.families[0].id : "green-roof";
+      }
+
+      function renderFamilySelector(catalog, activeFamily) {
+        var wrap = byId("family-selector");
+        if (!wrap) return;
+        wrap.innerHTML = "";
+        catalog.families.forEach(function (family) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "family-btn" + (family.id === activeFamily ? " active" : "");
+          btn.setAttribute("role", "tab");
+          btn.setAttribute("aria-selected", family.id === activeFamily ? "true" : "false");
+          btn.textContent = family.label;
+          btn.addEventListener("click", function () {
+            try { localStorage.setItem(STORAGE_KEY, family.id); } catch (e) {}
+            render(catalog, family.id);
+          });
+          wrap.appendChild(btn);
+        });
+      }
+
+      function sectionItems(catalog, familyId, sectionId) {
+        return catalog.items.filter(function (item) {
+          if (!item || item.active === false) return false;
+          if (item.productFamily !== familyId) return false;
+          if (sectionId === "featured") {
+            if (item.featured !== true) return false;
+          } else if (item.section !== sectionId) {
+            return false;
+          }
+          if (!isDocStyleItem(item)) return false;
+          return true;
+        });
+      }
+
+      function renderChips(item) {
+        var chips = [];
+        if (item.docType) chips.push(item.docType);
+        if (item.format && item.format !== item.docType) chips.push(item.format);
+        if (item.audience) chips.push(item.audience);
+        if (!item.href) chips.push("Add link");
+        if (!chips.length) return "";
+        return '<span class="resource-chip-row">' + chips.map(function (chip) {
+          return '<span class="resource-meta' + (!item.href ? ' resource-meta--placeholder' : '') + '">' + esc(chip) + '</span>';
+        }).join("") + '</span>';
+      }
+
+      function renderResourceItem(item) {
+        var hasHref = !!item.href;
+        var html = '<li class="' + (!hasHref ? 'resource-item--placeholder' : '') + '">';
+        if (hasHref) {
+          html += '<a href="' + esc(item.href) + '" target="_blank" rel="noopener noreferrer">' + esc(item.title) + '</a>';
+        } else {
+          html += '<span class="resource-title-placeholder">' + esc(item.title) + '</span>';
+        }
+        html += renderChips(item);
+        if (item.note) html += '<div class="resource-note">' + esc(item.note) + '</div>';
+        if (item.updated) html += '<div class="resource-updated">Updated ' + esc(item.updated) + '</div>';
+        html += "</li>";
+        return html;
+      }
+
+      function renderSectionCard(section, family, items) {
+        var cardClass = "resource-card" + (section.id === "featured" ? " resource-card--featured" : "");
+        var html = '<article class="' + cardClass + '">';
+        html += '<h2>' + esc(section.label || section.id) + '</h2>';
+        if (section.description) html += '<p class="resource-section-description">' + esc(section.description) + '</p>';
+        html += '<ul class="resource-list">';
+        if (!items || items.length === 0) {
+          html += '<li class="resource-empty">No ' + esc((section.label || "resources").toLowerCase()) + ' linked yet. ' + esc(family.emptyHint || "Add entries in v3/resources-catalog.js.") + '</li>';
+        } else {
+          for (var i = 0; i < items.length; i++) {
+            html += renderResourceItem(items[i]);
+          }
+        }
+        html += '</ul></article>';
+        return html;
+      }
+
+      function renderResourceGrid(catalog, family) {
+        var grid = byId("resources-grid");
+        if (!grid || !family) return;
+        var html = "";
+        for (var i = 0; i < catalog.sections.length; i++) {
+          var section = catalog.sections[i];
+          html += renderSectionCard(section, family, sectionItems(catalog, family.id, section.id));
+        }
+        grid.innerHTML = html;
+      }
+
+      function updateFamilyHero(family) {
+        if (!family) return;
+        document.body.setAttribute("data-resource-family", family.id);
+        var title = byId("resources-title");
+        var sub = byId("resources-sub");
+        var capPrimary = byId("resources-capability-primary");
+        var capDetail = byId("resources-capability-detail");
+        var help = byId("family-help");
+        var image = byId("resources-family-image");
+        var badge = byId("resources-family-badge");
+        if (title) title.textContent = family.label + " collateral library";
+        if (sub) sub.textContent = family.tagline || "Product collateral, details, guides, and proof points for project discussions.";
+        if (capPrimary) capPrimary.textContent = family.shortLabel || family.label;
+        if (capDetail) capDetail.textContent = family.capabilityLabel || "Product-line resources.";
+        if (help) help.textContent = "Viewing " + family.label + ". Use the cards below for featured documents, product data, specifications, details, guides, case studies, tools, and web links.";
+        if (badge) badge.textContent = family.label;
+        if (image) {
+          image.style.display = "";
+          image.src = family.heroImage || "";
+          image.alt = family.label + " collateral visual";
+          if (!family.heroImage) image.style.display = "none";
+        }
+      }
+
+      function render(catalog, familyId) {
+        var family = findFamily(catalog, familyId);
+        if (!family) return;
+        renderFamilySelector(catalog, family.id);
+        updateFamilyHero(family);
+        renderResourceGrid(catalog, family);
+      }
+
+      function renderLegacySectionList(sectionId, items) {
+        var list = byId("resource-section-" + sectionId);
+        if (!list) return;
+        if (!items || items.length === 0) {
+          list.innerHTML = '<li class="resource-empty">No resources linked yet.</li>';
+          return;
+        }
+        var html = "";
+        for (var i = 0; i < items.length; i++) {
+          html += renderResourceItem(items[i]);
+        }
+        list.innerHTML = html;
+      }
+
+      var catalog = getCatalog();
+      if (!catalog.families.length) {
+        var grid = byId("resources-grid");
+        if (grid) grid.innerHTML = '<article class="resource-card"><h2>Resources</h2><p class="resource-empty">Resource catalog is empty. Add entries in <code>v3/resources-catalog.js</code>.</p></article>';
+        return;
+      }
+      var initial = getDefaultFamily(catalog);
+      render(catalog, initial);
+      try { localStorage.setItem(STORAGE_KEY, initial); } catch (e) {}
+    })();
+  </script>
+</body>
+</html>

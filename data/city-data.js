@@ -70,7 +70,7 @@ const CITY_DATA = {
       honeycombVoidPct: 0.95
     },
     regulationProfileId: 'nyc_dep',
-    icon: "city-data/NY-New-York-City/IMAGE-NYC-ms4-map.jpg"
+    icon: "city-data/NY-New-York-City/IMAGE-new-york.jpg"
   },
   dc: {
     name: "Washington, DC",
@@ -123,7 +123,7 @@ const CITY_DATA = {
       honeycombVoidPct: 0.95
     },
     regulationProfileId: 'general',
-    icon: "images/IMAGE-washington-dc.jpg"
+    icon: "city-data/DC-Washington/IMAGE-washington-dc.jpg"
   },
   chicago: {
     name: "Chicago, IL",
@@ -176,7 +176,7 @@ const CITY_DATA = {
       honeycombVoidPct: 0.95
     },
     regulationProfileId: 'general',
-    icon: "images/IMAGE-chicago.jpg"
+    icon: "city-data/IL-Chicago/IMAGE-chicago.jpg"
   },
   boston: {
     name: "Boston, MA",
@@ -283,7 +283,7 @@ const CITY_DATA = {
       honeycombVoidPct: 0.95
     },
     regulationProfileId: 'general',
-    icon: "images/IMAGE-philadelphia.jpg"
+    icon: "city-data/PA-Philadelphia/IMAGE-philadelphia.jpg"
   },
   nashville: {
     name: "Nashville, TN",
@@ -335,7 +335,7 @@ const CITY_DATA = {
       honeycombVoidPct: 0.95
     },
     regulationProfileId: 'general',
-    icon: "images/IMAGE-nashville.jpg"
+    icon: "city-data/TN-Nashville/IMAGE-nashville.jpg"
   },
   seattle: {
     name: "Seattle, WA",
@@ -386,7 +386,7 @@ const CITY_DATA = {
       honeycombVoidPct: 0.95
     },
     regulationProfileId: 'general',
-    icon: "images/IMAGE-seattle-wa.jpg"
+    icon: "city-data/WA-Seattle/IMAGE-seattle-wa.jpg"
   },
   san_francisco: {
     name: "San Francisco, CA",
@@ -434,7 +434,8 @@ const CITY_DATA = {
       mineralWoolRetentionPct: 0.80,
       honeycombVoidPct: 0.95
     },
-    regulationProfileId: 'general'
+    regulationProfileId: 'general',
+    icon: "city-data/CA-San-Francisco/IMAGE-san-francisco.jpg"
   },
   toronto: {
     name: "Toronto, ON (Canada)",
@@ -482,7 +483,8 @@ const CITY_DATA = {
       mineralWoolRetentionPct: 0.80,
       honeycombVoidPct: 0.95
     },
-    regulationProfileId: 'general'
+    regulationProfileId: 'general',
+    icon: "city-data/ON-Toronto/IMAGE-toronto.jpg"
   },
   ohio_statewide: {
     name: "Ohio (Statewide)",
@@ -530,7 +532,8 @@ const CITY_DATA = {
       mineralWoolRetentionPct: 0.80,
       honeycombVoidPct: 0.95
     },
-    regulationProfileId: 'general'
+    regulationProfileId: 'general',
+    icon: "city-data/OH-Statewide/IMAGE-ohio-statewide.jpg"
   },
   columbus_oh: {
     name: "Columbus, OH",
@@ -578,7 +581,7 @@ const CITY_DATA = {
       honeycombVoidPct: 0.95
     },
     regulationProfileId: 'general',
-    icon: "images/IMAGE-columbus-oh.jpg"
+    icon: "city-data/OH-Columbus/IMAGE-columbus-oh.jpg"
   },
   virginia_statewide: {
     name: "Virginia (Statewide)",
@@ -627,7 +630,8 @@ const CITY_DATA = {
       mineralWoolRetentionPct: 0.80,
       honeycombVoidPct: 0.95
     },
-    regulationProfileId: 'general'
+    regulationProfileId: 'general',
+    icon: "city-data/VA-Statewide/IMAGE-virginia-statewide.jpg"
   },
   richmond_va: {
     name: "Richmond, VA",
@@ -673,7 +677,8 @@ const CITY_DATA = {
       mineralWoolRetentionPct: 0.80,
       honeycombVoidPct: 0.95
     },
-    regulationProfileId: 'general'
+    regulationProfileId: 'general',
+    icon: "city-data/VA-Richmond/IMAGE-richmond-va.jpg"
   },
   montgomery_md: {
     name: "Montgomery County, MD",
@@ -721,7 +726,8 @@ const CITY_DATA = {
       mineralWoolRetentionPct: 0.80,
       honeycombVoidPct: 0.95
     },
-    regulationProfileId: 'general'
+    regulationProfileId: 'general',
+    icon: "city-data/MD-Montgomery/IMAGE-montgomery-md.jpg"
   }
 };
 

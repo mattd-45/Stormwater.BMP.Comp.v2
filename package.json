@@ -4,7 +4,13 @@
   "private": true,
   "scripts": {
     "start": "npx serve . -l 3000",
-    "serve": "npx serve . -l 3000"
+    "serve": "npx serve . -l 3000",
+    "check:syntax": "node scripts/check-syntax.js",
+    "check:references": "node scripts/check-references.js",
+    "check:stress": "node v3/stress-test.js",
+    "build:v3": "node v3/build-standalone.js",
+    "build:admin": "node v3/build-admin-editor.js",
+    "check": "npm run check:syntax && npm run check:references && npm run check:stress && npm run build:v3 && npm run build:admin"
   },
   "description": "Run 'npm run start' or double-click start-server.bat, then open http://localhost:3000"
 }

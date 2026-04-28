@@ -1900,11 +1900,11 @@ body.theme-dark .sticky-bar {
           </label>
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" id="as-enable-tradpv" class="w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500" />
-            <span class="image-tooltip-container" style="cursor:pointer;">Include PV – Traditional PV w/ Contec ballasted racking<span class="image-tooltip"><img src="images/bmp-graphic-contec-greenlight-3d.jpg" alt="Contec Ballasted Solar Racking"></span></span>
+            <span class="image-tooltip-container" style="cursor:pointer;">Include PV – Traditional PV w/ Contec ballasted racking<span class="image-tooltip"><img src="images/bmp-contec-greenlight-3d.jpg" alt="Contec Ballasted Solar Racking"></span></span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" id="as-enable-fp" class="w-4 h-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500" />
-            <span class="image-tooltip-container" style="cursor:pointer;">Include ballasted fall protection anchors<span class="image-tooltip"><img src="images/fallpro-trsp-diadem-line-21-image.png" alt="Diadem Ballasted Fall Protection Anchor"></span></span>
+            <span class="image-tooltip-container" style="cursor:pointer;">Include ballasted fall protection anchors<span class="image-tooltip"><img src="images/bmp-diadem-single-anchor-mat.png" alt="Diadem Ballasted Fall Protection Anchor"></span></span>
           </label>
           <p class="text-[11px] text-slate-500">
             Checked systems will appear in the Additional systems summary after you run the modeling calculation.
@@ -1914,7 +1914,7 @@ body.theme-dark .sticky-bar {
         <!-- Ballasted Fall Protection calculator -->
         <details id="as-fp-accordion" class="as-accordion" style="display: none;">
           <summary class="as-summary">
-            <span class="image-tooltip-container" style="cursor:pointer;">Ballasted Fall Protection<span class="image-tooltip"><img src="images/fallpro-cover-diasafe-line-21-inage.jpg" alt="Diasafe Ballasted Fall Protection System"></span></span>
+            <span class="image-tooltip-container" style="cursor:pointer;">Ballasted Fall Protection<span class="image-tooltip"><img src="images/bmp-diasafe-line-21.jpg" alt="Diasafe Ballasted Fall Protection System"></span></span>
           </summary>
           <div class="as-body">
             <div class="as-inputGrid">
@@ -2038,7 +2038,7 @@ body.theme-dark .sticky-bar {
         <!-- PV – Traditional PV w/ Ballasted Racking (Contec) -->
         <details id="as-trad-accordion" class="as-accordion" style="display: none;">
           <summary class="as-summary">
-            <span class="image-tooltip-container" style="cursor:pointer;">PV – Traditional PV w/ Contec<span class="image-tooltip"><img src="images/pv-trsp-contec-image.png" alt="Contec Ballasted Solar Racking with Panel"></span></span>
+            <span class="image-tooltip-container" style="cursor:pointer;">PV – Traditional PV w/ Contec<span class="image-tooltip"><img src="images/bmp-ballasted-solar-rack-with-panel.png" alt="Contec Ballasted Solar Racking with Panel"></span></span>
           </summary>
           <div class="as-body">
             <div class="as-inputGrid">
@@ -2201,7 +2201,7 @@ body.theme-dark .sticky-bar {
 
     <!-- OverEasy xM-3 PV -->
     <section id="oe2-section" class="card overeasyCalc-section" style="display: none;">
-      <h2 class="overeasyCalc-title"><span class="image-tooltip-container" style="cursor:pointer;">OverEasy xM-3 PV<span class="image-tooltip"><img src="images/pv-trsp-overeasy-image.png" alt="OverEasy xM-3 PV System"></span></span></h2>
+      <h2 class="overeasyCalc-title"><span class="image-tooltip-container" style="cursor:pointer;">OverEasy xM-3 PV<span class="image-tooltip"><img src="images/bmp-overeasy-xm3.png" alt="OverEasy xM-3 PV System"></span></span></h2>
       <div id="oe2-container" class="overeasyCalc-container">
         <div class="overeasyCalc-inputs">
           <div class="overeasyCalc-row">
@@ -4836,7 +4836,7 @@ function renderAdditionalSystemsReport() {
       ],
       installNote: 'Racking and panels furnished by Sempergreen / OverEasy. Electrical work and commissioning by licensed electrical subcontractor. Structural and waterproofing review coordinated by project team.',
       calcNote: calcNoteV,
-      imageUrl: 'images/IMAGE-overeasy-pv-1.jpg'
+      imageUrl: 'images/bmp-overeasy-pv-1.jpg'
     }));
   }
 
@@ -4901,7 +4901,7 @@ function renderAdditionalSystemsReport() {
       ],
       installNote: 'Racking furnished by Contec; panels procured by electrical subcontractor or GC. Electrical work and commissioning by licensed electrical subcontractor. Structural and waterproofing review by project team.',
       calcNote: calcNoteT,
-      imageUrl: 'images/ballasted-solar-rack-with-panel (2).png'
+      imageUrl: 'images/bmp-ballasted-solar-rack-with-panel.png'
     }));
   }
 
@@ -4941,7 +4941,7 @@ function renderAdditionalSystemsReport() {
         'Access: Lifeline routing and anchor layout must maintain unobstructed code-compliant access to all rooftop equipment and egress paths.'
       ],
       installNote: 'System furnished by fall protection specialty supplier. Installation by specialty fall protection contractor or general contractor per supplier drawings and instructions. Annual recertification inspection required per ANSI Z359.2.',
-      imageUrl: 'images/IMAGE-Diasafe_line-21.jpg'
+      imageUrl: 'images/bmp-diasafe-line-21.jpg'
     }));
   }
 

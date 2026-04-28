@@ -178,7 +178,7 @@ const CITY_REG_SUMMARIES = {
       'Primary driver: Combined sewer overflow reduction and flood control — Chicago has one of the largest combined sewer systems in the US.',
       'Chicago Stormwater Management Ordinance (2024 update) administered by DWM (Dept. of Water Management).',
       'Applies to ≥7,500 SF new/redeveloped impervious (regulated development threshold); O&M plan required at ≥15,000 SF.',
-      'Volume control storage for the first inch of runoff from impervious area, plus peak flow control for up to 100-yr storms.',
+      'Volume control storage for the first 0.5" of runoff from impervious area, plus peak flow control for up to 100-yr storms.',
       'Green Permit Program fast-tracks permitting with fee waivers (up to $25,000) for buildings that incorporate green infrastructure.'
     ],
     soilConditions: [
@@ -192,19 +192,19 @@ const CITY_REG_SUMMARIES = {
       'Green roofs are not legally mandatory but are strongly incentivized through the Green Permit Program.',
       'Chicago was an early US adopter — City Hall green roof installed 2001, catalyzed the market.',
       'Green Permit provides expedited review and fee waivers (up to $25,000) for projects that include green roofs and achieve LEED certification.',
-      'Green roofs count toward the first-inch volume control requirement and receive stormwater fee credits.',
+      'Green roofs count toward the 0.5" volume control requirement and receive stormwater fee credits.',
       'DWM recognizes green roofs as an approved BMP with quantified retention and detention credit.',
       '⚠️ The 2024 DWM regulation update may have adjusted incentive details — confirm current program terms.'
     ],
     tssRequirements: [
       '⚠️ Chicago requires TSS removal for post-construction stormwater — verify specific percentage in 2024 DWM ordinance manual.',
-      'Green roofs are credited with TSS removal when properly designed — capturing the first inch of runoff addresses the highest-concentration pollutant load.',
+      'Green roofs are credited with TSS removal when properly designed — capturing the first 0.5" of runoff addresses the highest-concentration pollutant load.',
       'First-flush capture inherently addresses a significant portion of the TSS load (first flush carries the highest pollutant concentrations).',
       'For runoff volumes exceeding green roof capacity, supplemental TSS treatment may be needed.',
       'DWM Stormwater Management Manual includes green roofs in approved BMP list with TSS credits.'
     ],
     retentionRequirements: [
-      'Volume control storage: retain the first inch of runoff from all impervious surfaces using approved BMPs.',
+      'Volume control storage: retain the first 0.5" of runoff from all impervious surfaces using approved BMPs.',
       'Approved retention BMPs include green roofs, bioretention, permeable pavement, and cisterns.',
       'CN (Curve Number) method is used for peak flow calculations; TR-55 methodology is standard.',
       'Typical urban CN: 98 (impervious); green roof reduces effective CN to approximately 65-75 depending on depth.',
@@ -212,14 +212,14 @@ const CITY_REG_SUMMARIES = {
       '⚠️ 2024 ordinance update may have refined retention calculation methodology — verify against current DWM guidance.'
     ],
     outflowRates: [
-      '2-year storm: Post-development peak flow ≤ pre-development peak flow.',
-      '100-year storm: Post-development peak flow ≤ pre-development peak flow.',
-      'Chicago does not use a flat l/s/ha rate — control is relative to pre-development conditions.',
-      'For reference, a typical Chicagoland undeveloped site (CN 70) produces approximately 20-35 l/s/ha for the 10-year storm.',
+      'Sites ≤0.5 ac: max 0.15 cfs release (3" vortex restrictor).',
+      'Sites 0.5–1.75 ac: interpolated 0.15–0.25 cfs release (4" vortex restrictor).',
+      'At-grade open space: 1.0 cfs/acre.',
+      'Sites >1.75 ac: post-development peak ≤ pre-development peak for 2-yr and 100-yr storms.',
       '⚠️ Site-specific hydrology required; DWM reviews each project individually based on downstream sewer capacity.'
     ],
     detentionRequirements: [
-      'Volume control storage: Detain the first 1.0" of runoff from all impervious surfaces for controlled release.',
+      'Volume control storage: Detain the first 0.5" of runoff from all impervious surfaces for controlled release.',
       '2-year and 100-year storms: Detention must reduce post-development peak to pre-development peak.',
       'TARP (Tunnel and Reservoir Plan) provides regional detention, but site-level detention is still required.',
       'DWM accepts green roofs for detention credit — attenuated release over 24-72 hours from green roof media.',
@@ -550,52 +550,52 @@ const CITY_REG_SUMMARIES = {
 
   toronto: {
     regulatoryOverview: [
-      'Primary driver: Lake Ontario water quality protection and urban flood mitigation.',
-      'Toronto Green Standard (TGS v4) — mandatory Tier 1 for all new development in site plan approval.',
-      'Voluntary Tiers 2-4 offer development charge refunds as incentive for exceeding minimum requirements.',
-      'Toronto was the first major North American city to mandate green roofs (2010 Green Roof Bylaw).',
-      'Ontario Water Resources Act and Clean Water Act provide provincial regulatory framework.'
+      'Toronto\'s stormwater management framework is governed by the Wet Weather Flow Management Guidelines (WWFMG) and enforced through the Toronto Green Standard (TGS), currently at Version 4.',
+      'Primary Drivers: Reducing Combined Sewer Overflows (CSOs) to Lake Ontario, protecting tributary streams from erosion, and achieving long-term water quality targets (80% TSS removal).',
+      'All developments subject to Site Plan Approval must comply with WWFMG water balance, water quality, and water quantity controls.',
+      'TGS applies mandatory Tier 1 performance measures to all new planning applications received after May 1, 2022.',
+      'TGS has different requirement tiers by building type: (1) low-rise residential, (2) mid to high-rise residential & non-residential, and (3) City agency, corporation & division-owned facilities.'
     ],
     soilConditions: [
-      'Toronto sits on glacial Lake Iroquois deposits — predominantly clay and silt (Halton Till and glaciolacustrine deposits).',
-      'Typical soils: Heavy clay (HSG D) across most of the city; some sandy deposits in the Scarborough Bluffs area.',
-      'Hydrologic Soil Group: Predominantly D — very low infiltration capacity.',
-      'High groundwater table in many waterfront and ravine-adjacent areas further limits infiltration.',
-      'Implication: Infiltration is generally not feasible — Toronto regulations emphasize retention (evapotranspiration via green roofs) and controlled release.'
+      'Toronto\'s subsurface is dominated by glacial till deposits from the last ice age, creating challenging infiltration conditions across most of the city.',
+      'Predominant soils are silty clays and clayey silts, classifying as HSG C and D (low to very low infiltration capacity, typically < 1.3 mm/hr for HSG D).',
+      'Localized Exceptions: Sandy glacial outwash deposits exist along portions of the waterfront and in the Scarborough Bluffs area, occasionally yielding HSG B conditions.',
+      'Due to pervasive low-permeability soils, Toronto\'s regulations emphasize evapotranspiration and water reuse (green roofs, rainwater harvesting) over pure infiltration.',
+      'Underdrained bioretention facilities and "lined" green infrastructure systems are standard practice where native soil infiltration rates fail geotechnical feasibility thresholds.'
     ],
     greenRoofRequirements: [
-      'Green roofs are MANDATORY under the Toronto Green Roof Bylaw (2010, updated 2012).',
-      'Requirement: 20-60% of available roof space must be green roof, scaled by building gross floor area.',
-      'GFA ≤2,000 m²: 20% green roof; GFA 2,000-5,000 m²: gradually increases; GFA >5,000 m²: 60%.',
-      'TGS Tier 1 (mandatory): Retain 5mm rainfall from all roof areas via green roof.',
-      'TGS Tier 2+: 10-25mm retention — incentivized via development charge refunds (can be worth $200K+).',
-      'Eco-Roof Incentive Program: $100/m² rebate (up to $100,000) for green roof installation.'
+      'Green roofs were legally mandatory in Toronto under the Green Roof Bylaw (Chapter 492) from 2010 to 2025. As of November 3, 2025, the Bylaw is no longer applicable law under the Ontario Building Code.',
+      'Legacy Requirements (2010–2025): New buildings with GFA ≥ 2,000 m² were required to provide green roof coverage of 20–60% of Available Roof Space, scaled by building size.',
+      'Current Status: Green roofs are now voluntary for private development. However, the City continues to mandate green roofs on its own buildings (50% coverage minimum under TGS category 3: City agency, corporation & division-owned facilities).',
+      'TGS Tier 1 remains mandatory for private buildings (categories 1 & 2), and green roofs play an important role in the Water Quality & Efficiency section — WQ 1.1 Water Balance, Quality & Quantity Control and WQ 1.3 On-site Green Infrastructure.',
+      'Eco-Roof Incentive Program: $100/m² grants for green roofs (up to $100,000) to encourage voluntary installation on existing buildings.',
+      '⚠️ Legality of continued TGS green roof requirements is controversial — the provincial bill that repealed the Green Roof Bylaw aimed to remove all municipal green standards.'
     ],
     tssRequirements: [
-      'Ontario MOECP (Ministry of Environment) requires 80% TSS removal for post-construction stormwater.',
-      'Toronto\'s Wet Weather Flow Management Policy establishes pollutant reduction targets for combined and storm sewers.',
-      'Green roofs receive TSS removal credit — capturing the design storm volume addresses the highest-TSS fraction of runoff.',
-      'Enhanced treatment (80% TSS, 50% TP) required for all new development under TGS.',
-      '⚠️ Specific green roof TSS credit rates should be verified in the current Toronto Stormwater Management Criteria document.'
+      'TSS reduction is mandatory in Toronto. The WWFMG and TGS establish explicit Total Suspended Solids removal targets as a core water quality criterion.',
+      'Mandatory Reduction Target: 80% removal of TSS from stormwater runoff on an average annual basis, aligning with the Ontario MECP Enhanced Protection Level standard.',
+      'Water Quality Volume: Treatment required for runoff from the first 25 mm of rainfall over the contributing drainage area.',
+      'Green Roof TSS Credit: Extensive green roofs (100–150 mm media depth) are credited with 70–85% TSS removal for rainfall captured within the system\'s retention capacity. No further treatment necessary for a green roof.',
+      'Other Approved TSS Removal Efficiencies: Oil-Grit Separator (OGS) 50–60%; Bioretention/Bioswale 80–90%; Constructed Wetland 80–85%; Sand Filter 80–85%; Permeable Pavement 70–80%.',
+      'Treatment Train Approach: When a single practice cannot achieve 80% TSS removal, Toronto permits combining multiple practices in series (e.g., green roof + OGS for roof and hardscape runoff).'
     ],
     retentionRequirements: [
-      'TGS Tier 1 (mandatory): Retain 5mm from all roof areas; on-site retention of 5mm from non-roof areas.',
-      'TGS Tier 2: Retain 10mm from all impervious surfaces.',
-      'TGS Tier 3-4: Retain up to 25mm for maximum development charge credit.',
-      'Toronto uses the Rational Method and Modified Rational Method for peak flow; NRCS methods also accepted.',
-      'CN method applicable for volume-based design; typical urban CN: 90-98 (developed), target 65-75 with green roof.',
+      'TGS and WWFMG establish a strict retention-first hierarchy prioritizing vegetated and nature-based Stormwater Management Practices (SMPs).',
+      'Water Balance Mandate (TGS Tier 1, WQ 1.1): Sites must retain a minimum of 50% of total average annual rainfall volume, equivalent to 5 mm from each rainfall event, through infiltration, evapotranspiration, or rainwater harvesting/reuse.',
+      'Green Infrastructure Requirement (TGS Tier 1, WQ 1.3): Sites must include at least one of: biodiverse green roof ≥ 50% of Green Roof Area; intensive green roof (≥ 150 mm media) ≥ 80% of Green Roof Area; green roof ≥ 80% of Available Roof Space; at-grade bioretention capturing 75% of hardscape runoff; or 25% of Lot Area planted with native pollinator species.',
+      'Toronto uses Curve Numbers (CN) per USDA NRCS TR-55 methodology. Initial Abstraction (IA) values for green roofs: 5 mm for extensive systems; 7 mm for intensive systems per WWFMG.',
       'Metric units standard: retention volumes specified in mm of rainfall depth over contributing area.'
     ],
     outflowRates: [
-      '2-year storm: Post-development peak ≤ pre-development (or 0 increase — depending on local requirements).',
-      '100-year storm: Safe conveyance with no adverse downstream impacts.',
-      'Toronto Wet Weather Flow Policy targets 5mm/24-hr capture for water quality — effectively limits small-storm discharge to near-zero.',
-      'For reference, typical pre-development rates in Greater Toronto: 20-40 l/s/ha for the 2-year storm.',
-      '⚠️ Toronto Region Conservation Authority (TRCA) may impose additional flow restrictions for sites near ravines or watercourses.',
-      '⚠️ Allowable rates are project-specific — confirm with Toronto Water and/or TRCA.'
+      'The allowable post-development peak flow up to the 100-year storm event must not exceed the 2-year pre-development flow rate.',
+      'Toronto 2-year IDF: I = 21.8 × T^(−0.78), where T = time of concentration. At Tc = 10 min → I = 88.2 mm/hr.',
+      'Using Modified Rational Method: Q = 2.78 × C × I × A → Q/A = 2.78 × C × 88.2 = 245 × C (l/s/ha).',
+      'Most Toronto projects are redevelopment (e.g., old shopping plaza to condo) with high pre-development C (0.7–0.9). WWFMG states C ≤ 0.5 shall be used for pre-development, yielding a 2-year release rate of 122 l/s/ha.',
+      'Allowable post-development peak flow up to the 100-year storm: 122 l/s/ha.',
+      '⚠️ Toronto Region Conservation Authority (TRCA) may impose additional flow restrictions for sites near ravines or watercourses. Allowable rates are project-specific — confirm with Toronto Water and/or TRCA.'
     ],
     detentionRequirements: [
-      'TGS Tier 1: On-site detention required to control post-development 2-year and 100-year peaks to pre-development.',
+      'TGS Tier 1: On-site detention required to control post-development peaks up to the 100-year storm to the 2-year pre-development rate.',
       'Water balance: TGS requires maintaining pre-development water balance — detention alone is insufficient without retention.',
       'TRCA may require extended detention (48-72 hour drawdown) for sites draining to ravine systems.',
       'Green roofs provide detention credit — TGS quantifies the attenuation benefit in stormwater modeling.',
@@ -605,7 +605,7 @@ const CITY_REG_SUMMARIES = {
       'Ontario Net Metering: Available for systems up to 500 kW — commercial rooftop solar feeds excess generation back to the grid.',
       'Canada Greener Homes Grant and CMHC Green Home programs provide incentives for residential solar; commercial incentives are more limited.',
       'TGS Tier 2+ incentivizes on-site renewable energy through development charge refunds — bio-solar qualifies.',
-      'Toronto Green Roof Bylaw already mandates 20-60% green roof coverage — adding PV to the green roof is incremental, not additional structure.',
+      'Green Roof Bylaw was repealed Nov 3, 2025 — green roofs are now voluntary for private development, but adding PV to a green roof remains an efficient use of roof space for TGS compliance.',
       'Eco-Roof Incentive Program ($100/m² rebate) can be combined with solar installation on the same roof.',
       '⚠️ Ontario electricity rates are lower than most US states — solar ROI depends more on incentives and avoided demand charges than energy savings alone.'
     ]
