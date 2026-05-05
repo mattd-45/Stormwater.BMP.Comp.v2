@@ -168,7 +168,7 @@ const PROJECT_SCHEMA = {
     //  When null, engine uses regulation profile defaults (current behavior).
 
     // ── Design Mode Areas ──────────────────────────────────────────────
-    // Simplified inputs used in sales/design mode.
+    // Simplified inputs used in planning mode.
     // Distributed to engineering areas via preset engineeringSplits.
 
     designModeAreas: {
@@ -196,8 +196,9 @@ const PROJECT_SCHEMA = {
 
     // ── Engineering Areas ──────────────────────────────────────────────
     // Detailed area breakdown. These are the fields the engine reads directly.
-    // In design mode, these are auto-populated from designModeAreas + preset splits.
-    // In engineering mode, user enters these directly.
+    // In Planning mode, these are auto-filled from designModeAreas using
+    // ENGINEERING_SPLITS in ui-inputs.js; Engineering mode shows a warning
+    // until values differ from that template (user-measured inputs).
     //
     // FIELD NAMES MATCH ENGINE EXACTLY. Do not rename.
     // (See model.js ProjectInputs.areas and adapters/index.js)
@@ -466,14 +467,14 @@ const PROJECT_SCHEMA = {
 
   settings: {
 
-    mode: 'sales',
-    //  type: string | required: true | default: 'sales'
+    mode: 'planning',
+    //  type: string | required: true | default: 'planning'
     //  engineMap: — (controls UI rendering, not engine behavior)
     //  status: active (v2: currentMode = 'design' | 'engineering')
-    //  Valid values: 'sales', 'engineering'
+    //  Valid values: 'planning', 'engineering' (legacy saved files may have 'sales' → normalized on load)
     //
-    //  Renamed from v2's "design"/"engineering" to "sales"/"engineering"
-    //  to match the target two-mode system. "sales" = simplified inputs
+    //  Renamed from v2's "design"/"engineering" to planning/engineering
+    //  for the two-mode system. "planning" = simplified inputs
     //  with presets. "engineering" = full area breakdown with all fields.
     //  Engine output is identical in both modes — only the input UI differs.
 
@@ -483,6 +484,19 @@ const PROJECT_SCHEMA = {
     //  status: new
     //  Valid values: 'totalCost', 'costPerCF', 'areaRequired', 'bmpId'
     //  v2 sorts by BMP ID order. v3 allows user to choose.
+
+    recommendationBasis: 'cheapest_package',
+    //  type: string | required: false | default: 'cheapest_package'
+    //  engineMap: — (UI + reporting only; uses engine recommended / recommendedCombo)
+    //  status: new
+    //  How the primary recommendation (hero) is chosen:
+    //    'cheapest_package' — Prefer engine single BMP that meets both targets; else lowest-cost
+    //      two-BMP package (recommendedCombo); else lowest-cost viable single.
+    //    'cheapest_single' — Lowest-cost viable single BMP by cost, ignoring combo package.
+    //    'full_compliance_single' — Lowest-cost single BMP that meets retention + detention within
+    //      tolerance (engine meetsBoth). Empty state if none.
+    //    'roof_focused' — Restrict to roof/on-structure BMP IDs (see run-analysis ROOF_VIEW_BMP_IDS);
+    //      pick lowest-cost viable single in that pool (planning default sub-mode).
 
     pricingOverrides: {},
     //  type: object | required: false | default: {}
@@ -508,7 +522,7 @@ const PROJECT_SCHEMA = {
     //  engineMap: —
     //  status: new
     //  Whether to show expandable per-BMP detail cards in results.
-    //  Sales mode may default to false for a cleaner presentation.
+    //  Planning mode may default to false for a cleaner presentation.
 
     showCostData: true,
     //  type: boolean | required: false | default: true
@@ -530,7 +544,8 @@ const PROJECT_SCHEMA = {
       //  status: active
       //
       //  Controls the markup chain applied to all BMP pricing.
-      //  User selects 2-tier or 3-tier, then sets % per layer.
+      //  Step 4 (Site Conditions): Planning = "single-source warranty" toggle;
+      //  Engineering = edit installer / waterproofer / GC percentages.
       //  The pricing calc's applyMarkup() receives these as overrides.
       //
       //  Tier order: installer → waterproofer → GC (compounding)
@@ -541,9 +556,7 @@ const PROJECT_SCHEMA = {
       //  Installer / specialty sub markup. Default 25%.
 
       waterprooferEnabled: false,
-      //  When true, a waterproofer markup tier is inserted between
-      //  installer and GC. Typical for projects where the waterproofer
-      //  acts as a prime sub coordinating the green roof installer.
+      //  Planning UI: "Add for single-source warranty". Inserts waterproofer tier.
 
       waterprooferPct:    0.10,
       //  Waterproofer markup. Default 10%. Only applied when enabled.
@@ -672,7 +685,7 @@ function createDefaultProject() {
 // 5. targets.detentionCF must be >= 0 (and > 0 if detentionNeeded is true)
 // 6. At least one of retentionNeeded or detentionNeeded should be true
 //    (warning if both false — engine will run but results will be trivial)
-// 7. settings.mode must be 'sales' or 'engineering'
+// 7. settings.mode must be 'planning', 'engineering', or legacy 'sales' (normalized on load)
 //
 // Validation that produces warnings (non-blocking):
 //

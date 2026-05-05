@@ -64,16 +64,23 @@
         radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--mode-accent-bg) 78%, #ffffff) 0, transparent 58%),
         rgba(255, 255, 255, 0.76);
       box-shadow: 0 22px 54px rgba(15, 23, 42, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       min-height: 260px;
-      overflow: hidden;
+      overflow: visible;
       padding: 18px;
     }
     .resources-hero-visual img {
       border-radius: 16px;
       display: block;
-      height: 220px;
-      object-fit: cover;
       width: 100%;
+      max-height: min(280px, 52vw);
+      height: auto;
+      object-fit: contain;
+      object-position: center;
+      flex: 0 0 auto;
     }
     .resources-hero-visual img[src=""] {
       display: none;
@@ -322,7 +329,7 @@
     }
   </style>
 </head>
-<body data-mode="sales" data-resource-family="green-roof">
+<body data-mode="planning" data-resource-family="green-roof">
   <main class="resources-wrap">
     <header class="resources-head">
       <div class="resources-head-inner">

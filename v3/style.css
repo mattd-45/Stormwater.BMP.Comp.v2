@@ -2,7 +2,7 @@
    V3 — Input Page Styles
    Editorial e-magazine shell (macro rhythm, hairline + left accent) with
    condensed, data-dense forms inside sections. body[data-mode="engineering"]
-   tightens spacing and type further than Sales. No framework dependency.
+   tightens spacing and type further than Planning. No framework dependency.
    ═══════════════════════════════════════════════════════════════════════ */
 
 
@@ -14,7 +14,7 @@
    3. The report CSS in run-analysis.js mirrors these tokens —
       update _reportCSS() to match.
 
-   Layout: :root + default body data-mode="sales" = Sales density tokens;
+   Layout: :root + default body data-mode="planning" = Planning density tokens;
    body[data-mode="engineering"] overrides --space-*, --font-size-*,
    --results-table-*, etc.
 */
@@ -63,6 +63,11 @@
   --city-theme-page-start: #f3f9f4;
   --city-theme-page-end: #f8fafc;
 
+  /* ── Editorial accents (hairlines; follow --mode-accent* per mode) ─ */
+  --editorial-rule:        color-mix(in srgb, var(--mode-accent-border) 38%, var(--n-200));
+  --editorial-cell-border: color-mix(in srgb, var(--mode-accent-border) 22%, var(--n-200));
+  --editorial-table-frame: color-mix(in srgb, var(--mode-accent-border) 28%, var(--n-200));
+
   /* ── Strategy panel colors ────────────────────────────────────── */
   --strat-ground:      #2d7a3a;
   --strat-ground-bg:   #f0fdf4;
@@ -80,12 +85,12 @@
   --radius-section:         14px;
   --shadow-section:         0 18px 44px rgba(15, 23, 42, 0.07);
   --section-accent-width:   1px;
-  --app-header-height:      78px;
+  --app-header-height:      88px;
   --flow-progress-height:   52px;
   --sticky-shell-gap:       12px;
   --sticky-shell-offset:    calc(var(--app-header-height) + var(--flow-progress-height) + (var(--sticky-shell-gap) * 2));
 
-  /* ── Typography (Sales baseline) ─────────────────────────────── */
+  /* ── Typography (Planning baseline) ─────────────────────────────── */
   --font-family-ui:             Inter, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
   --font-family-mono:           'Cascadia Code', 'SF Mono', Consolas, ui-monospace, monospace;
   --font-size-body:            15px;
@@ -96,7 +101,7 @@
   --font-size-hint:            11px;
   --line-height-tight:         1.35;
 
-  /* ── Inside-section density (Sales; Engineering tightens) ───── */
+  /* ── Inside-section density (Planning; Engineering tightens) ───── */
   --space-section-pad-y:       20px;
   --space-section-pad-x:       24px;
   --space-field-gap-y:         12px;
@@ -131,8 +136,8 @@
   --site-type-hint-size:       12px;
 }
 
-/* ── Sales mode accent ─────────────────────────────────────────── */
-body[data-mode="sales"] {
+/* ── Planning mode accent ─────────────────────────────────────────── */
+body[data-mode="planning"] {
   --mode-accent:        var(--brand-primary);
   --mode-accent-dark:   var(--brand-primary-dark);
   --mode-accent-bg:     var(--brand-primary-light);
@@ -223,8 +228,8 @@ body[data-flow-step="home"] {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   min-height: var(--app-header-height);
-  column-gap: 20px;
-  padding: 8px var(--space-page-x);
+  column-gap: 24px;
+  padding: 10px var(--space-page-x);
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--mode-accent) 9%, transparent), transparent 38%),
     rgba(255, 255, 255, 0.96);
@@ -290,7 +295,7 @@ body[data-city-selected="true"] #app-header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 64px;
+  min-width: 78px;
   padding: 0;
 }
 
@@ -298,14 +303,15 @@ body[data-city-selected="true"] #app-header {
   width: auto;
   display: block;
   opacity: 1;
+  filter: drop-shadow(0 5px 10px rgba(15, 23, 42, 0.08));
 }
 
 .header-brand-logo-sempergreen {
-  height: 46px;
+  height: 58px;
 }
 
 .header-brand-logo-lbg {
-  height: 48px;
+  height: 56px;
 }
 
 .version-badge {
@@ -318,6 +324,22 @@ body[data-city-selected="true"] #app-header {
   padding: 3px 8px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--mode-accent-border) 48%, #cbd5e1);
+}
+
+.proprietary-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--n-300) 72%, #ffffff);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--n-600);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 /* ── Mode Toggle ───────────────────────────────────────────────────── */
@@ -420,7 +442,7 @@ body[data-city-selected="true"] #app-header {
   padding: 22px var(--space-page-x) var(--space-page-bottom);
 }
 
-/* ── Guided Sales Flow ─────────────────────────────────────────────── */
+/* ── Guided Planning Flow ─────────────────────────────────────────────── */
 
 .flow-progress {
   position: sticky;
@@ -545,6 +567,7 @@ body[data-city-selected="true"] #app-header {
   line-height: 1;
   margin: 0 0 12px;
   max-width: 980px;
+  min-width: 0;
   padding: 0;
   text-transform: none;
 }
@@ -607,10 +630,14 @@ body[data-city-selected="true"] #app-header {
 .flow-title-city {
   color: var(--mode-accent-text);
   display: block;
-  font-size: clamp(42px, 7vw, 76px);
+  font-size: clamp(28px, 5.2vw, 58px);
   letter-spacing: -0.065em;
   line-height: 0.94;
   margin-top: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .flow-title-city:empty {
@@ -901,24 +928,45 @@ body[data-city-selected="true"] #app-header {
   line-height: 1.45;
 }
 
-.city-story-summary {
-  margin-bottom: 14px;
+/* ── Quick profile + city story (Local Requirements step) ─────────── */
+
+.city-quick-profile {
+  margin-bottom: 10px;
+  border: 1px solid color-mix(in srgb, var(--mode-accent-border) 28%, var(--n-200));
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--mode-accent-bg) 40%, transparent) 0, transparent 40%),
+    var(--n-0);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+  padding: 14px 16px 16px;
 }
 
-.city-story-eyebrow,
-.city-story-profile {
+.city-quick-profile-heading {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--n-800);
+}
+
+.city-story-summary .city-story-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--n-600);
+}
+
+.city-story-summary {
+  margin-bottom: 0;
+}
+
+.city-story-eyebrow {
   color: var(--n-500);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   margin: 0 0 6px;
   text-transform: uppercase;
-}
-
-.city-story-profile {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: none;
 }
 
 .flow-collapsible-panel {
@@ -1061,12 +1109,21 @@ body[data-city-selected="true"] #app-header {
   }
 }
 
-body[data-mode="sales"] .flow-utility-panel {
+body[data-mode="planning"] .flow-utility-panel {
   display: none;
 }
 
-body[data-mode="sales"] #section-targets {
+body[data-mode="planning"] #section-targets {
   max-width: 760px;
+}
+
+body[data-mode="planning"] #section-contracting-cost {
+  display: none !important;
+}
+
+/* Results panel must not appear off Step 6 when guided flow is active (body[data-flow-step] is set by flow.js). */
+body[data-flow-step]:not([data-flow-step="results"]) #section-results {
+  display: none !important;
 }
 
 body[data-flow-step="results"] #section-results {
@@ -1100,16 +1157,16 @@ body[data-flow-step="results"] #section-results {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--n-700);
+  color: color-mix(in srgb, var(--mode-accent-text) 22%, var(--n-700));
   margin-bottom: 16px;
   padding-bottom: 11px;
-  border-bottom: 1px solid var(--n-200);
+  border-bottom: 1px solid var(--editorial-rule);
 }
 
 .input-section h3 {
   font-size: var(--font-size-subsection);
   font-weight: 600;
-  color: var(--n-600);
+  color: color-mix(in srgb, var(--mode-accent-text) 20%, var(--n-600));
   margin: var(--subsection-margin-top) 0 var(--subsection-margin-bottom);
 }
 
@@ -1122,6 +1179,22 @@ body[data-flow-step="results"] #section-results {
   margin: 0 0 12px;
   max-width: 780px;
   text-transform: none;
+  position: relative;
+  padding-bottom: 6px;
+}
+
+.input-section.flow-step:not(.flow-home-step) > h2::after {
+  content: '';
+  display: block;
+  width: min(4.5rem, 22vw);
+  height: 3px;
+  margin-top: 12px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--mode-accent),
+    color-mix(in srgb, var(--mode-accent-border) 55%, transparent)
+  );
 }
 
 .input-section.flow-home-step .flow-home-copy h2 {
@@ -1581,6 +1654,10 @@ body[data-mode="engineering"] .field input[type="number"] {
     justify-content: flex-start;
   }
 
+  .proprietary-badge {
+    order: 3;
+  }
+
   #header-center[data-city-label]:not([data-city-label=""])::after {
     order: 3;
   }
@@ -1621,6 +1698,14 @@ body[data-mode="engineering"] .field input[type="number"] {
 
   .header-center {
     align-items: flex-start;
+  }
+
+  .header-brand-logo-sempergreen {
+    height: 48px;
+  }
+
+  .header-brand-logo-lbg {
+    height: 46px;
   }
 
   #app-header h1 {
@@ -1780,7 +1865,7 @@ body[data-mode="engineering"] .field input[type="number"] {
 /* ── City regulation overview (above Site info) ────────────────────── */
 
 .city-reg-overview {
-  margin-top: 14px;
+  margin-top: 18px;
   border: 1px solid color-mix(in srgb, var(--mode-accent-border) 36%, var(--n-200));
   border-radius: 18px;
   background:
@@ -2173,18 +2258,55 @@ body[data-mode="engineering"] .inline-field input[type="number"] {
   color: var(--n-800);
 }
 
-/* Markup: hidden in Sales; in Engineering show tier inputs only — summary in estimate Pricing Breakdown */
-body[data-mode="sales"] #section-markup {
-  display: none;
+/* Contracting & markup (Step 4 — Site Conditions) */
+.contracting-cost-panel {
+  margin-top: var(--space-4, 20px);
+  padding-top: var(--space-4, 20px);
+  border-top: 1px solid var(--n-200);
 }
 
-body[data-mode="engineering"] #markup-total-display,
-body[data-mode="engineering"] #markup-hint,
-body[data-mode="engineering"] #markup-arrow-eq {
+.contracting-cost-heading {
+  font-size: 1.05rem;
+  margin: 0 0 8px 0;
+  color: var(--n-800);
+}
+
+.contracting-cost-lede {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.contracting-warranty-check {
+  margin-bottom: 10px;
+}
+
+.markup-planning-summary {
+  margin: 0;
+  font-size: 13px;
+  color: var(--n-700);
+}
+
+body[data-mode="engineering"] .markup-planning-summary {
   display: none !important;
 }
 
-/* ── Markup Settings ───────────────────────────────────────────────── */
+.markup-advanced-heading {
+  font-size: 0.95rem;
+  margin: 16px 0 10px 0;
+  color: var(--n-700);
+}
+
+body[data-mode="planning"] .markup-engineering-details {
+  display: none !important;
+}
+
+.markup-total-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--n-600);
+}
+
+/* ── Markup chain (Engineering tier editors) ────────────────────────── */
 
 .markup-chain {
   display: flex;
@@ -2262,7 +2384,8 @@ body[data-mode="engineering"] #markup-arrow-eq {
   min-width: 90px;
 }
 
-.markup-total label {
+.markup-total label,
+.markup-total .markup-total-label {
   font-size: 12px;
   font-weight: 600;
   color: var(--n-600);
@@ -2567,16 +2690,52 @@ body[data-mode="engineering"] .btn-report-outline:hover {
 
 /* ── Mode visibility ───────────────────────────────────────────────── */
 
-/* Sales keeps the guided workflow clean. Engineering keeps detailed inputs,
+/* Planning keeps the guided workflow clean. Engineering keeps detailed inputs,
    admin/data tools, markup controls, and debug/project-data visibility. */
 
-body[data-mode="sales"] #engineering-mode-areas { display: none; }
+body[data-mode="planning"] #engineering-mode-areas { display: none; }
 body[data-mode="engineering"] #design-mode-areas { display: none; }
 
-/* Sales: hide technical / data tools */
-body[data-mode="sales"] #btn-export { display: none !important; }
-body[data-mode="sales"] .actions-cluster--admin { display: none; }
-body[data-mode="sales"] #section-city-admin { display: none !important; }
+/* Engineering areas: warn when values are still template splits from Planning mode */
+.engineering-planning-warning {
+  margin: 0 0 14px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--error-border);
+  border-radius: 6px;
+  background: var(--error-bg);
+  color: var(--error-text);
+  font-size: var(--font-size-small, 13px);
+  line-height: 1.45;
+}
+
+.engineering-planning-warning strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+body[data-mode="planning"] .engineering-planning-warning {
+  display: none !important;
+}
+
+.field.field--planning-derived > label {
+  color: var(--error-text);
+}
+
+.field.field--planning-derived input[type="number"] {
+  border-color: var(--error-border);
+  box-shadow: 0 0 0 1px rgba(185, 28, 28, 0.12);
+}
+
+.field.field--planning-derived input[type="number"]:focus {
+  border-color: var(--focus-color);
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+/* Planning: hide technical / data tools */
+body[data-mode="planning"] #btn-export { display: none !important; }
+body[data-mode="planning"] .actions-cluster--admin { display: none; }
+body[data-mode="planning"] #section-city-admin { display: none !important; }
 
 /* City admin panel (engineering-only utility) */
 .city-admin-panel {
@@ -2719,10 +2878,36 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
 .results-section > .flow-kicker,
 .results-section > h2,
 .results-section > .flow-step-intro,
+.results-section > #results-toolbar,
 .results-section > #results-content,
 .results-section > .flow-step-actions {
   position: relative;
   z-index: 1;
+}
+
+.results-section > #results-toolbar {
+  max-width: 680px;
+  margin-bottom: 14px;
+}
+
+.results-toolbar select#f-recommendation-basis,
+.results-toolbar select#f-sort-results-by {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin-top: 6px;
+}
+
+.results-toolbar label[for="f-sort-results-by"] {
+  display: block;
+  margin-top: 14px;
+}
+
+.results-toolbar .field-help {
+  font-size: 0.82rem;
+  color: var(--n-500);
+  margin: 8px 0 0;
+  line-height: 1.4;
 }
 
 .results-section > h2 {
@@ -2920,8 +3105,8 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
   letter-spacing: 0.02em;
 }
 
-/* Sales mode: client-facing pricing cue */
-.ps-sales-pricing-note {
+/* Planning mode: client-facing pricing cue */
+.ps-planning-pricing-note {
   font-size: 12px;
   color: var(--n-600);
   margin: 0 0 2px;
@@ -2929,11 +3114,52 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
   max-width: 80ch;
 }
 
-.ps-sales-pricing-footnote {
+.ps-planning-pricing-footnote {
   font-size: 11px;
   color: var(--n-500);
   margin: 0 0 12px;
   line-height: 1.35;
+}
+
+.ps-basis-note {
+  font-size: 13px;
+  color: var(--n-600);
+  line-height: 1.45;
+  margin: 0 0 12px;
+  max-width: 85ch;
+}
+
+.ps-basis-note em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--n-800);
+}
+
+.ps-table-note {
+  font-size: 12px;
+  color: var(--n-500);
+  margin: 0 0 10px;
+  line-height: 1.4;
+  max-width: 90ch;
+}
+
+.bmp-status-ok { font-weight: 600; color: #166534; }
+.bmp-status-warn { font-weight: 600; color: #a16207; }
+.bmp-status-blocked { font-weight: 600; color: #b91c1c; }
+
+table.results-table tr.ps-row-pick {
+  background: color-mix(in srgb, var(--mode-accent-bg) 55%, #ffffff);
+}
+
+.bmp-notes-cell {
+  font-size: 12px;
+  max-width: 280px;
+}
+
+.ps-eng-pick-line {
+  font-size: 14px;
+  margin: 8px 0 12px;
+  color: var(--n-700);
 }
 
 .ps-top-options-toolbar {
@@ -3258,6 +3484,9 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
+  border: 1px solid var(--editorial-table-frame);
+  border-radius: 10px;
+  background: var(--n-0);
 }
 
 .results-table {
@@ -3283,9 +3512,13 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
 
 .results-table td {
   padding: var(--results-table-pad-y) var(--results-table-pad-x);
-  border-bottom: 1px solid var(--n-200);
+  border-bottom: 1px solid var(--editorial-cell-border);
   vertical-align: top;
   font-variant-numeric: tabular-nums;
+}
+
+.results-table tbody tr:hover td {
+  box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--mode-accent-bg) 24%, transparent);
 }
 
 .results-table .ps-ranked-row td:first-child {
@@ -3677,7 +3910,7 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
     grid-template-columns: 1fr;
   }
   .header-brand-logo-sempergreen {
-    height: 40px;
+    height: 44px;
   }
   .header-brand-logo-lbg {
     height: 42px;
@@ -3744,7 +3977,7 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
   letter-spacing: 0.03em;
   margin-bottom: 12px;
 }
-.mode-badge-sales {
+.mode-badge-planning {
   background: var(--brand-primary-light);
   color: var(--brand-primary-dark);
   border: 1px solid var(--brand-primary-mid);

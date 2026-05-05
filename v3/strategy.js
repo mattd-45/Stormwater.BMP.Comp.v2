@@ -59,10 +59,10 @@
       caution: 'Confirm infiltration assumptions with project-specific geotechnical or civil testing.'
     },
     highValueGroundSpace: {
-      label: 'High-value ground or programmable space',
+      label: 'At-grade BMP footprint vs programming or revenue',
       trigger: 'project.assumptions.programmableSpaceIsHighValue === true',
-      phrase: 'High-value ground-level or programmable space may make roof, deck, or compact BMP strategies more attractive than large surface BMP footprints.',
-      caution: 'Confirm owner priorities for outdoor programming, circulation, and maintainable BMP footprint.'
+      phrase: 'When the area needed for surface BMPs (pond, tank, bioretention, similar) would displace high-value programming or revenue-producing uses, roof, deck, or compact strategies may be more attractive.',
+      caution: 'Confirm owner priorities for outdoor programming, circulation, leaseable area, and maintainable BMP footprint.'
     },
     greenRoofInScope: {
       label: 'Green roof already in scope',
@@ -198,6 +198,15 @@
 
     out._debug.driverCount = out.drivers.length;
     out.summary = 'This planning explanation is based on selected site inputs, constraints, targets, and the current ranked BMP results. It does not change the calculation, ranking, or pricing.';
+    var rb = ctx.recommendationBasis || 'cheapest_package';
+    if (rb !== 'cheapest_package') {
+      var rbShort = {
+        cheapest_single: 'Lowest-cost viable single system',
+        full_compliance_single: 'Single BMP — full retention + detention compliance',
+        roof_focused: 'Roof / on-structure only'
+      };
+      out.summary += ' The highlighted option reflects your recommendation basis: ' + (rbShort[rb] || rb) + '.';
+    }
     return out;
   }
 

@@ -1,7 +1,7 @@
 (function (global) {
   const STEPS = [
     { id: 'home', label: 'Home' },
-    { id: 'city', label: 'City' },
+    { id: 'city', label: 'Project information' },
     { id: 'city-context', label: 'Local Requirements', requiresCity: true },
     { id: 'site', label: 'Site', requiresCity: true },
     { id: 'conditions', label: 'Conditions', requiresCity: true },
@@ -98,8 +98,8 @@
       section.classList.toggle('is-active', isActive);
       section.hidden = !isActive;
       if (isActive) activeSection = section;
-      if (isActive && section.id === 'section-results') {
-        section.style.display = '';
+      if (section.id === 'section-results') {
+        section.style.removeProperty('display');
       }
     });
 
@@ -161,7 +161,10 @@
     const titleCity = byId('city-context-title-city');
     const imageWrap = byId('city-context-image');
     if (titleCity) {
-      titleCity.textContent = city ? (city.name || cityKey || '') : '';
+      const label = city ? String(city.name || cityKey || '').trim() : '';
+      titleCity.textContent = label;
+      if (label) titleCity.setAttribute('title', label);
+      else titleCity.removeAttribute('title');
     }
     if (!imageWrap) return;
 
@@ -187,7 +190,7 @@
     const city = cityKey && typeof CITY_DATA !== 'undefined' ? CITY_DATA[cityKey] : null;
     updateCityContextTitle(city, cityKey);
     if (!city) {
-      wrap.innerHTML = 'Select a city to load local requirements.';
+      wrap.innerHTML = '<p class="city-story-empty">Select a city or jurisdiction to load this quick profile.</p>';
       return;
     }
 
@@ -202,9 +205,6 @@
 
     let html = '<div class="city-story-card">';
     html += '<div class="city-story-main">';
-    if (city.regulationProfileId) {
-      html += '<p class="city-story-profile">Regulation profile: <code>' + escHtml(city.regulationProfileId) + '</code></p>';
-    }
     if (lines.length) {
       html += '<ul>';
       lines.forEach(function (line) {
@@ -271,11 +271,18 @@
     });
   }
 
-  function ensureSalesModeDefault() {
+  function ensurePlanningModeDefault() {
     const project = getProject();
     const currentMode = project.settings && project.settings.mode;
-    if (currentMode !== 'sales' && currentMode !== 'engineering' && global.V3State && typeof global.V3State.set === 'function') {
-      global.V3State.set('settings.mode', 'sales');
+    if (currentMode === 'sales' && global.V3State && typeof global.V3State.set === 'function') {
+      global.V3State.set('settings.mode', 'planning');
+      if (global.V3Inputs && typeof global.V3Inputs.sync === 'function') {
+        global.V3Inputs.sync();
+      }
+      return;
+    }
+    if (currentMode !== 'planning' && currentMode !== 'engineering' && global.V3State && typeof global.V3State.set === 'function') {
+      global.V3State.set('settings.mode', 'planning');
       if (global.V3Inputs && typeof global.V3Inputs.sync === 'function') {
         global.V3Inputs.sync();
       }
@@ -283,7 +290,7 @@
   }
 
   function init() {
-    ensureSalesModeDefault();
+    ensurePlanningModeDefault();
     bindNav();
     bindActions();
 

@@ -4,7 +4,7 @@
 //
 // Uses V3RunAnalysis.generateReportHTML() which re-runs the full analysis
 // pipeline and builds a self-contained HTML document. The report respects
-// the current mode (sales vs engineering) and includes all mode-aware
+// the current mode (planning vs engineering) and includes all mode-aware
 // rendering logic.
 //
 // Usage: V3ReportView.open()

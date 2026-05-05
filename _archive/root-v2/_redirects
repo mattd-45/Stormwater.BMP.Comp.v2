@@ -1,0 +1,2 @@
+# Serve index.html for every path (fixes 404 / ERR_FILE_NOT_FOUND on refresh or direct links)
+/*    /index.html   200

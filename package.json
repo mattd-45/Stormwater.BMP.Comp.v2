@@ -12,5 +12,5 @@
     "build:admin": "node v3/build-admin-editor.js",
     "check": "npm run check:syntax && npm run check:references && npm run check:stress && npm run build:v3 && npm run build:admin"
   },
-  "description": "Run 'npm run start' or double-click start-server.bat, then open http://localhost:3000"
+  "description": "Run 'npm run start' or double-click start-server.bat, then open http://localhost:3000/v3/"
 }

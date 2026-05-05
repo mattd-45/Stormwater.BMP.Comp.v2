@@ -6,7 +6,7 @@
 //   1. Populate dynamic dropdowns (cities from CITY_DATA)
 //   2. Bind all [data-path] inputs to V3State.set()
 //   3. Sync UI from state on load/reset (state → DOM)
-//   4. Handle mode toggle (sales/engineering)
+//   4. Handle mode toggle (planning/engineering)
 //   5. Handle total site area + preset → distribute to design-mode areas (B/L/P %)
 //   6. Update debug panel on every state change
 //
@@ -538,7 +538,7 @@
     root.style.setProperty('--city-theme-page-start', theme.pageStart);
     root.style.setProperty('--city-theme-page-end', theme.pageEnd);
 
-    // Apply city accent strongly in Sales mode for visible context shift.
+    // Apply city accent strongly in Planning mode for visible context shift.
     if (mode !== 'engineering') {
       root.style.setProperty('--mode-accent', theme.accent);
       root.style.setProperty('--mode-accent-dark', theme.accentDark);
@@ -830,7 +830,7 @@
         window.V3RunAnalysis.refreshDatabase();
       }
 
-      const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'sales';
+      const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'planning';
       _renderCityRegulationOverview(V3State.getRef().site && V3State.getRef().site.cityKey, mode);
       flash('City updated');
     }
@@ -850,7 +850,7 @@
     }
 
     toggleBtn.addEventListener('click', function () {
-      const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'sales';
+      const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'planning';
       if (mode !== 'engineering') return;
       const open = panel.hidden;
       panel.hidden = !open;
@@ -897,7 +897,7 @@
       return;
     }
 
-    const isSales = mode !== 'engineering';
+    const isPlanning = mode !== 'engineering';
     const profileId = city.regulationProfileId || 'general';
     const method = city.method || 'LEGACY_BMP_ENGINE';
 
@@ -913,7 +913,7 @@
     html += '<h3>City Regulatory Overview</h3>';
     html += '<div class="city-reg-confidence">Using ' + _escHtml(city.name || cityKey) +
       ' rules (profile: <code>' + _escHtml(profileId) + '</code>)</div>';
-    if (!isSales) {
+    if (!isPlanning) {
       html += '<div class="city-reg-tech">Engineering detail: method <code>' + _escHtml(method) +
         '</code>, regulation profile <code>' + _escHtml(profileId) + '</code></div>';
     }
@@ -925,7 +925,7 @@
       if (sourceLinks.length > 0) {
         html += 'Use official sources: ' + sourceLinks.join(' • ');
       } else {
-        html += 'Add <code>regSummary</code> content to city data to enable sales/engineering regulatory notes.';
+        html += 'Add <code>regSummary</code> content to city data to enable planning/engineering regulatory notes.';
       }
       html += '</div>';
       wrap.innerHTML = html;
@@ -944,7 +944,7 @@
       { num: 8, cls: 's8', title: 'Solar PV & Green Roof Synergies', shortTitle: 'Solar PV', ..._getRegSection(rs.solarPvRequirements) }
     ];
 
-    if (isSales) {
+    if (isPlanning) {
       html += '<details class="city-reg-section city-reg-section-sales">';
       html += '<summary class="city-reg-section-header">';
       html += '<span class="city-reg-num s1">1</span>';
@@ -1016,6 +1016,15 @@
           value = el.value;
         }
         V3State.set(path, value);
+        if ((path === 'settings.recommendationBasis' || path === 'settings.sortResultsBy')
+            && global.V3RunAnalysis && typeof global.V3RunAnalysis.run === 'function') {
+          const resultsPanel = document.getElementById('section-results');
+          const onResultsStep = document.body && document.body.getAttribute('data-flow-step') === 'results';
+          const panelOpen = resultsPanel && !resultsPanel.hidden;
+          if (onResultsStep || panelOpen) {
+            global.V3RunAnalysis.run();
+          }
+        }
       });
     });
   }
@@ -1042,7 +1051,7 @@
     });
 
     // Sync mode toggle buttons
-    const mode = (project.settings && project.settings.mode) || 'sales';
+    const mode = (project.settings && project.settings.mode) || 'planning';
     _setModeUI(mode);
     _applyCityTheme(project.site && project.site.cityKey, mode);
 
@@ -1071,6 +1080,7 @@
     }
 
     _syncTargetVolumeFields(project);
+    _syncEngineeringPlanningAssumptionWarning();
   }
 
 
@@ -1101,6 +1111,7 @@
     _renderCityRegulationOverview(project.site && project.site.cityKey, mode);
     _renderCityRainfallModule(project.site && project.site.cityKey, mode);
     _applyCityTheme(project.site && project.site.cityKey, mode);
+    _syncEngineeringPlanningAssumptionWarning();
   }
 
 
@@ -1118,6 +1129,106 @@
     V3State.set('site.areas.perviousLandscapingUsable',     Math.round(landscape));
     V3State.set('site.areas.imperviousVehicularPavement',   Math.round(parking * splits.vehicular));
     V3State.set('site.areas.imperviousPedestrianPavement',  Math.round(parking * splits.pedestrian));
+  }
+
+
+  /** Field IDs for engineering area inputs (used for Planning-template warning UI). */
+  const ENGINEERING_AREA_FIELD_IDS = [
+    'f-slopedRoofArea',
+    'f-flatDeckOnStructureArea',
+    'f-paversOnStructureArea',
+    'f-perviousLandscapingUsable',
+    'f-imperviousVehicularPavement',
+    'f-imperviousPedestrianPavement'
+  ];
+
+  /**
+   * Expected site.areas from current Planning inputs (designModeAreas + preset template).
+   * Mirrors _distributeToEngineeringAreas without mutating state.
+   */
+  function computeExpectedEngineeringAreasFromPlanning(project) {
+    const site = project && project.site;
+    if (!site) return null;
+    const presetKey = site.presetKey || DEFAULT_SITE_PRESET;
+    const splits = ENGINEERING_SPLITS[presetKey];
+    if (!splits) return null;
+    const dm = site.designModeAreas || {};
+    const building = Math.max(0, Math.round(Number(dm.totalBuildingSF) || 0));
+    const landscape = Math.max(0, Math.round(Number(dm.totalLandscapeSF) || 0));
+    const parking = Math.max(0, Math.round(Number(dm.totalParkingSF) || 0));
+    if (building === 0 && landscape === 0 && parking === 0) return null;
+    return {
+      slopedRoofArea: Math.round(building * splits.slopedRoof),
+      flatDeckOnStructureArea: Math.round(building * splits.flatDeck),
+      paversOnStructureArea: Math.round(building * splits.pavers),
+      perviousLandscapingUsable: Math.round(landscape),
+      imperviousVehicularPavement: Math.round(parking * splits.vehicular),
+      imperviousPedestrianPavement: Math.round(parking * splits.pedestrian)
+    };
+  }
+
+  function engineeringAreasMatchPlanningTemplate(project) {
+    const expected = computeExpectedEngineeringAreasFromPlanning(project);
+    if (!expected) return false;
+    const areas = (project.site && project.site.areas) || {};
+    const keys = Object.keys(expected);
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i];
+      const a = Math.round(Number(areas[k]) || 0);
+      if (a !== expected[k]) return false;
+    }
+    return true;
+  }
+
+  function _syncEngineeringPlanningAssumptionWarning() {
+    const banner = document.getElementById('engineering-areas-planning-warning');
+    const project = V3State.getRef();
+    const mode = (project.settings && project.settings.mode) || 'planning';
+    const show = mode === 'engineering' && engineeringAreasMatchPlanningTemplate(project);
+    if (banner) {
+      banner.hidden = !show;
+    }
+    for (let i = 0; i < ENGINEERING_AREA_FIELD_IDS.length; i++) {
+      const el = document.getElementById(ENGINEERING_AREA_FIELD_IDS[i]);
+      const field = el && el.closest('.field');
+      if (field) field.classList.toggle('field--planning-derived', !!show);
+    }
+  }
+
+  function bindEngineeringAreasPlanningWatch() {
+    const root = document.getElementById('engineering-mode-areas');
+    if (!root) return;
+    const inputs = root.querySelectorAll('input[data-path^="site.areas"]');
+    inputs.forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        _syncEngineeringPlanningAssumptionWarning();
+      });
+    });
+  }
+
+  /**
+   * When Planning totals (B/L/P) are edited, keep engineering site.areas in sync with template splits.
+   */
+  function bindDesignModeAreasToEngineeringSync() {
+    const ids = ['f-totalBuildingSF', 'f-totalLandscapeSF', 'f-totalParkingSF'];
+    for (let i = 0; i < ids.length; i++) {
+      const el = document.getElementById(ids[i]);
+      if (!el) continue;
+      el.addEventListener('input', function () {
+        const ref = V3State.getRef();
+        const site = ref.site || {};
+        const dm = site.designModeAreas || {};
+        const pk = site.presetKey || DEFAULT_SITE_PRESET;
+        if (!ENGINEERING_SPLITS[pk]) return;
+        _distributeToEngineeringAreas(pk, {
+          building: Math.max(0, Math.round(Number(dm.totalBuildingSF) || 0)),
+          landscape: Math.max(0, Math.round(Number(dm.totalLandscapeSF) || 0)),
+          parking: Math.max(0, Math.round(Number(dm.totalParkingSF) || 0))
+        });
+        syncDOMFromState();
+        if (bindMarkupControls._sync) bindMarkupControls._sync();
+      });
+    }
   }
 
 
@@ -1231,7 +1342,7 @@
     const check = document.getElementById('f-hasStructuralLoadLimit');
     if (!field) return;
     const project = V3State.getRef();
-    const mode = (project.settings && project.settings.mode) || 'sales';
+    const mode = (project.settings && project.settings.mode) || 'planning';
     field.hidden = mode !== 'engineering' && !(check && check.checked);
   }
 
@@ -1246,7 +1357,7 @@
     var totalDisplay      = document.getElementById('markup-total-value');
     var hintDisplay       = document.getElementById('markup-hint');
     var wpTier            = document.getElementById('tier-waterproofer');
-    var arrow2            = document.getElementById('markup-arrow-2');
+    var planningTotalEl   = document.getElementById('markup-planning-total-value');
 
     if (!installerInput || !wpEnabledCheck || !wpPctInput || !gcInput) return;
 
@@ -1289,6 +1400,7 @@
       var totalPct = ((factor - 1) * 100).toFixed(1);
 
       if (totalDisplay) totalDisplay.textContent = totalPct + '%';
+      if (planningTotalEl) planningTotalEl.textContent = totalPct + '%';
 
       // Update hint text
       if (hintDisplay) {
@@ -1332,7 +1444,7 @@
     const wrap = document.getElementById('debug-panel-container');
     if (!btn || !wrap) return;
 
-    const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'sales';
+    const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'planning';
     const urlDebug = isDebugUrlParam();
     const showToggle = mode === 'engineering' || urlDebug;
 
@@ -1392,7 +1504,7 @@
     if (!btn) return;
 
     function getResourcesUrl() {
-      const url = new URL('resources.html', window.location.href);
+      const url = new URL('https://sempergreen-usa-resource-portal.netlify.app/');
       try {
         const suggestedFamily = localStorage.getItem('v3ResourcesSuggestedFamily');
         if (suggestedFamily) url.searchParams.set('family', suggestedFamily);
@@ -1459,6 +1571,8 @@
       bindCopyButton();
       bindResourcesPageButton();
       bindDebugToggle();
+      bindEngineeringAreasPlanningWatch();
+      bindDesignModeAreasToEngineeringSync();
 
       // Listen for state changes → update debug panel
       V3State.onChange(() => {

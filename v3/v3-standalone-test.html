@@ -9,7 +9,7 @@
    V3 — Input Page Styles
    Editorial e-magazine shell (macro rhythm, hairline + left accent) with
    condensed, data-dense forms inside sections. body[data-mode="engineering"]
-   tightens spacing and type further than Sales. No framework dependency.
+   tightens spacing and type further than Planning. No framework dependency.
    ═══════════════════════════════════════════════════════════════════════ */
 
 
@@ -21,7 +21,7 @@
    3. The report CSS in run-analysis.js mirrors these tokens —
       update _reportCSS() to match.
 
-   Layout: :root + default body data-mode="sales" = Sales density tokens;
+   Layout: :root + default body data-mode="planning" = Planning density tokens;
    body[data-mode="engineering"] overrides --space-*, --font-size-*,
    --results-table-*, etc.
 */
@@ -70,6 +70,11 @@
   --city-theme-page-start: #f3f9f4;
   --city-theme-page-end: #f8fafc;
 
+  /* ── Editorial accents (hairlines; follow --mode-accent* per mode) ─ */
+  --editorial-rule:        color-mix(in srgb, var(--mode-accent-border) 38%, var(--n-200));
+  --editorial-cell-border: color-mix(in srgb, var(--mode-accent-border) 22%, var(--n-200));
+  --editorial-table-frame: color-mix(in srgb, var(--mode-accent-border) 28%, var(--n-200));
+
   /* ── Strategy panel colors ────────────────────────────────────── */
   --strat-ground:      #2d7a3a;
   --strat-ground-bg:   #f0fdf4;
@@ -87,12 +92,12 @@
   --radius-section:         14px;
   --shadow-section:         0 18px 44px rgba(15, 23, 42, 0.07);
   --section-accent-width:   1px;
-  --app-header-height:      78px;
+  --app-header-height:      88px;
   --flow-progress-height:   52px;
   --sticky-shell-gap:       12px;
   --sticky-shell-offset:    calc(var(--app-header-height) + var(--flow-progress-height) + (var(--sticky-shell-gap) * 2));
 
-  /* ── Typography (Sales baseline) ─────────────────────────────── */
+  /* ── Typography (Planning baseline) ─────────────────────────────── */
   --font-family-ui:             Inter, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
   --font-family-mono:           'Cascadia Code', 'SF Mono', Consolas, ui-monospace, monospace;
   --font-size-body:            15px;
@@ -103,7 +108,7 @@
   --font-size-hint:            11px;
   --line-height-tight:         1.35;
 
-  /* ── Inside-section density (Sales; Engineering tightens) ───── */
+  /* ── Inside-section density (Planning; Engineering tightens) ───── */
   --space-section-pad-y:       20px;
   --space-section-pad-x:       24px;
   --space-field-gap-y:         12px;
@@ -138,8 +143,8 @@
   --site-type-hint-size:       12px;
 }
 
-/* ── Sales mode accent ─────────────────────────────────────────── */
-body[data-mode="sales"] {
+/* ── Planning mode accent ─────────────────────────────────────────── */
+body[data-mode="planning"] {
   --mode-accent:        var(--brand-primary);
   --mode-accent-dark:   var(--brand-primary-dark);
   --mode-accent-bg:     var(--brand-primary-light);
@@ -230,8 +235,8 @@ body[data-flow-step="home"] {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   min-height: var(--app-header-height);
-  column-gap: 20px;
-  padding: 8px var(--space-page-x);
+  column-gap: 24px;
+  padding: 10px var(--space-page-x);
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--mode-accent) 9%, transparent), transparent 38%),
     rgba(255, 255, 255, 0.96);
@@ -297,7 +302,7 @@ body[data-city-selected="true"] #app-header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 64px;
+  min-width: 78px;
   padding: 0;
 }
 
@@ -305,14 +310,15 @@ body[data-city-selected="true"] #app-header {
   width: auto;
   display: block;
   opacity: 1;
+  filter: drop-shadow(0 5px 10px rgba(15, 23, 42, 0.08));
 }
 
 .header-brand-logo-sempergreen {
-  height: 46px;
+  height: 58px;
 }
 
 .header-brand-logo-lbg {
-  height: 48px;
+  height: 56px;
 }
 
 .version-badge {
@@ -325,6 +331,22 @@ body[data-city-selected="true"] #app-header {
   padding: 3px 8px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--mode-accent-border) 48%, #cbd5e1);
+}
+
+.proprietary-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--n-300) 72%, #ffffff);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--n-600);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 /* ── Mode Toggle ───────────────────────────────────────────────────── */
@@ -427,7 +449,7 @@ body[data-city-selected="true"] #app-header {
   padding: 22px var(--space-page-x) var(--space-page-bottom);
 }
 
-/* ── Guided Sales Flow ─────────────────────────────────────────────── */
+/* ── Guided Planning Flow ─────────────────────────────────────────────── */
 
 .flow-progress {
   position: sticky;
@@ -552,6 +574,7 @@ body[data-city-selected="true"] #app-header {
   line-height: 1;
   margin: 0 0 12px;
   max-width: 980px;
+  min-width: 0;
   padding: 0;
   text-transform: none;
 }
@@ -614,10 +637,14 @@ body[data-city-selected="true"] #app-header {
 .flow-title-city {
   color: var(--mode-accent-text);
   display: block;
-  font-size: clamp(42px, 7vw, 76px);
+  font-size: clamp(28px, 5.2vw, 58px);
   letter-spacing: -0.065em;
   line-height: 0.94;
   margin-top: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .flow-title-city:empty {
@@ -908,24 +935,45 @@ body[data-city-selected="true"] #app-header {
   line-height: 1.45;
 }
 
-.city-story-summary {
-  margin-bottom: 14px;
+/* ── Quick profile + city story (Local Requirements step) ─────────── */
+
+.city-quick-profile {
+  margin-bottom: 10px;
+  border: 1px solid color-mix(in srgb, var(--mode-accent-border) 28%, var(--n-200));
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--mode-accent-bg) 40%, transparent) 0, transparent 40%),
+    var(--n-0);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+  padding: 14px 16px 16px;
 }
 
-.city-story-eyebrow,
-.city-story-profile {
+.city-quick-profile-heading {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--n-800);
+}
+
+.city-story-summary .city-story-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--n-600);
+}
+
+.city-story-summary {
+  margin-bottom: 0;
+}
+
+.city-story-eyebrow {
   color: var(--n-500);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   margin: 0 0 6px;
   text-transform: uppercase;
-}
-
-.city-story-profile {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: none;
 }
 
 .flow-collapsible-panel {
@@ -1068,12 +1116,21 @@ body[data-city-selected="true"] #app-header {
   }
 }
 
-body[data-mode="sales"] .flow-utility-panel {
+body[data-mode="planning"] .flow-utility-panel {
   display: none;
 }
 
-body[data-mode="sales"] #section-targets {
+body[data-mode="planning"] #section-targets {
   max-width: 760px;
+}
+
+body[data-mode="planning"] #section-contracting-cost {
+  display: none !important;
+}
+
+/* Results panel must not appear off Step 6 when guided flow is active (body[data-flow-step] is set by flow.js). */
+body[data-flow-step]:not([data-flow-step="results"]) #section-results {
+  display: none !important;
 }
 
 body[data-flow-step="results"] #section-results {
@@ -1107,16 +1164,16 @@ body[data-flow-step="results"] #section-results {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--n-700);
+  color: color-mix(in srgb, var(--mode-accent-text) 22%, var(--n-700));
   margin-bottom: 16px;
   padding-bottom: 11px;
-  border-bottom: 1px solid var(--n-200);
+  border-bottom: 1px solid var(--editorial-rule);
 }
 
 .input-section h3 {
   font-size: var(--font-size-subsection);
   font-weight: 600;
-  color: var(--n-600);
+  color: color-mix(in srgb, var(--mode-accent-text) 20%, var(--n-600));
   margin: var(--subsection-margin-top) 0 var(--subsection-margin-bottom);
 }
 
@@ -1129,6 +1186,22 @@ body[data-flow-step="results"] #section-results {
   margin: 0 0 12px;
   max-width: 780px;
   text-transform: none;
+  position: relative;
+  padding-bottom: 6px;
+}
+
+.input-section.flow-step:not(.flow-home-step) > h2::after {
+  content: '';
+  display: block;
+  width: min(4.5rem, 22vw);
+  height: 3px;
+  margin-top: 12px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--mode-accent),
+    color-mix(in srgb, var(--mode-accent-border) 55%, transparent)
+  );
 }
 
 .input-section.flow-home-step .flow-home-copy h2 {
@@ -1588,6 +1661,10 @@ body[data-mode="engineering"] .field input[type="number"] {
     justify-content: flex-start;
   }
 
+  .proprietary-badge {
+    order: 3;
+  }
+
   #header-center[data-city-label]:not([data-city-label=""])::after {
     order: 3;
   }
@@ -1628,6 +1705,14 @@ body[data-mode="engineering"] .field input[type="number"] {
 
   .header-center {
     align-items: flex-start;
+  }
+
+  .header-brand-logo-sempergreen {
+    height: 48px;
+  }
+
+  .header-brand-logo-lbg {
+    height: 46px;
   }
 
   #app-header h1 {
@@ -1787,7 +1872,7 @@ body[data-mode="engineering"] .field input[type="number"] {
 /* ── City regulation overview (above Site info) ────────────────────── */
 
 .city-reg-overview {
-  margin-top: 14px;
+  margin-top: 18px;
   border: 1px solid color-mix(in srgb, var(--mode-accent-border) 36%, var(--n-200));
   border-radius: 18px;
   background:
@@ -2180,18 +2265,55 @@ body[data-mode="engineering"] .inline-field input[type="number"] {
   color: var(--n-800);
 }
 
-/* Markup: hidden in Sales; in Engineering show tier inputs only — summary in estimate Pricing Breakdown */
-body[data-mode="sales"] #section-markup {
-  display: none;
+/* Contracting & markup (Step 4 — Site Conditions) */
+.contracting-cost-panel {
+  margin-top: var(--space-4, 20px);
+  padding-top: var(--space-4, 20px);
+  border-top: 1px solid var(--n-200);
 }
 
-body[data-mode="engineering"] #markup-total-display,
-body[data-mode="engineering"] #markup-hint,
-body[data-mode="engineering"] #markup-arrow-eq {
+.contracting-cost-heading {
+  font-size: 1.05rem;
+  margin: 0 0 8px 0;
+  color: var(--n-800);
+}
+
+.contracting-cost-lede {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.contracting-warranty-check {
+  margin-bottom: 10px;
+}
+
+.markup-planning-summary {
+  margin: 0;
+  font-size: 13px;
+  color: var(--n-700);
+}
+
+body[data-mode="engineering"] .markup-planning-summary {
   display: none !important;
 }
 
-/* ── Markup Settings ───────────────────────────────────────────────── */
+.markup-advanced-heading {
+  font-size: 0.95rem;
+  margin: 16px 0 10px 0;
+  color: var(--n-700);
+}
+
+body[data-mode="planning"] .markup-engineering-details {
+  display: none !important;
+}
+
+.markup-total-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--n-600);
+}
+
+/* ── Markup chain (Engineering tier editors) ────────────────────────── */
 
 .markup-chain {
   display: flex;
@@ -2269,7 +2391,8 @@ body[data-mode="engineering"] #markup-arrow-eq {
   min-width: 90px;
 }
 
-.markup-total label {
+.markup-total label,
+.markup-total .markup-total-label {
   font-size: 12px;
   font-weight: 600;
   color: var(--n-600);
@@ -2574,16 +2697,52 @@ body[data-mode="engineering"] .btn-report-outline:hover {
 
 /* ── Mode visibility ───────────────────────────────────────────────── */
 
-/* Sales keeps the guided workflow clean. Engineering keeps detailed inputs,
+/* Planning keeps the guided workflow clean. Engineering keeps detailed inputs,
    admin/data tools, markup controls, and debug/project-data visibility. */
 
-body[data-mode="sales"] #engineering-mode-areas { display: none; }
+body[data-mode="planning"] #engineering-mode-areas { display: none; }
 body[data-mode="engineering"] #design-mode-areas { display: none; }
 
-/* Sales: hide technical / data tools */
-body[data-mode="sales"] #btn-export { display: none !important; }
-body[data-mode="sales"] .actions-cluster--admin { display: none; }
-body[data-mode="sales"] #section-city-admin { display: none !important; }
+/* Engineering areas: warn when values are still template splits from Planning mode */
+.engineering-planning-warning {
+  margin: 0 0 14px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--error-border);
+  border-radius: 6px;
+  background: var(--error-bg);
+  color: var(--error-text);
+  font-size: var(--font-size-small, 13px);
+  line-height: 1.45;
+}
+
+.engineering-planning-warning strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+body[data-mode="planning"] .engineering-planning-warning {
+  display: none !important;
+}
+
+.field.field--planning-derived > label {
+  color: var(--error-text);
+}
+
+.field.field--planning-derived input[type="number"] {
+  border-color: var(--error-border);
+  box-shadow: 0 0 0 1px rgba(185, 28, 28, 0.12);
+}
+
+.field.field--planning-derived input[type="number"]:focus {
+  border-color: var(--focus-color);
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+/* Planning: hide technical / data tools */
+body[data-mode="planning"] #btn-export { display: none !important; }
+body[data-mode="planning"] .actions-cluster--admin { display: none; }
+body[data-mode="planning"] #section-city-admin { display: none !important; }
 
 /* City admin panel (engineering-only utility) */
 .city-admin-panel {
@@ -2726,10 +2885,36 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
 .results-section > .flow-kicker,
 .results-section > h2,
 .results-section > .flow-step-intro,
+.results-section > #results-toolbar,
 .results-section > #results-content,
 .results-section > .flow-step-actions {
   position: relative;
   z-index: 1;
+}
+
+.results-section > #results-toolbar {
+  max-width: 680px;
+  margin-bottom: 14px;
+}
+
+.results-toolbar select#f-recommendation-basis,
+.results-toolbar select#f-sort-results-by {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin-top: 6px;
+}
+
+.results-toolbar label[for="f-sort-results-by"] {
+  display: block;
+  margin-top: 14px;
+}
+
+.results-toolbar .field-help {
+  font-size: 0.82rem;
+  color: var(--n-500);
+  margin: 8px 0 0;
+  line-height: 1.4;
 }
 
 .results-section > h2 {
@@ -2927,8 +3112,8 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
   letter-spacing: 0.02em;
 }
 
-/* Sales mode: client-facing pricing cue */
-.ps-sales-pricing-note {
+/* Planning mode: client-facing pricing cue */
+.ps-planning-pricing-note {
   font-size: 12px;
   color: var(--n-600);
   margin: 0 0 2px;
@@ -2936,11 +3121,52 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
   max-width: 80ch;
 }
 
-.ps-sales-pricing-footnote {
+.ps-planning-pricing-footnote {
   font-size: 11px;
   color: var(--n-500);
   margin: 0 0 12px;
   line-height: 1.35;
+}
+
+.ps-basis-note {
+  font-size: 13px;
+  color: var(--n-600);
+  line-height: 1.45;
+  margin: 0 0 12px;
+  max-width: 85ch;
+}
+
+.ps-basis-note em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--n-800);
+}
+
+.ps-table-note {
+  font-size: 12px;
+  color: var(--n-500);
+  margin: 0 0 10px;
+  line-height: 1.4;
+  max-width: 90ch;
+}
+
+.bmp-status-ok { font-weight: 600; color: #166534; }
+.bmp-status-warn { font-weight: 600; color: #a16207; }
+.bmp-status-blocked { font-weight: 600; color: #b91c1c; }
+
+table.results-table tr.ps-row-pick {
+  background: color-mix(in srgb, var(--mode-accent-bg) 55%, #ffffff);
+}
+
+.bmp-notes-cell {
+  font-size: 12px;
+  max-width: 280px;
+}
+
+.ps-eng-pick-line {
+  font-size: 14px;
+  margin: 8px 0 12px;
+  color: var(--n-700);
 }
 
 .ps-top-options-toolbar {
@@ -3265,6 +3491,9 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
+  border: 1px solid var(--editorial-table-frame);
+  border-radius: 10px;
+  background: var(--n-0);
 }
 
 .results-table {
@@ -3290,9 +3519,13 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
 
 .results-table td {
   padding: var(--results-table-pad-y) var(--results-table-pad-x);
-  border-bottom: 1px solid var(--n-200);
+  border-bottom: 1px solid var(--editorial-cell-border);
   vertical-align: top;
   font-variant-numeric: tabular-nums;
+}
+
+.results-table tbody tr:hover td {
+  box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--mode-accent-bg) 24%, transparent);
 }
 
 .results-table .ps-ranked-row td:first-child {
@@ -3684,7 +3917,7 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
     grid-template-columns: 1fr;
   }
   .header-brand-logo-sempergreen {
-    height: 40px;
+    height: 44px;
   }
   .header-brand-logo-lbg {
     height: 42px;
@@ -3751,7 +3984,7 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
   letter-spacing: 0.03em;
   margin-bottom: 12px;
 }
-.mode-badge-sales {
+.mode-badge-planning {
   background: var(--brand-primary-light);
   color: var(--brand-primary-dark);
   border: 1px solid var(--brand-primary-mid);
@@ -3789,7 +4022,7 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
 
 </style>
 </head>
-<body data-mode="sales">
+<body data-mode="planning">
 
   <!-- ── Header ─────────────────────────────────────────────────────── -->
   <header id="app-header">
@@ -3803,9 +4036,9 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
       </div>
       <div class="header-right">
         <button type="button" id="btn-toggle-debug" class="btn-debug-toggle" hidden aria-expanded="false" aria-controls="debug-panel-container">Show Debug Data</button>
-        <a href="resources.html" target="_blank" rel="noopener noreferrer" id="btn-open-resources" class="btn-resource-page" aria-label="Open resources page">Resources</a>
+        <a href="https://sempergreen-usa-resource-portal.netlify.app/" target="_blank" rel="noopener noreferrer" id="btn-open-resources" class="btn-resource-page" aria-label="Open resources page">Resources</a>
         <div class="mode-toggle" id="mode-toggle">
-          <button class="mode-btn active" data-mode="sales">Planning</button>
+          <button class="mode-btn active" data-mode="planning">Planning</button>
           <button class="mode-btn" data-mode="engineering">Engineering</button>
         </div>
       </div>
@@ -3820,7 +4053,7 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
 
     <nav class="flow-progress" aria-label="Project evaluation progress">
       <button type="button" class="flow-progress-step" data-flow-goto="home">Home</button>
-      <button type="button" class="flow-progress-step" data-flow-goto="city">City</button>
+      <button type="button" class="flow-progress-step" data-flow-goto="city">Project information</button>
       <button type="button" class="flow-progress-step" data-flow-goto="city-context">Local Requirements</button>
       <button type="button" class="flow-progress-step" data-flow-goto="site">Site</button>
       <button type="button" class="flow-progress-step" data-flow-goto="conditions">Conditions</button>
@@ -3863,7 +4096,7 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
             <p class="flow-panel-kicker">Evaluation workflow</p>
             <h3>Inputs used for BMP screening.</h3>
             <ol>
-              <li><strong>Confirm jurisdiction</strong><span>Local rules, rainfall assumptions, and project information.</span></li>
+              <li><strong>Project information</strong><span>Project name, client, address, and applicable city or jurisdiction.</span></li>
               <li><strong>Define site conditions</strong><span>Area split, constraints, and stormwater targets.</span></li>
               <li><strong>Compare BMP options</strong><span>Viability, estimated cost, system role, and follow-up items.</span></li>
             </ol>
@@ -3875,8 +4108,8 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
     <!-- Section 1: Project Info -->
     <section class="input-section flow-step" id="section-project-info" data-flow-step="city">
       <p class="flow-kicker">Step 1</p>
-      <h2>Project Jurisdiction</h2>
-      <p class="flow-step-intro">Select the applicable city or jurisdiction before entering site information.</p>
+      <h2>Project information</h2>
+      <p class="flow-step-intro">Enter project identification and the applicable city or jurisdiction before continuing to site information.</p>
       <div class="form-grid">
         <div class="field">
           <label for="f-projectName">Project Name</label>
@@ -3919,8 +4152,11 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
         </div>
         <figure id="city-context-image" class="flow-city-image" hidden></figure>
       </div>
-      <div id="city-story-summary" class="city-story-summary" aria-live="polite">
-        Select a city or jurisdiction to load local requirements.
+      <div class="city-quick-profile" aria-labelledby="city-quick-profile-title">
+        <h3 id="city-quick-profile-title" class="city-quick-profile-heading">Quick profile</h3>
+        <div id="city-story-summary" class="city-story-summary" aria-live="polite">
+          <p class="city-story-empty">Select a city or jurisdiction to load this quick profile.</p>
+        </div>
       </div>
       <div id="city-reg-overview" class="city-reg-overview" hidden aria-live="polite"></div>
       <div id="city-rainfall-module" class="city-rainfall-module" hidden aria-live="polite"></div>
@@ -3990,6 +4226,10 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
       <!-- Engineering-mode areas (detailed) -->
       <div id="engineering-mode-areas">
         <h3>Engineering Area Inputs <span class="hint">(SF)</span></h3>
+        <div id="engineering-areas-planning-warning" class="engineering-planning-warning" role="status" hidden>
+          <strong>Still using Planning splits.</strong>
+          Roof surfaces (sloped / flat deck / plaza-pavers) and pavement (vehicular / pedestrian) match your site-type template, not separately measured areas. Replace them below with measured values when engineering.
+        </div>
         <div class="form-grid three-col">
           <div class="field">
             <label for="f-perviousLandscapingUsable">Pervious Landscaping (Usable)</label>
@@ -4101,17 +4341,72 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
       </details>
 
       <details class="flow-collapsible-panel">
-        <summary>Show ground area value context</summary>
+        <summary>Ground BMP footprint vs programming or revenue</summary>
         <div class="checkbox-group">
           <label class="check-label">
             <input type="checkbox" id="f-programmableSpaceHighValue" data-path="assumptions.programmableSpaceIsHighValue">
             <span>
-              <strong>Ground-level BMP area has competing site value</strong>
-              Examples: amenity area, retail frontage, parking demand, or EV charging infrastructure.
+              <strong>Area needed for at-grade BMP could be used for programming or revenue instead</strong>
+              Check this when the footprint for a pond, tank, bioretention, or similar would displace high-value uses (amenity space, retail frontage, leaseable area, parking, and similar).
             </span>
           </label>
         </div>
       </details>
+
+      <div id="section-contracting-cost" class="contracting-cost-panel">
+        <h3 class="contracting-cost-heading">Contracting &amp; cost assumptions</h3>
+        <p class="field-hint contracting-cost-lede">By default, screening costs use a <strong>GC + specialty installer</strong> path (two compounding markups). Turn on the option below only when you expect pricing that includes a waterproofer / single-source warranty chain.</p>
+        <label class="check-label contracting-warranty-check">
+          <input type="checkbox" id="f-waterprooferEnabled">
+          <span>
+            <strong>Add for single-source warranty</strong>
+            Purchasing through a waterproofer for a coordinated warranty scope adds a compounding markup tier and increases estimated sell price.
+          </span>
+        </label>
+        <p class="markup-planning-summary" id="markup-planning-summary">Effective combined markup (screening): <strong id="markup-planning-total-value">—</strong></p>
+
+        <div id="markup-engineering-details" class="markup-engineering-details">
+          <h4 class="markup-advanced-heading">Markup percentages</h4>
+          <div class="markup-chain">
+            <div class="markup-tier">
+              <label for="f-installerPct">Installer</label>
+              <div class="pct-input">
+                <input type="number" id="f-installerPct" min="0" max="100" step="1" value="25">
+                <span class="pct-suffix">%</span>
+              </div>
+            </div>
+
+            <span class="markup-arrow" id="markup-arrow-1" aria-hidden="true">→</span>
+
+            <div class="markup-tier markup-tier-optional" id="tier-waterproofer">
+              <label for="f-waterprooferPct">Waterproofer <span class="hint">(when warranty tier is on)</span></label>
+              <div class="pct-input">
+                <input type="number" id="f-waterprooferPct" min="0" max="100" step="1" value="10" disabled>
+                <span class="pct-suffix">%</span>
+              </div>
+            </div>
+
+            <span class="markup-arrow" id="markup-arrow-2" aria-hidden="true">→</span>
+
+            <div class="markup-tier">
+              <label for="f-gcPct">GC OH&amp;P</label>
+              <div class="pct-input">
+                <input type="number" id="f-gcPct" min="0" max="100" step="1" value="10">
+                <span class="pct-suffix">%</span>
+              </div>
+            </div>
+
+            <span class="markup-arrow" id="markup-arrow-eq" aria-hidden="true">=</span>
+
+            <div class="markup-total" id="markup-total-display">
+              <span class="markup-total-label">Total markup</span>
+              <span class="markup-total-value" id="markup-total-value">37.5%</span>
+            </div>
+          </div>
+          <p class="markup-hint" id="markup-hint">2-tier: Installer → GC (compounding)</p>
+        </div>
+      </div>
+
       <div class="flow-step-actions">
         <button type="button" class="btn-action btn-action-file" data-flow-prev>Back</button>
         <button type="button" class="btn-run" data-flow-next>Continue to Targets</button>
@@ -4161,54 +4456,6 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
         <button type="button" class="btn-action btn-action-file" data-flow-prev>Back</button>
         <button type="button" id="flow-run-analysis" class="btn-run">Run Analysis and View Results</button>
       </div>
-    </section>
-
-    <!-- Section 5: Markup Settings -->
-    <section class="input-section" id="section-markup">
-      <h2>Markup</h2>
-      <div class="markup-chain">
-        <div class="markup-tier">
-          <label for="f-installerPct">Installer</label>
-          <div class="pct-input">
-            <input type="number" id="f-installerPct" data-path="settings.markup.installerPct"
-                   min="0" max="100" step="1" value="25">
-            <span class="pct-suffix">%</span>
-          </div>
-        </div>
-
-        <span class="markup-arrow" id="markup-arrow-1">→</span>
-
-        <div class="markup-tier markup-tier-optional" id="tier-waterproofer">
-          <label>
-            <input type="checkbox" id="f-waterprooferEnabled" data-path="settings.markup.waterprooferEnabled">
-            Waterproofer
-          </label>
-          <div class="pct-input">
-            <input type="number" id="f-waterprooferPct" data-path="settings.markup.waterprooferPct"
-                   min="0" max="100" step="1" value="10" disabled>
-            <span class="pct-suffix">%</span>
-          </div>
-        </div>
-
-        <span class="markup-arrow" id="markup-arrow-2">→</span>
-
-        <div class="markup-tier">
-          <label for="f-gcPct">GC OH&P</label>
-          <div class="pct-input">
-            <input type="number" id="f-gcPct" data-path="settings.markup.gcPct"
-                   min="0" max="100" step="1" value="10">
-            <span class="pct-suffix">%</span>
-          </div>
-        </div>
-
-        <span class="markup-arrow" id="markup-arrow-eq">=</span>
-
-        <div class="markup-total" id="markup-total-display">
-          <label>Total markup</label>
-          <span class="markup-total-value" id="markup-total-value">37.5%</span>
-        </div>
-      </div>
-      <p class="markup-hint" id="markup-hint">2-tier: Installer → GC (compounding)</p>
     </section>
 
     <!-- Actions -->
@@ -4284,10 +4531,28 @@ body[data-mode="sales"] #section-city-admin { display: none !important; }
     </section>
 
     <!-- Results Panel -->
-    <section class="input-section results-section flow-step" id="section-results" data-flow-step="results" style="display:none;">
+    <section class="input-section results-section flow-step" id="section-results" data-flow-step="results" hidden>
       <p class="flow-kicker">Step 6</p>
       <h2>Recommendation and Planning Report</h2>
       <p class="flow-step-intro">Review the screening result and generate a planning report for follow-up.</p>
+      <div class="results-toolbar field cluster" id="results-toolbar">
+        <label for="f-recommendation-basis">Recommendation basis</label>
+        <select id="f-recommendation-basis" data-path="settings.recommendationBasis" aria-describedby="results-toolbar-basis-help">
+          <option value="cheapest_package">Lowest-cost package (single or two-BMP retention + detention)</option>
+          <option value="cheapest_single">Lowest-cost viable single system</option>
+          <option value="full_compliance_single">Single system — full retention + detention compliance</option>
+          <option value="roof_focused">Roof / on-structure only (lowest-cost viable in that set)</option>
+        </select>
+        <p id="results-toolbar-basis-help" class="field-help">Sets how the highlighted recommendation is chosen. The ranked table and “next options” cards use <strong>Sort ranked table by</strong> below (viable rows first, then warnings, then blocked).</p>
+        <label for="f-sort-results-by">Sort ranked table by</label>
+        <select id="f-sort-results-by" data-path="settings.sortResultsBy" aria-describedby="results-toolbar-sort-help">
+          <option value="totalCost">Estimated total (low to high)</option>
+          <option value="costPerCF">Cost per CF credit (low to high)</option>
+          <option value="areaRequired">Gross area (small to large)</option>
+          <option value="bmpId">System ID (alphanumeric)</option>
+        </select>
+        <p id="results-toolbar-sort-help" class="field-help">Within each status tier, rows follow this sort. Planning mode shows a short preview table; Engineering shows all rows.</p>
+      </div>
       <div id="results-content"></div>
       <div class="flow-step-actions">
         <button type="button" class="btn-action btn-action-file" data-flow-prev>Back</button>
@@ -8390,7 +8655,7 @@ const PROJECT_SCHEMA = {
     //  When null, engine uses regulation profile defaults (current behavior).
 
     // ── Design Mode Areas ──────────────────────────────────────────────
-    // Simplified inputs used in sales/design mode.
+    // Simplified inputs used in planning mode.
     // Distributed to engineering areas via preset engineeringSplits.
 
     designModeAreas: {
@@ -8418,8 +8683,9 @@ const PROJECT_SCHEMA = {
 
     // ── Engineering Areas ──────────────────────────────────────────────
     // Detailed area breakdown. These are the fields the engine reads directly.
-    // In design mode, these are auto-populated from designModeAreas + preset splits.
-    // In engineering mode, user enters these directly.
+    // In Planning mode, these are auto-filled from designModeAreas using
+    // ENGINEERING_SPLITS in ui-inputs.js; Engineering mode shows a warning
+    // until values differ from that template (user-measured inputs).
     //
     // FIELD NAMES MATCH ENGINE EXACTLY. Do not rename.
     // (See model.js ProjectInputs.areas and adapters/index.js)
@@ -8688,14 +8954,14 @@ const PROJECT_SCHEMA = {
 
   settings: {
 
-    mode: 'sales',
-    //  type: string | required: true | default: 'sales'
+    mode: 'planning',
+    //  type: string | required: true | default: 'planning'
     //  engineMap: — (controls UI rendering, not engine behavior)
     //  status: active (v2: currentMode = 'design' | 'engineering')
-    //  Valid values: 'sales', 'engineering'
+    //  Valid values: 'planning', 'engineering' (legacy saved files may have 'sales' → normalized on load)
     //
-    //  Renamed from v2's "design"/"engineering" to "sales"/"engineering"
-    //  to match the target two-mode system. "sales" = simplified inputs
+    //  Renamed from v2's "design"/"engineering" to planning/engineering
+    //  for the two-mode system. "planning" = simplified inputs
     //  with presets. "engineering" = full area breakdown with all fields.
     //  Engine output is identical in both modes — only the input UI differs.
 
@@ -8705,6 +8971,19 @@ const PROJECT_SCHEMA = {
     //  status: new
     //  Valid values: 'totalCost', 'costPerCF', 'areaRequired', 'bmpId'
     //  v2 sorts by BMP ID order. v3 allows user to choose.
+
+    recommendationBasis: 'cheapest_package',
+    //  type: string | required: false | default: 'cheapest_package'
+    //  engineMap: — (UI + reporting only; uses engine recommended / recommendedCombo)
+    //  status: new
+    //  How the primary recommendation (hero) is chosen:
+    //    'cheapest_package' — Prefer engine single BMP that meets both targets; else lowest-cost
+    //      two-BMP package (recommendedCombo); else lowest-cost viable single.
+    //    'cheapest_single' — Lowest-cost viable single BMP by cost, ignoring combo package.
+    //    'full_compliance_single' — Lowest-cost single BMP that meets retention + detention within
+    //      tolerance (engine meetsBoth). Empty state if none.
+    //    'roof_focused' — Restrict to roof/on-structure BMP IDs (see run-analysis ROOF_VIEW_BMP_IDS);
+    //      pick lowest-cost viable single in that pool (planning default sub-mode).
 
     pricingOverrides: {},
     //  type: object | required: false | default: {}
@@ -8730,7 +9009,7 @@ const PROJECT_SCHEMA = {
     //  engineMap: —
     //  status: new
     //  Whether to show expandable per-BMP detail cards in results.
-    //  Sales mode may default to false for a cleaner presentation.
+    //  Planning mode may default to false for a cleaner presentation.
 
     showCostData: true,
     //  type: boolean | required: false | default: true
@@ -8752,7 +9031,8 @@ const PROJECT_SCHEMA = {
       //  status: active
       //
       //  Controls the markup chain applied to all BMP pricing.
-      //  User selects 2-tier or 3-tier, then sets % per layer.
+      //  Step 4 (Site Conditions): Planning = "single-source warranty" toggle;
+      //  Engineering = edit installer / waterproofer / GC percentages.
       //  The pricing calc's applyMarkup() receives these as overrides.
       //
       //  Tier order: installer → waterproofer → GC (compounding)
@@ -8763,9 +9043,7 @@ const PROJECT_SCHEMA = {
       //  Installer / specialty sub markup. Default 25%.
 
       waterprooferEnabled: false,
-      //  When true, a waterproofer markup tier is inserted between
-      //  installer and GC. Typical for projects where the waterproofer
-      //  acts as a prime sub coordinating the green roof installer.
+      //  Planning UI: "Add for single-source warranty". Inserts waterproofer tier.
 
       waterprooferPct:    0.10,
       //  Waterproofer markup. Default 10%. Only applied when enabled.
@@ -8894,7 +9172,7 @@ function createDefaultProject() {
 // 5. targets.detentionCF must be >= 0 (and > 0 if detentionNeeded is true)
 // 6. At least one of retentionNeeded or detentionNeeded should be true
 //    (warning if both false — engine will run but results will be trivial)
-// 7. settings.mode must be 'sales' or 'engineering'
+// 7. settings.mode must be 'planning', 'engineering', or legacy 'sales' (normalized on load)
 //
 // Validation that produces warnings (non-blocking):
 //
@@ -9036,8 +9314,8 @@ function validateV3Project(schema) {
 
   // ── Mode must be valid ──────────────────────────────────────────────
   const mode = schema.settings && schema.settings.mode;
-  if (mode && mode !== 'sales' && mode !== 'engineering') {
-    errors.push(`settings.mode must be "sales" or "engineering". Got: "${mode}"`);
+  if (mode && mode !== 'planning' && mode !== 'engineering' && mode !== 'sales') {
+    errors.push(`settings.mode must be "planning" or "engineering". Got: "${mode}"`);
   }
 
   return { valid: errors.length === 0, errors, warnings };
@@ -9226,8 +9504,9 @@ function enrichEngineOutput(engineOutput, schema) {
     // ── v3 display context ──────────────────────────────────────────
     v3: {
       projectInfo:      schema.projectInfo || {},
-      mode:             settings.mode || 'sales',
+      mode:             (settings.mode === 'sales' ? 'planning' : settings.mode) || 'planning',
       sortResultsBy:    settings.sortResultsBy || 'totalCost',
+      recommendationBasis: settings.recommendationBasis || 'cheapest_package',
       showDetailCards:  settings.showDetailCards !== false,
       systemCategories: schema.systemCategories || {},
       cityKey:          (schema.site && schema.site.cityKey) || null,
@@ -9384,6 +9663,7 @@ const SAMPLE_V3_PROJECT = {
   settings: {
     mode:                    'engineering',
     sortResultsBy:           'totalCost',
+    recommendationBasis:      'cheapest_package',
     pricingOverrides:        {},
     purpleRoofPricingMode:   'green',
     showDetailCards:          true,
@@ -9788,6 +10068,13 @@ if (typeof window !== 'undefined') {
   // Change listeners
   const _listeners = [];
 
+  /** Legacy project files used settings.mode "sales"; canonical value is "planning". */
+  function normalizeLegacyMode(project) {
+    if (project && project.settings && project.settings.mode === 'sales') {
+      project.settings.mode = 'planning';
+    }
+  }
+
 
   // ── Deep helpers ────────────────────────────────────────────────────
 
@@ -9952,6 +10239,7 @@ if (typeof window !== 'undefined') {
         // Merge saved data onto fresh defaults (ensures new schema fields get defaults)
         const fresh = createDefaultProject();
         _mergeDeep(fresh, saved);
+        normalizeLegacyMode(fresh);
         // Always stamp current schema version
         fresh.schemaVersion = currentVersion;
         _project = fresh;
@@ -9979,6 +10267,7 @@ if (typeof window !== 'undefined') {
 
         const fresh = createDefaultProject();
         _mergeDeep(fresh, saved);
+        normalizeLegacyMode(fresh);
         fresh.schemaVersion = SCHEMA_VERSION || '3.0';
         fresh.projectInfo.modifiedDate = new Date().toISOString().slice(0, 10);
         _project = fresh;
@@ -10072,7 +10361,7 @@ if (typeof window !== 'undefined') {
 //   1. Populate dynamic dropdowns (cities from CITY_DATA)
 //   2. Bind all [data-path] inputs to V3State.set()
 //   3. Sync UI from state on load/reset (state → DOM)
-//   4. Handle mode toggle (sales/engineering)
+//   4. Handle mode toggle (planning/engineering)
 //   5. Handle total site area + preset → distribute to design-mode areas (B/L/P %)
 //   6. Update debug panel on every state change
 //
@@ -10604,7 +10893,7 @@ if (typeof window !== 'undefined') {
     root.style.setProperty('--city-theme-page-start', theme.pageStart);
     root.style.setProperty('--city-theme-page-end', theme.pageEnd);
 
-    // Apply city accent strongly in Sales mode for visible context shift.
+    // Apply city accent strongly in Planning mode for visible context shift.
     if (mode !== 'engineering') {
       root.style.setProperty('--mode-accent', theme.accent);
       root.style.setProperty('--mode-accent-dark', theme.accentDark);
@@ -10896,7 +11185,7 @@ if (typeof window !== 'undefined') {
         window.V3RunAnalysis.refreshDatabase();
       }
 
-      const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'sales';
+      const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'planning';
       _renderCityRegulationOverview(V3State.getRef().site && V3State.getRef().site.cityKey, mode);
       flash('City updated');
     }
@@ -10916,7 +11205,7 @@ if (typeof window !== 'undefined') {
     }
 
     toggleBtn.addEventListener('click', function () {
-      const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'sales';
+      const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'planning';
       if (mode !== 'engineering') return;
       const open = panel.hidden;
       panel.hidden = !open;
@@ -10963,7 +11252,7 @@ if (typeof window !== 'undefined') {
       return;
     }
 
-    const isSales = mode !== 'engineering';
+    const isPlanning = mode !== 'engineering';
     const profileId = city.regulationProfileId || 'general';
     const method = city.method || 'LEGACY_BMP_ENGINE';
 
@@ -10979,7 +11268,7 @@ if (typeof window !== 'undefined') {
     html += '<h3>City Regulatory Overview</h3>';
     html += '<div class="city-reg-confidence">Using ' + _escHtml(city.name || cityKey) +
       ' rules (profile: <code>' + _escHtml(profileId) + '</code>)</div>';
-    if (!isSales) {
+    if (!isPlanning) {
       html += '<div class="city-reg-tech">Engineering detail: method <code>' + _escHtml(method) +
         '</code>, regulation profile <code>' + _escHtml(profileId) + '</code></div>';
     }
@@ -10991,7 +11280,7 @@ if (typeof window !== 'undefined') {
       if (sourceLinks.length > 0) {
         html += 'Use official sources: ' + sourceLinks.join(' • ');
       } else {
-        html += 'Add <code>regSummary</code> content to city data to enable sales/engineering regulatory notes.';
+        html += 'Add <code>regSummary</code> content to city data to enable planning/engineering regulatory notes.';
       }
       html += '</div>';
       wrap.innerHTML = html;
@@ -11010,7 +11299,7 @@ if (typeof window !== 'undefined') {
       { num: 8, cls: 's8', title: 'Solar PV & Green Roof Synergies', shortTitle: 'Solar PV', ..._getRegSection(rs.solarPvRequirements) }
     ];
 
-    if (isSales) {
+    if (isPlanning) {
       html += '<details class="city-reg-section city-reg-section-sales">';
       html += '<summary class="city-reg-section-header">';
       html += '<span class="city-reg-num s1">1</span>';
@@ -11082,6 +11371,15 @@ if (typeof window !== 'undefined') {
           value = el.value;
         }
         V3State.set(path, value);
+        if ((path === 'settings.recommendationBasis' || path === 'settings.sortResultsBy')
+            && global.V3RunAnalysis && typeof global.V3RunAnalysis.run === 'function') {
+          const resultsPanel = document.getElementById('section-results');
+          const onResultsStep = document.body && document.body.getAttribute('data-flow-step') === 'results';
+          const panelOpen = resultsPanel && !resultsPanel.hidden;
+          if (onResultsStep || panelOpen) {
+            global.V3RunAnalysis.run();
+          }
+        }
       });
     });
   }
@@ -11108,7 +11406,7 @@ if (typeof window !== 'undefined') {
     });
 
     // Sync mode toggle buttons
-    const mode = (project.settings && project.settings.mode) || 'sales';
+    const mode = (project.settings && project.settings.mode) || 'planning';
     _setModeUI(mode);
     _applyCityTheme(project.site && project.site.cityKey, mode);
 
@@ -11137,6 +11435,7 @@ if (typeof window !== 'undefined') {
     }
 
     _syncTargetVolumeFields(project);
+    _syncEngineeringPlanningAssumptionWarning();
   }
 
 
@@ -11167,6 +11466,7 @@ if (typeof window !== 'undefined') {
     _renderCityRegulationOverview(project.site && project.site.cityKey, mode);
     _renderCityRainfallModule(project.site && project.site.cityKey, mode);
     _applyCityTheme(project.site && project.site.cityKey, mode);
+    _syncEngineeringPlanningAssumptionWarning();
   }
 
 
@@ -11184,6 +11484,106 @@ if (typeof window !== 'undefined') {
     V3State.set('site.areas.perviousLandscapingUsable',     Math.round(landscape));
     V3State.set('site.areas.imperviousVehicularPavement',   Math.round(parking * splits.vehicular));
     V3State.set('site.areas.imperviousPedestrianPavement',  Math.round(parking * splits.pedestrian));
+  }
+
+
+  /** Field IDs for engineering area inputs (used for Planning-template warning UI). */
+  const ENGINEERING_AREA_FIELD_IDS = [
+    'f-slopedRoofArea',
+    'f-flatDeckOnStructureArea',
+    'f-paversOnStructureArea',
+    'f-perviousLandscapingUsable',
+    'f-imperviousVehicularPavement',
+    'f-imperviousPedestrianPavement'
+  ];
+
+  /**
+   * Expected site.areas from current Planning inputs (designModeAreas + preset template).
+   * Mirrors _distributeToEngineeringAreas without mutating state.
+   */
+  function computeExpectedEngineeringAreasFromPlanning(project) {
+    const site = project && project.site;
+    if (!site) return null;
+    const presetKey = site.presetKey || DEFAULT_SITE_PRESET;
+    const splits = ENGINEERING_SPLITS[presetKey];
+    if (!splits) return null;
+    const dm = site.designModeAreas || {};
+    const building = Math.max(0, Math.round(Number(dm.totalBuildingSF) || 0));
+    const landscape = Math.max(0, Math.round(Number(dm.totalLandscapeSF) || 0));
+    const parking = Math.max(0, Math.round(Number(dm.totalParkingSF) || 0));
+    if (building === 0 && landscape === 0 && parking === 0) return null;
+    return {
+      slopedRoofArea: Math.round(building * splits.slopedRoof),
+      flatDeckOnStructureArea: Math.round(building * splits.flatDeck),
+      paversOnStructureArea: Math.round(building * splits.pavers),
+      perviousLandscapingUsable: Math.round(landscape),
+      imperviousVehicularPavement: Math.round(parking * splits.vehicular),
+      imperviousPedestrianPavement: Math.round(parking * splits.pedestrian)
+    };
+  }
+
+  function engineeringAreasMatchPlanningTemplate(project) {
+    const expected = computeExpectedEngineeringAreasFromPlanning(project);
+    if (!expected) return false;
+    const areas = (project.site && project.site.areas) || {};
+    const keys = Object.keys(expected);
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i];
+      const a = Math.round(Number(areas[k]) || 0);
+      if (a !== expected[k]) return false;
+    }
+    return true;
+  }
+
+  function _syncEngineeringPlanningAssumptionWarning() {
+    const banner = document.getElementById('engineering-areas-planning-warning');
+    const project = V3State.getRef();
+    const mode = (project.settings && project.settings.mode) || 'planning';
+    const show = mode === 'engineering' && engineeringAreasMatchPlanningTemplate(project);
+    if (banner) {
+      banner.hidden = !show;
+    }
+    for (let i = 0; i < ENGINEERING_AREA_FIELD_IDS.length; i++) {
+      const el = document.getElementById(ENGINEERING_AREA_FIELD_IDS[i]);
+      const field = el && el.closest('.field');
+      if (field) field.classList.toggle('field--planning-derived', !!show);
+    }
+  }
+
+  function bindEngineeringAreasPlanningWatch() {
+    const root = document.getElementById('engineering-mode-areas');
+    if (!root) return;
+    const inputs = root.querySelectorAll('input[data-path^="site.areas"]');
+    inputs.forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        _syncEngineeringPlanningAssumptionWarning();
+      });
+    });
+  }
+
+  /**
+   * When Planning totals (B/L/P) are edited, keep engineering site.areas in sync with template splits.
+   */
+  function bindDesignModeAreasToEngineeringSync() {
+    const ids = ['f-totalBuildingSF', 'f-totalLandscapeSF', 'f-totalParkingSF'];
+    for (let i = 0; i < ids.length; i++) {
+      const el = document.getElementById(ids[i]);
+      if (!el) continue;
+      el.addEventListener('input', function () {
+        const ref = V3State.getRef();
+        const site = ref.site || {};
+        const dm = site.designModeAreas || {};
+        const pk = site.presetKey || DEFAULT_SITE_PRESET;
+        if (!ENGINEERING_SPLITS[pk]) return;
+        _distributeToEngineeringAreas(pk, {
+          building: Math.max(0, Math.round(Number(dm.totalBuildingSF) || 0)),
+          landscape: Math.max(0, Math.round(Number(dm.totalLandscapeSF) || 0)),
+          parking: Math.max(0, Math.round(Number(dm.totalParkingSF) || 0))
+        });
+        syncDOMFromState();
+        if (bindMarkupControls._sync) bindMarkupControls._sync();
+      });
+    }
   }
 
 
@@ -11297,7 +11697,7 @@ if (typeof window !== 'undefined') {
     const check = document.getElementById('f-hasStructuralLoadLimit');
     if (!field) return;
     const project = V3State.getRef();
-    const mode = (project.settings && project.settings.mode) || 'sales';
+    const mode = (project.settings && project.settings.mode) || 'planning';
     field.hidden = mode !== 'engineering' && !(check && check.checked);
   }
 
@@ -11312,7 +11712,7 @@ if (typeof window !== 'undefined') {
     var totalDisplay      = document.getElementById('markup-total-value');
     var hintDisplay       = document.getElementById('markup-hint');
     var wpTier            = document.getElementById('tier-waterproofer');
-    var arrow2            = document.getElementById('markup-arrow-2');
+    var planningTotalEl   = document.getElementById('markup-planning-total-value');
 
     if (!installerInput || !wpEnabledCheck || !wpPctInput || !gcInput) return;
 
@@ -11355,6 +11755,7 @@ if (typeof window !== 'undefined') {
       var totalPct = ((factor - 1) * 100).toFixed(1);
 
       if (totalDisplay) totalDisplay.textContent = totalPct + '%';
+      if (planningTotalEl) planningTotalEl.textContent = totalPct + '%';
 
       // Update hint text
       if (hintDisplay) {
@@ -11398,7 +11799,7 @@ if (typeof window !== 'undefined') {
     const wrap = document.getElementById('debug-panel-container');
     if (!btn || !wrap) return;
 
-    const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'sales';
+    const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'planning';
     const urlDebug = isDebugUrlParam();
     const showToggle = mode === 'engineering' || urlDebug;
 
@@ -11458,7 +11859,7 @@ if (typeof window !== 'undefined') {
     if (!btn) return;
 
     function getResourcesUrl() {
-      const url = new URL('resources.html', window.location.href);
+      const url = new URL('https://sempergreen-usa-resource-portal.netlify.app/');
       try {
         const suggestedFamily = localStorage.getItem('v3ResourcesSuggestedFamily');
         if (suggestedFamily) url.searchParams.set('family', suggestedFamily);
@@ -11525,6 +11926,8 @@ if (typeof window !== 'undefined') {
       bindCopyButton();
       bindResourcesPageButton();
       bindDebugToggle();
+      bindEngineeringAreasPlanningWatch();
+      bindDesignModeAreasToEngineeringSync();
 
       // Listen for state changes → update debug panel
       V3State.onChange(() => {
@@ -11630,10 +12033,10 @@ if (typeof window !== 'undefined') {
       caution: 'Confirm infiltration assumptions with project-specific geotechnical or civil testing.'
     },
     highValueGroundSpace: {
-      label: 'High-value ground or programmable space',
+      label: 'At-grade BMP footprint vs programming or revenue',
       trigger: 'project.assumptions.programmableSpaceIsHighValue === true',
-      phrase: 'High-value ground-level or programmable space may make roof, deck, or compact BMP strategies more attractive than large surface BMP footprints.',
-      caution: 'Confirm owner priorities for outdoor programming, circulation, and maintainable BMP footprint.'
+      phrase: 'When the area needed for surface BMPs (pond, tank, bioretention, similar) would displace high-value programming or revenue-producing uses, roof, deck, or compact strategies may be more attractive.',
+      caution: 'Confirm owner priorities for outdoor programming, circulation, leaseable area, and maintainable BMP footprint.'
     },
     greenRoofInScope: {
       label: 'Green roof already in scope',
@@ -11769,6 +12172,15 @@ if (typeof window !== 'undefined') {
 
     out._debug.driverCount = out.drivers.length;
     out.summary = 'This planning explanation is based on selected site inputs, constraints, targets, and the current ranked BMP results. It does not change the calculation, ranking, or pricing.';
+    var rb = ctx.recommendationBasis || 'cheapest_package';
+    if (rb !== 'cheapest_package') {
+      var rbShort = {
+        cheapest_single: 'Lowest-cost viable single system',
+        full_compliance_single: 'Single BMP — full retention + detention compliance',
+        roof_focused: 'Roof / on-structure only'
+      };
+      out.summary += ' The highlighted option reflects your recommendation basis: ' + (rbShort[rb] || rb) + '.';
+    }
     return out;
   }
 
@@ -13131,7 +13543,7 @@ if (typeof window !== 'undefined') {
 //   7. Render Project Summary to #results-content
 //
 // Output sections (mode-dependent — see renderProjectSummary):
-//   Sales:    Strategy → Recommended options (pricing: client all-in delivered + installed only) →
+//   Planning: Strategy → Recommended options (pricing: client all-in delivered + installed only) →
 //             Key takeaways → Notes (brief disclaimer + critical engine warnings)
 //   Engineering: Full project summary, area breakdown, constraints, strategy, top options
 //             (direct + sell, profile cards, pricing breakdown accordions), observations,
@@ -13161,7 +13573,7 @@ if (typeof window !== 'undefined') {
   // ── Database assembly ──────────────────────────────────────────────
 
   let _database = null;
-  var _salesTopOptionsRoofOnlyView = false;
+  var _planningTopOptionsRoofOnlyView = false;
 
   function getDatabase() {
     if (_database) return _database;
@@ -13321,7 +13733,7 @@ if (typeof window !== 'undefined') {
   // Roof Opportunity Check comparator set:
   // prioritize preferred roof solutions only (Sponge + Purple variants).
   var ROOF_OPP_BMP_IDS = ['9', '10', '10B', '11', '11B'];
-  // Broader roof-forward set used for optional sales view filtering.
+  // Broader roof-forward set used for optional Planning view filtering.
   var ROOF_VIEW_BMP_IDS = ['6', '7', '8', '9', '10', '10B', '11', '11B'];
   var GROUND_OPP_BMP_IDS = ['1', '2', '3', '4', '5'];
 
@@ -13463,7 +13875,7 @@ if (typeof window !== 'undefined') {
   function renderSectionRoofOpportunity(project, viable, regProfileId, mode, sortBy) {
     var opp = evaluateRoofOpportunity(project, viable, regProfileId, sortBy);
     if (!opp) return '';
-    var isSales = (mode !== 'engineering');
+    var isPlanning = (mode !== 'engineering');
 
     var html = '<div class="ps-section ps-roof-opportunity ps-roof-opportunity-' + opp.verdictKey + '">';
     html += '<h3 class="ps-heading">Roof Opportunity Check</h3>';
@@ -13493,7 +13905,7 @@ if (typeof window !== 'undefined') {
       : 'Baseline is already roof-forward; this confirms the roof strategy.');
     html += '</p>';
 
-    if (!isSales) {
+    if (!isPlanning) {
       html += '<p class="ps-roof-opportunity-footnote">Decision aid only: this overlay does not change compliance math or baseline ranking.</p>';
     }
 
@@ -13502,41 +13914,340 @@ if (typeof window !== 'undefined') {
     return html;
   }
 
+  function sortTierForDisplay(r) {
+    if (!r || !r.isViable) return 2;
+    if (r.warnings && r.warnings.length > 0) return 1;
+    return 0;
+  }
+
   function sortResultsForDisplay(list, sortBy) {
     var arr = Array.isArray(list) ? list.slice() : [];
     var mode = sortBy || 'totalCost';
 
-    switch (mode) {
-      case 'costPerCF':
-        arr.sort(function (a, b) {
+    function cmpPrimary(a, b) {
+      var ta = sortTierForDisplay(a);
+      var tb = sortTierForDisplay(b);
+      if (ta !== tb) return ta - tb;
+
+      switch (mode) {
+        case 'costPerCF':
           var aCpf = (Number.isFinite(a.costPerCf) && a.costPerCf > 0) ? a.costPerCf : Infinity;
           var bCpf = (Number.isFinite(b.costPerCf) && b.costPerCf > 0) ? b.costPerCf : Infinity;
           return aCpf - bCpf;
-        });
-        break;
-      case 'areaRequired':
-        arr.sort(function (a, b) {
+        case 'areaRequired':
           var aArea = Number.isFinite(a.grossAreaNeeded) ? a.grossAreaNeeded : Infinity;
           var bArea = Number.isFinite(b.grossAreaNeeded) ? b.grossAreaNeeded : Infinity;
           return aArea - bArea;
-        });
-        break;
-      case 'bmpId':
-        arr.sort(function (a, b) {
+        case 'bmpId':
           return String(a.id).localeCompare(String(b.id), undefined, { numeric: true });
-        });
-        break;
-      case 'totalCost':
-      default:
-        arr.sort(function (a, b) {
+        case 'totalCost':
+        default:
           var aCost = Number.isFinite(a.costDesigned) ? a.costDesigned : Infinity;
           var bCost = Number.isFinite(b.costDesigned) ? b.costDesigned : Infinity;
           return aCost - bCost;
-        });
-        break;
+      }
     }
 
+    arr.sort(cmpPrimary);
     return arr;
+  }
+
+  function findRowById(rows, id) {
+    var s = String(id);
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i].id) === s) return rows[i];
+    }
+    return null;
+  }
+
+  function rowMeetsBothEngine(r, targets) {
+    if (!r || !r.isViable) return false;
+    var R = targets.retentionNeeded ? (Number(targets.retentionCF) || 0) : 0;
+    var D = targets.detentionNeeded ? (Number(targets.detentionCF) || 0) : 0;
+    var meetsRet = R === 0 || Math.abs((r.retCredit || 0) - R) <= R * 0.01;
+    var meetsDet = D === 0 || Math.abs((r.detCredit || 0) - D) <= D * 0.01;
+    var need = r.grossAreaNeeded || 0;
+    var designed = r.grossDesignedArea || 0;
+    var hasArea = designed > 0 && designed >= need;
+    return meetsRet && meetsDet && hasArea;
+  }
+
+  function cheapestViableSingle(rows, poolFilterFn) {
+    var best = null;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (!r.isViable) continue;
+      if (poolFilterFn && !poolFilterFn(r)) continue;
+      var c = Number.isFinite(r.costDesigned) ? r.costDesigned : Infinity;
+      var bc = best && Number.isFinite(best.costDesigned) ? best.costDesigned : Infinity;
+      if (!best || c < bc) best = r;
+    }
+    return best;
+  }
+
+  function comboStillValid(combo, rows) {
+    if (!combo || !combo.members || combo.members.length < 2) return null;
+    var a = findRowById(rows, combo.members[0].id);
+    var b = findRowById(rows, combo.members[1].id);
+    if (!a || !b || !a.isViable || !b.isViable) return null;
+    return combo;
+  }
+
+  function firstRoofOnlyCombo(comboCandidates, rows) {
+    if (!Array.isArray(comboCandidates)) return null;
+    for (var i = 0; i < comboCandidates.length; i++) {
+      var c = comboCandidates[i];
+      if (!c.members || c.members.length < 2) continue;
+      var a = findRowById(rows, c.members[0].id);
+      var b = findRowById(rows, c.members[1].id);
+      if (!a || !b || !a.isViable || !b.isViable) continue;
+      if (isRoofViewBmpId(a.id) && isRoofViewBmpId(b.id)) return c;
+    }
+    return null;
+  }
+
+  var RECOMMENDATION_BASIS_LABELS = {
+    cheapest_package: 'Lowest-cost package (single or two-BMP)',
+    cheapest_single: 'Lowest-cost viable single system',
+    full_compliance_single: 'Single system — full retention + detention compliance',
+    roof_focused: 'Roof / on-structure only'
+  };
+
+  /** Planning mode: cap ranked table rows; engineering shows full list. */
+  var PLANNING_RANKED_TABLE_ROW_CAP = 4;
+
+  function recommendationBasisLabel(basis) {
+    return RECOMMENDATION_BASIS_LABELS[basis] || String(basis || '');
+  }
+
+  /**
+   * Chooses hero recommendation from engine output + display rows (after roof-load screening).
+   * @returns {{ kind: 'single'|'combo'|'none', single: object|null, combo: object|null, basis: string, emptyMessage: string|null }}
+   */
+  function pickRecommended(project, engineOutput, sortedResults, basis) {
+    var sw = engineOutput.stormwater || {};
+    var targets = project.targets || {};
+    var recommended = sw.recommended;
+    var recommendedCombo = sw.recommendedCombo;
+    var comboCandidates = sw.comboCandidates || [];
+    var rows = sortedResults;
+
+    var pick = {
+      kind: 'none',
+      single: null,
+      combo: null,
+      basis: basis,
+      emptyMessage: null
+    };
+
+    function roofFilter(r) {
+      return isRoofViewBmpId(r.id);
+    }
+
+    if (basis === 'roof_focused') {
+      var roofViable = cheapestViableSingle(rows, roofFilter);
+      if (roofViable) {
+        pick.kind = 'single';
+        pick.single = roofViable;
+        return pick;
+      }
+      var roofCombo = firstRoofOnlyCombo(comboCandidates, rows);
+      if (roofCombo) {
+        pick.kind = 'combo';
+        pick.combo = roofCombo;
+        return pick;
+      }
+      pick.emptyMessage = 'No roof or on-structure BMP is viable for this scenario. Turn off “Roof / on-structure only”, relax constraints, or use “Lowest-cost package” to allow ground-based combinations.';
+      return pick;
+    }
+
+    if (basis === 'full_compliance_single') {
+      var compliant = [];
+      for (var i = 0; i < rows.length; i++) {
+        if (rowMeetsBothEngine(rows[i], targets)) compliant.push(rows[i]);
+      }
+      compliant.sort(function (a, b) {
+        var ca = Number.isFinite(a.costDesigned) ? a.costDesigned : Infinity;
+        var cb = Number.isFinite(b.costDesigned) ? b.costDesigned : Infinity;
+        return ca - cb;
+      });
+      if (compliant.length > 0) {
+        pick.kind = 'single';
+        pick.single = compliant[0];
+        return pick;
+      }
+      pick.emptyMessage = 'No single BMP meets full retention and detention within tolerance. Try “Lowest-cost package” for a two-system combination, or adjust targets and areas.';
+      return pick;
+    }
+
+    if (basis === 'cheapest_single') {
+      var best = cheapestViableSingle(rows, null);
+      if (best) {
+        pick.kind = 'single';
+        pick.single = best;
+        return pick;
+      }
+      pick.emptyMessage = 'No viable BMPs for the current inputs.';
+      return pick;
+    }
+
+    // cheapest_package
+    if (recommended) {
+      var rowRec = findRowById(rows, recommended.id);
+      if (rowRec && rowRec.isViable && rowMeetsBothEngine(rowRec, targets)) {
+        pick.kind = 'single';
+        pick.single = rowRec;
+        return pick;
+      }
+    }
+    var validCombo = comboStillValid(recommendedCombo, rows);
+    if (validCombo) {
+      pick.kind = 'combo';
+      pick.combo = validCombo;
+      return pick;
+    }
+    var fallback = cheapestViableSingle(rows, null);
+    if (fallback) {
+      pick.kind = 'single';
+      pick.single = fallback;
+      return pick;
+    }
+    pick.emptyMessage = 'No viable BMPs for the current inputs.';
+    return pick;
+  }
+
+  function formatPickOneLine(pick, sortedResults, regProfileId) {
+    if (!pick || pick.kind === 'none') {
+      return pick && pick.emptyMessage ? pick.emptyMessage : 'None';
+    }
+    if (pick.kind === 'combo' && pick.combo && pick.combo.members) {
+      var ids = pick.combo.members.map(function (m) { return m.name || m.id; }).join(' + ');
+      var t = 0;
+      var has = false;
+      for (var i = 0; i < pick.combo.members.length; i++) {
+        var row = findRowById(sortedResults || [], pick.combo.members[i].id);
+        if (!row && pick.combo.members[i]) {
+          row = { id: pick.combo.members[i].id, name: pick.combo.members[i].name, grossDesignedArea: pick.combo.members[i].grossDesignedArea, costDesigned: pick.combo.members[i].costDesigned };
+        }
+        if (row) {
+          var pr = resolvePricing(row, regProfileId);
+          var d = displayTotalForOpportunity(row, pr);
+          if (Number.isFinite(d)) {
+            t += d;
+            has = true;
+          }
+        }
+      }
+      var costPart = has ? $(t) : $(pick.combo.costDesigned);
+      return 'Package: ' + ids + ' — combined indicative total ' + costPart;
+    }
+    if (pick.single) return pick.single.name + ' — ' + $(displayTotalForOpportunity(pick.single, resolvePricing(pick.single, regProfileId)));
+    return '—';
+  }
+
+  function comboSellTotal(pick, sortedResults, regProfileId) {
+    if (!pick || pick.kind !== 'combo' || !pick.combo || !pick.combo.members) return null;
+    var t = 0;
+    var ok = false;
+    for (var i = 0; i < pick.combo.members.length; i++) {
+      var row = findRowById(sortedResults, pick.combo.members[i].id);
+      if (!row) continue;
+      var pr = resolvePricing(row, regProfileId);
+      var d = displayTotalForOpportunity(row, pr);
+      if (Number.isFinite(d)) {
+        t += d;
+        ok = true;
+      }
+    }
+    return ok ? t : (Number.isFinite(pick.combo.costDesigned) ? pick.combo.costDesigned : null);
+  }
+
+  function bmpStatusMeta(r) {
+    if (!r.isViable) return { label: 'Blocked', cls: 'bmp-status-blocked' };
+    if (r.warnings && r.warnings.length) return { label: 'Viable (warnings)', cls: 'bmp-status-warn' };
+    return { label: 'Viable', cls: 'bmp-status-ok' };
+  }
+
+  /** Ranked stormwater table — full list in engineering; top rows in planning. */
+  function renderRankedBmpTable(sortedResults, targets, regProfileId, mode, layout, pick) {
+    var isPlanning = (mode !== 'engineering');
+    var isCompact = isPlanning;
+    var cappedPlanning = isPlanning && sortedResults.length > PLANNING_RANKED_TABLE_ROW_CAP;
+    var rowsForTable = isPlanning
+      ? sortedResults.slice(0, PLANNING_RANKED_TABLE_ROW_CAP)
+      : sortedResults;
+
+    var html = '<div class="ps-section ps-ranked-table-section">';
+    html += '<h3 class="ps-heading">' + (isPlanning ? 'Top stormwater BMPs (ranked preview)' : 'All stormwater BMPs (ranked)') + '</h3>';
+    if (cappedPlanning) {
+      html += '<p class="ps-table-note ps-table-note-planning-cap">Showing the top ' + PLANNING_RANKED_TABLE_ROW_CAP + ' rows for the current sort. Switch to <strong>Engineering</strong> mode for the full ranked table.</p>';
+    }
+    html += '<p class="ps-table-note">Viable options appear first, then systems with warnings, then blocked rows. Estimates may still show for blocked systems when a notional layout was evaluated before rule screens.</p>';
+    html += '<div class="results-table-scroll">';
+    html += '<table class="results-table">';
+    html += '<thead><tr>';
+    html += '<th class="rank-cell">#</th><th>Status</th><th>System</th>';
+    html += '<th>Area (SF)</th><th>Ret.</th><th>Det.</th><th class="col-num">Est. total</th>';
+    if (!isCompact) {
+      html += '<th class="col-num">$/SF direct</th><th class="col-num">$/SF sell</th><th>Role</th>';
+    }
+    html += '<th>Notes</th>';
+    html += '</tr></thead><tbody>';
+
+    var pickIds = {};
+    if (pick && pick.kind === 'single' && pick.single) pickIds[String(pick.single.id)] = true;
+    if (pick && pick.kind === 'combo' && pick.combo && pick.combo.members) {
+      for (var pi = 0; pi < pick.combo.members.length; pi++) {
+        pickIds[String(pick.combo.members[pi].id)] = true;
+      }
+    }
+
+    for (var i = 0; i < rowsForTable.length; i++) {
+      var r = rowsForTable[i];
+      var st = bmpStatusMeta(r);
+      var rowCls = (!r.isViable ? 'blocked' : '') + (pickIds[String(r.id)] ? ' ps-row-pick' : '');
+      var pr = resolvePricing(r, regProfileId);
+      var retSt = targets.retentionNeeded ? pct(r.retPct) : '—';
+      var detSt = targets.detentionNeeded ? pct(r.detPct) : '—';
+      var costStr = Number.isFinite(r.costDesigned) ? $(r.costDesigned) : '—';
+      var noteParts = [];
+      if (!r.isViable && r.blockers && r.blockers.length) {
+        noteParts.push('Blocked: ' + r.blockers.join('; '));
+      }
+      if (r.warnings && r.warnings.length) noteParts.push(r.warnings.join('; '));
+      var notesCell = noteParts.length ? noteParts.join(' ') : '—';
+
+      html += '<tr class="' + escHtml(rowCls.trim()) + '">';
+      html += '<td class="rank-cell">' + (i + 1) + '</td>';
+      html += '<td><span class="' + escHtml(st.cls) + '">' + escHtml(st.label) + '</span></td>';
+      if (isCompact) {
+        html += '<td>' + escHtml(r.name) + '</td>';
+      } else {
+        html += '<td>' + renderSystemCell(r, pr) + '</td>';
+      }
+      html += '<td>' + num(r.grossDesignedArea) + '</td>';
+      html += '<td>' + retSt + '</td>';
+      html += '<td>' + detSt + '</td>';
+      html += '<td class="col-num">' + costStr + '</td>';
+      if (!isCompact) {
+        var directStr = '—';
+        var sellStr = '—';
+        if (pr && pr.directPerSf != null) directStr = '$' + pr.directPerSf.toFixed(2);
+        if (pr && pr.sellPerSf != null) sellStr = '$' + pr.sellPerSf.toFixed(2);
+        if (!pr) {
+          directStr = '<span class="ps-unmapped">not mapped</span>';
+          sellStr = '<span class="ps-unmapped">not mapped</span>';
+        }
+        html += '<td class="col-num">' + directStr + '</td>';
+        html += '<td class="col-num">' + sellStr + '</td>';
+        html += '<td>' + escHtml(formatSystemRoleNote(r, targets)) + '</td>';
+      }
+      html += '<td class="note-cell bmp-notes-cell">' + escHtml(notesCell) + '</td>';
+      html += '</tr>';
+    }
+
+    html += '</tbody></table></div></div>';
+    return html;
   }
 
   function shouldApplyRoofLoadLimit(project) {
@@ -13948,6 +14659,11 @@ if (typeof window !== 'undefined') {
     return info;
   }
 
+  function revealResultsPanel(panel) {
+    if (!panel) return;
+    panel.hidden = false;
+    panel.style.removeProperty('display');
+  }
 
   // ── Run analysis ───────────────────────────────────────────────────
 
@@ -13955,8 +14671,6 @@ if (typeof window !== 'undefined') {
     const panel = document.getElementById('section-results');
     const content = document.getElementById('results-content');
     if (!panel || !content) return false;
-
-    panel.style.display = '';
 
     // Step 1: Get current project from state
     const project = V3State.get();
@@ -13969,6 +14683,7 @@ if (typeof window !== 'undefined') {
       if (global.V3Flow && typeof global.V3Flow.showStep === 'function') {
         global.V3Flow.showStep('results', { replaceHash: true });
       } else {
+        revealResultsPanel(panel);
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       return false;
@@ -13981,6 +14696,12 @@ if (typeof window !== 'undefined') {
         ['Adapter returned null project — check schema.'],
         adapted.validation.warnings
       );
+      if (global.V3Flow && typeof global.V3Flow.showStep === 'function') {
+        global.V3Flow.showStep('results', { replaceHash: true });
+      } else {
+        revealResultsPanel(panel);
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
       return false;
     }
 
@@ -13994,6 +14715,12 @@ if (typeof window !== 'undefined') {
         ['Engine error: ' + (err.message || String(err))],
         []
       );
+      if (global.V3Flow && typeof global.V3Flow.showStep === 'function') {
+        global.V3Flow.showStep('results', { replaceHash: true });
+      } else {
+        revealResultsPanel(panel);
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
       return false;
     }
 
@@ -14008,9 +14735,16 @@ if (typeof window !== 'undefined') {
     const viable = sortedResults.filter(function (r) { return r.isViable; });
     const strategy = V3Strategy.classify(project, viable);
     try {
-      var suggestedFamily = viable.length > 0
-        ? inferResourceFamilyFromBmpId(viable[0].id)
-        : 'green-roof';
+      var recBasis = (project.settings && project.settings.recommendationBasis) || 'cheapest_package';
+      var recPick = pickRecommended(project, engineOutput, sortedResults, recBasis);
+      var suggestedFamily = 'green-roof';
+      if (recPick.kind === 'single' && recPick.single) {
+        suggestedFamily = inferResourceFamilyFromBmpId(recPick.single.id);
+      } else if (recPick.kind === 'combo' && recPick.combo && recPick.combo.members && recPick.combo.members[0]) {
+        suggestedFamily = inferResourceFamilyFromBmpId(recPick.combo.members[0].id);
+      } else if (viable.length > 0) {
+        suggestedFamily = inferResourceFamilyFromBmpId(viable[0].id);
+      }
       localStorage.setItem('v3ResourcesSuggestedFamily', suggestedFamily);
     } catch (e) {
       // non-blocking: storage may be unavailable
@@ -14024,13 +14758,16 @@ if (typeof window !== 'undefined') {
     ];
 
     // Step 7: Resolve display mode
-    var mode = (project.settings && project.settings.mode) || 'sales';
+    var mode = (project.settings && project.settings.mode) || 'planning';
 
     // Step 8: Render project summary (mode-aware)
     content.innerHTML = renderProjectSummary(project, engineOutput, strategy, sortedResults, viable, warnings, mode, sortBy);
     document.dispatchEvent(new CustomEvent('v3:analysis-complete', {
       detail: { viableCount: viable.length, resultCount: sortedResults.length }
     }));
+    if (!global.V3Flow || typeof global.V3Flow.showStep !== 'function') {
+      revealResultsPanel(panel);
+    }
     return true;
   }
 
@@ -14043,7 +14780,7 @@ if (typeof window !== 'undefined') {
   // ── Section 1: Project Summary (core) + Area Breakdown (split for reordering) ──
 
   function renderSectionProjectSummaryCore(project, meta, mode) {
-    var isSales     = (mode !== 'engineering');
+    var isPlanning     = (mode !== 'engineering');
     var site        = project.site || {};
     var areas       = site.areas || {};
     var constraints = project.constraints || {};
@@ -14116,8 +14853,8 @@ if (typeof window !== 'undefined') {
   }
 
   function renderSectionAreaBreakdown(project, mode) {
-    var isSales = (mode !== 'engineering');
-    if (isSales) return '';
+    var isPlanning = (mode !== 'engineering');
+    if (isPlanning) return '';
 
     var areas = (project.site && project.site.areas) || {};
 
@@ -14294,108 +15031,137 @@ if (typeof window !== 'undefined') {
 
   // ── Section 3: Top System Options ──────────────────────────────────
 
-  function renderSectionTopOptions(viable, targets, regProfileId, mode, sortBy, layout) {
-    var isSales = (mode !== 'engineering');
-    var isReport = (layout === 'report');
-    var ranked = sortResultsForDisplay(viable, sortBy || 'totalCost');
-    var viewPool = ranked;
-    if (isSales && _salesTopOptionsRoofOnlyView) {
-      viewPool = ranked.filter(function (r) { return isRoofViewBmpId(r.id); });
+  function pickIdsSet(pick) {
+    var o = {};
+    if (pick && pick.kind === 'single' && pick.single) o[String(pick.single.id)] = true;
+    if (pick && pick.kind === 'combo' && pick.combo && pick.combo.members) {
+      for (var pi = 0; pi < pick.combo.members.length; pi++) {
+        o[String(pick.combo.members[pi].id)] = true;
+      }
     }
-    // Sales: up to 3 recommended options (with optional roof-only view filter).
-    // Engineering: top 3 for comparison + detail blocks.
-    var top3 = viewPool.slice(0, 3);
+    return o;
+  }
 
-    var html = '<div class="ps-section' + (isSales ? ' ps-section-sales-options' : '') + '">';
-    html += '<h3 class="ps-heading">' + (isSales ? 'Recommended options' : 'Top System Options') + '</h3>';
+  function renderSectionTopOptions(viable, targets, regProfileId, mode, sortBy, layout, sortedAll, pick, basis) {
+    var isPlanning = (mode !== 'engineering');
+    var isReport = (layout === 'report');
+    var rankedViable = sortResultsForDisplay(viable, sortBy || 'totalCost');
+    var viewPool = rankedViable;
+    if (isPlanning && _planningTopOptionsRoofOnlyView) {
+      viewPool = rankedViable.filter(function (r) { return isRoofViewBmpId(r.id); });
+    }
 
-    if (isSales && !isReport) {
+    var html = '<div class="ps-section' + (isPlanning ? ' ps-section-planning-options' : '') + '">';
+    html += '<h3 class="ps-heading">' + (isPlanning ? 'Recommended options' : 'Top system options & ranking') + '</h3>';
+
+    html += '<p class="ps-basis-note">Highlighted recommendation uses <strong>' + escHtml(recommendationBasisLabel(basis)) + '</strong>. ';
+    html += 'Under <em>Lowest-cost package</em>, a two-BMP combination may be promoted when no single system meets both retention and detention.</p>';
+
+    if (isPlanning && !isReport) {
       html += '<div class="ps-top-options-toolbar">';
       html += '<label class="ps-view-toggle">';
       html += '<input type="checkbox" id="results-roof-only-toggle"'
-        + (_salesTopOptionsRoofOnlyView ? ' checked' : '')
-        + ' onchange="window.V3RunAnalysis.setSalesRoofOnlyView(this.checked); window.V3RunAnalysis.run();">';
+        + (_planningTopOptionsRoofOnlyView ? ' checked' : '')
+        + ' onchange="window.V3RunAnalysis.setPlanningRoofOnlyView(this.checked); window.V3RunAnalysis.run();">';
       html += '<span>Highlight roof-based options only</span>';
       html += '</label>';
-      html += '<span class="ps-view-toggle-note">View filter only - does not change calculation math or rankings.</span>';
+      html += '<span class="ps-view-toggle-note">View filter for secondary cards and the ranked table — does not change compliance math.</span>';
       html += '</div>';
     }
 
-    if (top3.length === 0 && viable.length === 0) {
-      html += '<div class="results-empty">';
-      html += '<p>No viable BMPs for the current inputs. Check that at least one site area is non-zero and constraints are not blocking all systems.</p>';
-      html += '</div>';
-      html += '</div>';
-      return html;
-    }
+    var pickIdObj = pickIdsSet(pick);
+    var hasAnyViable = viable.length > 0;
 
-    if (top3.length === 0 && isSales && _salesTopOptionsRoofOnlyView) {
-      html += '<div class="results-empty">';
-      html += '<p>No roof-based systems are currently viable for this scenario. Turn off the filter to view all viable systems.</p>';
-      html += '</div>';
-      html += '</div>';
-      return html;
-    }
+    if (isPlanning) {
+      html += '<p class="ps-planning-pricing-note">Planning mode shows one all-in delivered + installed total per system (packages use the sum of member totals).</p>';
+      html += '<p class="ps-planning-pricing-footnote">Switch to Engineering for detailed estimating inputs and technical breakdowns.</p>';
 
-    // Resolve pricing for each top option
-    var pricingData = [];
-    for (var p = 0; p < top3.length; p++) {
-      pricingData.push(resolvePricing(top3[p], regProfileId));
-    }
+      if (pick.kind === 'none' || !hasAnyViable) {
+        html += '<div class="results-empty">';
+        html += '<p>' + escHtml(pick.emptyMessage || 'No viable BMPs for the current inputs. See the ranked table for blocked systems and notes.') + '</p>';
+        html += '</div>';
+      } else if (pick.kind === 'combo' && pick.combo) {
+        var comboTot = comboSellTotal(pick, sortedAll, regProfileId);
+        var comboTotalStr = Number.isFinite(comboTot) ? $(comboTot) : '—';
+        var m0 = pick.combo.members[0];
+        var m1 = pick.combo.members[1];
+        var row0 = m0 ? findRowById(sortedAll, m0.id) : null;
+        var row1 = m1 ? findRowById(sortedAll, m1.id) : null;
+        var pr0 = row0 ? resolvePricing(row0, regProfileId) : null;
+        var asset0 = row0 ? findTechnicalAsset(row0, pr0) : null;
 
-    // ── Sales mode: hero recommendation + compact alternatives table
-    if (isSales) {
-      html += '<p class="ps-sales-pricing-note">Sales mode shows one all-in delivered + installed total per system.</p>';
-      html += '<p class="ps-sales-pricing-footnote">Switch to Engineering for detailed estimating inputs and technical breakdowns.</p>';
+        html += '<article class="ps-top-pick ps-rank-tier-1 ps-top-pick-combo">';
+        html += '<div class="ps-top-pick-layout">';
+        html += '<div class="ps-top-pick-main">';
+        html += '<div class="ps-top-pick-head">';
+        html += '<div class="ps-top-pick-kicker">Recommended two-BMP package</div>';
+        html += '<div class="ps-top-pick-total">' + comboTotalStr + '</div>';
+        html += '</div>';
+        html += '<div class="ps-top-pick-system-name">' + escHtml((m0 && m0.name) || '') + ' + ' + escHtml((m1 && m1.name) || '') + '</div>';
+        html += '<div class="ps-top-pick-metrics">';
+        html += '<span class="ps-metric-chip">Combined retention / detention to target</span>';
+        if (row0) {
+          html += '<span class="ps-metric-chip">' + escHtml(row0.name) + ': ' + $(displayTotalForOpportunity(row0, pr0)) + '</span>';
+        }
+        if (row1) {
+          var pr1 = resolvePricing(row1, regProfileId);
+          html += '<span class="ps-metric-chip">' + escHtml(row1.name) + ': ' + $(displayTotalForOpportunity(row1, pr1)) + '</span>';
+        }
+        html += '</div>';
+        html += '<div class="ps-top-pick-role">Each system contributes part of the required retention and/or detention volume. Confirm routing and credited performance with the civil engineer.</div>';
+        html += '</div>';
+        html += '<div class="ps-top-pick-visual">' + renderAssetHero(asset0, 'Representative system profile') + '</div>';
+        html += '</div>';
+        html += '</article>';
+      } else if (pick.kind === 'single' && pick.single) {
+        var topPick = pick.single;
+        var topPickPricing = resolvePricing(topPick, regProfileId);
+        var topPickRet = targets.retentionNeeded ? pct(topPick.retPct) : '—';
+        var topPickDet = targets.detentionNeeded ? pct(topPick.detPct) : '—';
+        var topPickTotal = $(displayTotalForOpportunity(topPick, topPickPricing));
+        var topPickRole = formatSystemRoleNote(topPick, targets);
+        var topPickAsset = findTechnicalAsset(topPick, topPickPricing);
 
-      var topPick = top3[0];
-      var topPickPricing = pricingData[0];
-      var topPickRet = targets.retentionNeeded ? pct(topPick.retPct) : '—';
-      var topPickDet = targets.detentionNeeded ? pct(topPick.detPct) : '—';
-      var topPickTotal = $(displayTotalForOpportunity(topPick, topPickPricing));
-      var topPickRole = formatSystemRoleNote(topPick, targets);
-      var topPickAsset = findTechnicalAsset(topPick, topPickPricing);
+        html += '<article class="ps-top-pick ps-rank-tier-1">';
+        html += '<div class="ps-top-pick-layout">';
+        html += '<div class="ps-top-pick-main">';
+        html += '<div class="ps-top-pick-head">';
+        html += '<div class="ps-top-pick-kicker">Highlighted recommendation</div>';
+        html += '<div class="ps-top-pick-total">' + topPickTotal + '</div>';
+        html += '</div>';
+        html += '<div class="ps-top-pick-system-name">' + escHtml(topPick.name) + '</div>';
+        html += '<div class="ps-top-pick-metrics">';
+        html += '<span class="ps-metric-chip">Area: ' + num(topPick.grossDesignedArea) + ' SF</span>';
+        html += '<span class="ps-metric-chip">Retention: ' + topPickRet + '</span>';
+        html += '<span class="ps-metric-chip">Detention: ' + topPickDet + '</span>';
+        html += '</div>';
+        html += '<div class="ps-top-pick-role">' + escHtml(topPickRole) + '</div>';
+        html += '</div>';
+        html += '<div class="ps-top-pick-visual">' + renderAssetHero(topPickAsset, 'Representative system profile') + '</div>';
+        html += '</div>';
+        html += '</article>';
+      }
 
-      html += '<article class="ps-top-pick ps-rank-tier-1">';
-      html += '<div class="ps-top-pick-layout">';
-      html += '<div class="ps-top-pick-main">';
-      html += '<div class="ps-top-pick-head">';
-      html += '<div class="ps-top-pick-kicker">Top Recommendation</div>';
-      html += '<div class="ps-top-pick-total">' + topPickTotal + '</div>';
-      html += '</div>';
-      html += '<div class="ps-top-pick-system-name">' + escHtml(topPick.name) + '</div>';
-      html += '<div class="ps-top-pick-metrics">';
-      html += '<span class="ps-metric-chip">Rank #1</span>';
-      html += '<span class="ps-metric-chip">Area: ' + num(topPick.grossDesignedArea) + ' SF</span>';
-      html += '<span class="ps-metric-chip">Retention: ' + topPickRet + '</span>';
-      html += '<span class="ps-metric-chip">Detention: ' + topPickDet + '</span>';
-      html += '</div>';
-      html += '<div class="ps-top-pick-role">' + escHtml(topPickRole) + '</div>';
-      html += '</div>';
-      html += '<div class="ps-top-pick-visual">' + renderAssetHero(topPickAsset, 'Representative system profile') + '</div>';
-      html += '</div>';
-      html += '</article>';
-
-      if (top3.length > 1) {
-        html += '<div class="ps-secondary-options-label">Also viable</div>';
+      if (hasAnyViable) {
+        html += '<div class="ps-secondary-options-label">Next options (by table sort)</div>';
         html += '<div class="ps-alt-list">';
-
-        for (var s = 1; s < top3.length; s++) {
-          var rs = top3[s];
-          var ps = pricingData[s];
+        var nextCount = 0;
+        var maxNext = PLANNING_RANKED_TABLE_ROW_CAP;
+        for (var ni = 0; ni < viewPool.length && nextCount < maxNext; ni++) {
+          var rs = viewPool[ni];
+          if (pickIdObj[String(rs.id)]) continue;
+          nextCount++;
+          var ps = resolvePricing(rs, regProfileId);
           var retS = targets.retentionNeeded ? pct(rs.retPct) : '—';
           var detS = targets.detentionNeeded ? pct(rs.detPct) : '—';
           var noteS = formatSystemRoleNote(rs, targets);
           var sellTotS = $(displayTotalForOpportunity(rs, ps));
-          var rowRank = s + 1;
-          var tierClass = rowRank <= 3 ? ' ps-rank-tier-' + rowRank : '';
           var assetS = findTechnicalAsset(rs, ps);
-
-          html += '<article class="ps-alt-pick ps-ranked-row' + tierClass + '">';
+          html += '<article class="ps-alt-pick ps-ranked-row">';
           html += '<div class="ps-alt-pick-layout">';
           html += '<div class="ps-alt-pick-main">';
           html += '<div class="ps-alt-pick-head">';
-          html += '<div class="ps-alt-pick-rank">Rank #' + rowRank + '</div>';
+          html += '<div class="ps-alt-pick-rank">Option</div>';
           html += '<div class="ps-alt-pick-total">' + sellTotS + '</div>';
           html += '</div>';
           html += '<div class="ps-alt-pick-system-name">' + escHtml(rs.name) + '</div>';
@@ -14410,75 +15176,49 @@ if (typeof window !== 'undefined') {
           html += '</div>';
           html += '</article>';
         }
-
-        html += '</div>';
+        if (nextCount === 0) {
+          html += '<p class="results-empty">No additional viable options in this filtered view.</p>';
+        }
         html += '</div>';
       }
+
       html += '</div>';
       return html;
     }
 
-    // ── Engineering mode: full comparison table + detail ─────────────
-    html += '<div class="results-table-scroll">';
-    html += '<table class="results-table">';
-    html += '<thead><tr>';
-    html += '<th class="rank-cell">Rank</th><th>System</th><th>Required Area</th>';
-    html += '<th>Retention Coverage</th><th>Detention Coverage</th>';
-    html += '<th class="col-num">Estimated Total Cost</th>';
-    html += '<th class="col-num">Cost before markups ($/SF)</th><th class="col-num">After markups ($/SF)</th>';
-    html += '<th>System Role</th>';
-    html += '</tr></thead>';
-    html += '<tbody>';
-
-    for (var i = 0; i < top3.length; i++) {
-      var r = top3[i];
-      var pi = pricingData[i];
-      var retStatus = targets.retentionNeeded ? pct(r.retPct) : '—';
-      var detStatus = targets.detentionNeeded ? pct(r.detPct) : '—';
-
-      var note = formatSystemRoleNote(r, targets);
-
-      var directStr = '—';
-      var sellStr   = '—';
-      if (pi && pi.directPerSf != null) directStr = '$' + pi.directPerSf.toFixed(2);
-      if (pi && pi.sellPerSf != null)   sellStr   = '$' + pi.sellPerSf.toFixed(2);
-      if (!pi) {
-        directStr = '<span class="ps-unmapped">not mapped</span>';
-        sellStr   = '<span class="ps-unmapped">not mapped</span>';
-      }
-
-      var engRowRank = i + 1;
-      var engTierClass = engRowRank <= 3 ? ' ps-rank-tier-' + engRowRank : '';
-      html += '<tr class="ps-ranked-row' + engTierClass + '">';
-      html += '<td class="rank-cell">' + (i + 1) + '</td>';
-      html += '<td>' + renderSystemCell(r, pi) + '</td>';
-      html += '<td class="required-area-cell">' + num(r.grossDesignedArea) + ' SF</td>';
-      html += '<td>' + retStatus + '</td>';
-      html += '<td>' + detStatus + '</td>';
-      html += '<td class="col-num">' + $(r.costDesigned) + '</td>';
-      html += '<td class="col-num">' + directStr + '</td>';
-      html += '<td class="col-num">' + sellStr + '</td>';
-      html += '<td class="note-cell">' + escHtml(note) + '</td>';
-      html += '</tr>';
+    if (pick.kind === 'single' && pick.single) {
+      html += '<p class="ps-eng-pick-line"><strong>Highlighted (basis):</strong> ' + escHtml(pick.single.name) + '</p>';
+    } else if (pick.kind === 'combo' && pick.combo) {
+      html += '<p class="ps-eng-pick-line"><strong>Highlighted package:</strong> ' + escHtml(formatPickOneLine(pick, sortedAll, regProfileId)) + '</p>';
+    } else if (pick.emptyMessage) {
+      html += '<div class="results-empty"><p>' + escHtml(pick.emptyMessage) + '</p></div>';
     }
 
-    html += '</tbody></table>';
-    html += '</div>';
+    html += renderRankedBmpTable(sortedAll, targets, regProfileId, mode, layout, pick);
 
-    // Roof profile detail cards — engineering only
-    for (var j = 0; j < top3.length; j++) {
-      var pj = pricingData[j];
-      if (pj && pj.roofProfile) {
-        html += renderProfileCard(top3[j], pj);
+    var detailIds = [];
+    if (pick.kind === 'single' && pick.single) detailIds.push(String(pick.single.id));
+    if (pick.kind === 'combo' && pick.combo && pick.combo.members) {
+      for (var di = 0; di < pick.combo.members.length; di++) {
+        detailIds.push(String(pick.combo.members[di].id));
       }
     }
+    for (var vi = 0; vi < rankedViable.length && detailIds.length < 5; vi++) {
+      var vid = String(rankedViable[vi].id);
+      if (detailIds.indexOf(vid) === -1) detailIds.push(vid);
+    }
 
-    // Expandable pricing breakdown — engineering only
-    for (var k = 0; k < top3.length; k++) {
-      var pk = pricingData[k];
-      if (pk && pk.backupLines && pk.backupLines.length > 0) {
-        html += renderPricingBreakdown(top3[k], pk);
-      }
+    for (var dj = 0; dj < detailIds.length; dj++) {
+      var dr = findRowById(sortedAll, detailIds[dj]);
+      if (!dr || !dr.isViable) continue;
+      var dp = resolvePricing(dr, regProfileId);
+      if (dp && dp.roofProfile) html += renderProfileCard(dr, dp);
+    }
+    for (var dk = 0; dk < detailIds.length; dk++) {
+      var dr2 = findRowById(sortedAll, detailIds[dk]);
+      if (!dr2 || !dr2.isViable) continue;
+      var dp2 = resolvePricing(dr2, regProfileId);
+      if (dp2 && dp2.backupLines && dp2.backupLines.length > 0) html += renderPricingBreakdown(dr2, dp2);
     }
 
     html += '</div>';
@@ -14600,22 +15340,33 @@ if (typeof window !== 'undefined') {
     return html;
   }
 
-  function renderSectionRecommendationExplanation(project, viable, results, targets, regProfileId, mode, sortBy) {
+  function renderSectionRecommendationExplanation(project, viable, results, targets, regProfileId, mode, sortBy, pick, basis) {
     if (!global.V3Strategy || typeof global.V3Strategy.buildRecommendationExplanation !== 'function') return '';
 
-    var isSales = (mode !== 'engineering');
-    var ranked = sortResultsForDisplay(viable, sortBy || 'totalCost');
-    var viewPool = ranked;
-    if (isSales && _salesTopOptionsRoofOnlyView) {
-      viewPool = ranked.filter(function (r) { return isRoofViewBmpId(r.id); });
+    var isPlanning = (mode !== 'engineering');
+    var topPick = null;
+    if (pick) {
+      if (pick.kind === 'single' && pick.single) topPick = pick.single;
+      else if (pick.kind === 'combo' && pick.combo && pick.combo.members && pick.combo.members[0]) {
+        topPick = findRowById(results, pick.combo.members[0].id);
+      }
     }
-    var topPick = viewPool[0] || ranked[0] || null;
+    if (!topPick) {
+      var ranked = sortResultsForDisplay(viable, sortBy || 'totalCost');
+      var viewPool = ranked;
+      if (isPlanning && _planningTopOptionsRoofOnlyView) {
+        viewPool = ranked.filter(function (r) { return isRoofViewBmpId(r.id); });
+      }
+      topPick = viewPool[0] || ranked[0] || null;
+    }
     var topPickPricing = topPick ? resolvePricing(topPick, regProfileId) : null;
+    var basisVal = basis || (project.settings && project.settings.recommendationBasis) || 'cheapest_package';
     var explanation = global.V3Strategy.buildRecommendationExplanation(project, topPick, viable, results, {
       pricing: topPickPricing,
       regProfileId: regProfileId,
       mode: mode,
-      sortBy: sortBy
+      sortBy: sortBy,
+      recommendationBasis: basisVal
     });
     if (!explanation) return '';
 
@@ -14657,7 +15408,7 @@ if (typeof window !== 'undefined') {
   // ── Section 4: Key Observations ────────────────────────────────────
 
   function renderSectionObservations(project, strategy, viable, results, targets, mode) {
-    var isSales = (mode !== 'engineering');
+    var isPlanning = (mode !== 'engineering');
     var observations = [];
     // Tag each observation with a priority: 'high' shown in both modes,
     // 'detail' shown only in engineering mode.
@@ -14733,9 +15484,9 @@ if (typeof window !== 'undefined') {
       observations.push({ text: meetsBoth.length + ' system(s) can meet both targets independently.', priority: 'high' });
     }
 
-    // Filter by mode: sales = high priority only (max 3), engineering = all
+    // Filter by mode: planning = high priority only (max 3), engineering = all
     var filtered;
-    if (isSales) {
+    if (isPlanning) {
       filtered = observations.filter(function (o) { return o.priority === 'high'; });
       if (filtered.length > 3) filtered = filtered.slice(0, 3);
     } else {
@@ -14745,7 +15496,7 @@ if (typeof window !== 'undefined') {
     if (filtered.length === 0) return '';
 
     var html = '<div class="ps-section">';
-    html += '<h3 class="ps-heading">' + (isSales ? 'Key takeaways' : 'Key Observations') + '</h3>';
+    html += '<h3 class="ps-heading">' + (isPlanning ? 'Key takeaways' : 'Key Observations') + '</h3>';
     html += '<ul class="ps-observations">';
     for (var i = 0; i < filtered.length; i++) {
       html += '<li>' + escHtml(filtered[i].text) + '</li>';
@@ -14758,8 +15509,8 @@ if (typeof window !== 'undefined') {
 
   // ── Section 5: Warnings / Assumptions ──────────────────────────────
 
-  /** Sales mode: short disclaimer + up to five unique engine/adapter warnings (no blocked BMP list). */
-  function renderSectionWarningsSales(warnings) {
+  /** Planning mode: short disclaimer + up to five unique engine/adapter warnings (no blocked BMP list). */
+  function renderSectionWarningsPlanning(warnings) {
     var uniqueWarnings = [];
     var seen = {};
     for (var i = 0; i < warnings.length; i++) {
@@ -14769,7 +15520,7 @@ if (typeof window !== 'undefined') {
       }
     }
 
-    var html = '<div class="ps-section ps-section-warnings-sales">';
+    var html = '<div class="ps-section ps-section-warnings-planning">';
     html += '<h3 class="ps-heading">Notes</h3>';
     html += '<p class="ps-assumptions ps-assumptions-compact">Planning-level screening only. Not a substitute for stamped engineering or site-specific design.</p>';
     if (uniqueWarnings.length > 0) {
@@ -14785,7 +15536,7 @@ if (typeof window !== 'undefined') {
   }
 
   function renderSectionWarnings(warnings, results, mode) {
-    var isSales = (mode !== 'engineering');
+    var isPlanning = (mode !== 'engineering');
 
     // Collect blocked BMP names
     var blocked = results.filter(function (r) { return !r.isViable; });
@@ -14798,9 +15549,9 @@ if (typeof window !== 'undefined') {
       }
     }
 
-    // Sales uses renderSectionWarningsSales — this function is engineering-only paths.
+    // Planning uses renderSectionWarningsPlanning — this function is engineering-only paths.
 
-    if (isSales) {
+    if (isPlanning) {
       return '';
     }
 
@@ -14846,37 +15597,6 @@ if (typeof window !== 'undefined') {
   }
 
 
-  // ── All BMPs (collapsible) ─────────────────────────────────────────
-
-  function renderAllBmps(results, targets) {
-    var html = '<div class="ps-section ps-all-bmps">';
-    html += '<details>';
-    html += '<summary class="ps-heading ps-toggle">All BMPs Evaluated (' + results.length + ')</summary>';
-    html += '<table class="results-table compact">';
-    html += '<thead><tr>';
-    html += '<th>ID</th><th>System</th><th>Viable</th>';
-    html += '<th>Area</th><th>Ret%</th><th>Det%</th><th>Cost</th>';
-    html += '</tr></thead>';
-    html += '<tbody>';
-    for (var i = 0; i < results.length; i++) {
-      var r = results[i];
-      var viableClass = r.isViable ? '' : ' class="blocked"';
-      html += '<tr' + viableClass + '>';
-      html += '<td>' + r.id + '</td>';
-      html += '<td>' + escHtml(r.name) + '</td>';
-      html += '<td>' + (r.isViable ? 'Yes' : 'No') + '</td>';
-      html += '<td>' + num(r.grossDesignedArea) + '</td>';
-      html += '<td>' + pct(r.retPct) + '</td>';
-      html += '<td>' + pct(r.detPct) + '</td>';
-      html += '<td>' + $(r.costDesigned) + '</td>';
-      html += '</tr>';
-    }
-    html += '</tbody></table>';
-    html += '</details>';
-    html += '</div>';
-    return html;
-  }
-
 
   // ── Master renderer ────────────────────────────────────────────────
 
@@ -14887,23 +15607,27 @@ if (typeof window !== 'undefined') {
     var meta    = engineOutput.meta || {};
     var targets = project.targets || {};
     var regProfileId = meta.regulationProfileId || 'general';
-    var isSales = (mode !== 'engineering');
+    var isPlanning = (mode !== 'engineering');
     layout = layout || 'screen';
+    var basis = (project.settings && project.settings.recommendationBasis) || 'cheapest_package';
+    var pick = pickRecommended(project, engineOutput, results, basis);
 
-    var badge = '<div class="mode-badge mode-badge-' + (isSales ? 'sales' : 'eng') + '">'
-      + (isSales ? 'Sales Mode' : 'Engineering Mode') + '</div>';
+    var badge = '<div class="mode-badge mode-badge-' + (isPlanning ? 'planning' : 'eng') + '">'
+      + (isPlanning ? 'Planning Mode' : 'Engineering Mode') + '</div>';
 
-    // ── Sales mode: city -> site inputs -> planning summary -> options
-    if (isSales) {
-      var salesExplanationHtml = renderSectionRecommendationExplanation(project, viable, results, targets, regProfileId, mode, sortBy);
+    // ── Planning mode: city -> site inputs -> planning summary -> options
+    if (isPlanning) {
+      var planningExplanationHtml = renderSectionRecommendationExplanation(project, viable, results, targets, regProfileId, mode, sortBy, pick, basis);
+      var rankedTableSales = renderRankedBmpTable(results, targets, regProfileId, mode, layout, pick);
       return badge
         + renderSectionSalesCityContext(meta, project)
         + renderSectionSalesSiteInputs(project)
         + renderSectionSalesPlanningSummary(strategy, project, viable, regProfileId, sortBy)
-        + renderSectionTopOptions(viable, targets, regProfileId, mode, sortBy, layout)
-        + salesExplanationHtml
+        + renderSectionTopOptions(viable, targets, regProfileId, mode, sortBy, layout, results, pick, basis)
+        + rankedTableSales
+        + planningExplanationHtml
         + renderSectionObservations(project, strategy, viable, results, targets, mode)
-        + renderSectionWarningsSales(warnings);
+        + renderSectionWarningsPlanning(warnings);
     }
 
     // ── Engineering: full technical stack
@@ -14911,11 +15635,10 @@ if (typeof window !== 'undefined') {
     var areaBreakdown = renderSectionAreaBreakdown(project, mode);
     var strategyHtml = renderSectionStrategy(strategy);
     var roofOpportunityHtml = renderSectionRoofOpportunity(project, viable, regProfileId, mode, sortBy);
-    var topOptionsHtml = renderSectionTopOptions(viable, targets, regProfileId, mode, sortBy, layout);
-    var explanationHtml = renderSectionRecommendationExplanation(project, viable, results, targets, regProfileId, mode, sortBy);
+    var topOptionsHtml = renderSectionTopOptions(viable, targets, regProfileId, mode, sortBy, layout, results, pick, basis);
+    var explanationHtml = renderSectionRecommendationExplanation(project, viable, results, targets, regProfileId, mode, sortBy, pick, basis);
     var observationsHtml = renderSectionObservations(project, strategy, viable, results, targets, mode);
     var warningsHtml = renderSectionWarnings(warnings, results, mode);
-    var allBmpsHtml = renderAllBmps(results, targets);
 
     var html = badge;
 
@@ -14928,7 +15651,6 @@ if (typeof window !== 'undefined') {
       html += explanationHtml;
       html += observationsHtml;
       html += warningsHtml;
-      html += allBmpsHtml;
     } else {
       html += strategyHtml;
       html += roofOpportunityHtml;
@@ -14939,7 +15661,6 @@ if (typeof window !== 'undefined') {
       html += '<p class="ps-inputs-ref-label">Project Inputs (for reference)</p>';
       html += summaryCore;
       html += areaBreakdown;
-      html += allBmpsHtml;
     }
 
     return html;
@@ -15007,9 +15728,9 @@ if (typeof window !== 'undefined') {
     }
   }
 
-  function getReportBranding(isSales) {
-    var primaryColor = isSales ? '#2d7a3a' : '#2563eb';
-    var secondaryColor = isSales ? '#1e5c2b' : '#1d4ed8';
+  function getReportBranding(isPlanning) {
+    var primaryColor = isPlanning ? '#2d7a3a' : '#2563eb';
+    var secondaryColor = isPlanning ? '#1e5c2b' : '#1d4ed8';
 
     return {
       primaryBrandName: 'Sempergreen USA',
@@ -15041,26 +15762,33 @@ if (typeof window !== 'undefined') {
     return active.length ? active.join(', ') : 'none selected';
   }
 
-  function renderReportPlanningMemo(project, engineOutput, viable, mode) {
+  function renderReportPlanningMemo(project, engineOutput, viable, mode, sortedResults) {
     var meta = (engineOutput && engineOutput.meta) || {};
     var site = (project && project.site) || {};
     var targets = (project && project.targets) || {};
     var cityName = (site.cityKey && CITY_DATA && CITY_DATA[site.cityKey] && CITY_DATA[site.cityKey].name)
       ? CITY_DATA[site.cityKey].name
       : (site.cityKey || 'Not selected');
-    var isSales = (mode !== 'engineering');
+    var isPlanning = (mode !== 'engineering');
+    var basis = (project.settings && project.settings.recommendationBasis) || 'cheapest_package';
+    var pick = pickRecommended(project, engineOutput, sortedResults || [], basis);
+    var reg = meta.regulationProfileId || 'general';
+
     var html = '<div class="ps-section report-memo-section">';
     html += '<h3 class="ps-heading">Planning memo</h3>';
-    html += '<p class="report-memo-lead">This report summarizes a planning-level BMP screening for jurisdiction context, site assumptions, stormwater targets, ranked BMP options, and recommended confirmation steps.</p>';
+    html += '<p class="report-memo-lead">This report summarizes a planning-level BMP screening for jurisdiction context, site assumptions, stormwater targets, ranked BMP options (including blocked systems), and recommended confirmation steps.</p>';
     html += '<div class="ps-grid ps-grid-3">';
     html += psItem('Jurisdiction', cityName);
     html += psItem('Regulation Profile', meta.regulationProfileId || 'general');
-    html += psItem('Report Detail', isSales ? 'Client-facing summary' : 'Engineering detail');
+    html += psItem('Report Detail', isPlanning ? 'Client-facing summary' : 'Engineering detail');
     html += psItem('Retention Target', targets.retentionNeeded ? formatTargetVolumeSummary(targets.retentionCF) : 'Not required');
     html += psItem('Detention Target', targets.detentionNeeded ? formatTargetVolumeSummary(targets.detentionCF) : 'Not required');
     html += psItem('Viable BMPs', String((viable || []).length));
+    html += psItem('Recommendation basis', recommendationBasisLabel(basis));
+    html += psItem('Highlighted recommendation', formatPickOneLine(pick, sortedResults || [], reg));
     html += '</div>';
     html += '<p class="report-memo-note"><strong>Constraints noted:</strong> ' + escHtml(reportConstraintText(project)) + '.</p>';
+    html += '<p class="report-memo-note">The ranked BMP appendix in this report lists every stormwater option evaluated, with viability status, warnings, and blockers.</p>';
     html += '</div>';
     return html;
   }
@@ -15084,7 +15812,7 @@ if (typeof window !== 'undefined') {
   }
 
   function renderReportNextSteps(mode) {
-    var isSales = (mode !== 'engineering');
+    var isPlanning = (mode !== 'engineering');
     var html = '<div class="ps-section report-next-steps">';
     html += '<h3 class="ps-heading">Recommended next steps</h3>';
     html += '<ol>';
@@ -15092,7 +15820,7 @@ if (typeof window !== 'undefined') {
     html += '<li>Verify site constraints, utility locations, grading, soil assumptions, and groundwater conditions against project-specific survey and geotechnical information.</li>';
     html += '<li>Coordinate structural loading, waterproofing, overflow routing, access, and maintenance assumptions for any roof or on-structure BMP.</li>';
     html += '<li>Use civil calculations and AHJ review comments to confirm final storage volume, release rate, and credited BMP performance.</li>';
-    if (!isSales) {
+    if (!isPlanning) {
       html += '<li>Review detailed cost inputs, markup settings, and unit pricing before using Engineering-mode estimates for budgeting.</li>';
     }
     html += '</ol>';
@@ -15131,19 +15859,19 @@ if (typeof window !== 'undefined') {
     var viable   = sortedResults.filter(function (r) { return r.isViable; });
     var strategy = V3Strategy.classify(project, viable);
     var warnings = [].concat(adapted.validation.warnings || [], sw.warnings || [], roofLoadScreen.warnings || []);
-    var mode     = (project.settings && project.settings.mode) || 'sales';
-    var isSales  = (mode !== 'engineering');
-    var branding = getReportBranding(isSales);
+    var mode     = (project.settings && project.settings.mode) || 'planning';
+    var isPlanning  = (mode !== 'engineering');
+    var branding = getReportBranding(isPlanning);
 
     // Build report body using existing renderers plus report-only memo sections
-    var body = renderReportPlanningMemo(project, engineOutput, viable, mode)
+    var body = renderReportPlanningMemo(project, engineOutput, viable, mode, sortedResults)
       + renderReportTargetSourceNotes(project)
       + renderProjectSummary(project, engineOutput, strategy, sortedResults, viable, warnings, mode, sortBy, 'report')
       + renderReportNextSteps(mode);
 
-    // Markup summary — engineering reports only (sales reports stay client-safe)
+    // Markup summary — engineering reports only (planning reports stay client-safe)
     var markupHtml = '';
-    if (!isSales) {
+    if (!isPlanning) {
       var markupInfo = buildMarkupFromSettings();
       markupHtml = '<div class="ps-section">';
       markupHtml += '<h3 class="ps-heading">Markup Summary</h3>';
@@ -15171,15 +15899,15 @@ if (typeof window !== 'undefined') {
     var dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     var timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-    var titleText = (info.projectName || 'BMP Comparison') + ' — ' + (isSales ? 'Sales' : 'Engineering') + ' Report';
+    var titleText = (info.projectName || 'BMP Comparison') + ' — ' + (isPlanning ? 'Planning' : 'Engineering') + ' Report';
 
     // Assemble full HTML document
     var doc = '<!DOCTYPE html>\n<html lang="en">\n<head>\n';
     doc += '<meta charset="utf-8">\n';
     doc += '<meta name="viewport" content="width=device-width, initial-scale=1">\n';
     doc += '<title>' + escHtml(titleText) + '</title>\n';
-    doc += '<style>\n' + _reportCSS(isSales) + '\n</style>\n';
-    doc += '</head>\n<body class="report-body ' + (isSales ? 'report-mode-sales' : 'report-mode-engineering') + '">\n';
+    doc += '<style>\n' + _reportCSS(isPlanning) + '\n</style>\n';
+    doc += '</head>\n<body class="report-body ' + (isPlanning ? 'report-mode-planning' : 'report-mode-engineering') + '">\n';
 
     // Report header
     doc += '<div class="report-header">\n';
@@ -15203,7 +15931,7 @@ if (typeof window !== 'undefined') {
     if (info.clientName) doc += '<span>Client: ' + escHtml(info.clientName) + '</span>\n';
     if (info.projectAddress || info.location) doc += '<span>Location: ' + escHtml(info.projectAddress || info.location) + '</span>\n';
     doc += '<span>Generated: ' + escHtml(dateStr + ' at ' + timeStr) + '</span>\n';
-    doc += '<span class="report-mode-label">' + (isSales ? 'Sales Mode' : 'Engineering Mode') + '</span>\n';
+    doc += '<span class="report-mode-label">' + (isPlanning ? 'Planning Mode' : 'Engineering Mode') + '</span>\n';
     doc += '</div>\n';
     doc += '</div>\n';
 
@@ -15244,10 +15972,10 @@ if (typeof window !== 'undefined') {
   // tokens from style.css but is fully self-contained.
   // To update brand colors: change the values here AND in style.css :root.
 
-  function _reportCSS(isSales) {
+  function _reportCSS(isPlanning) {
     // Resolve accent colors based on mode — same values as style.css
     var accent, accentDark, accentBg, accentBorder, accentText;
-    if (isSales) {
+    if (isPlanning) {
       accent       = '#2d7a3a';  // --brand-primary
       accentDark   = '#1e5c2b';  // --brand-primary-dark
       accentBg     = '#e8f5ec';  // --brand-primary-light
@@ -15289,6 +16017,9 @@ if (typeof window !== 'undefined') {
       '  --mode-accent-bg: ' + accentBg + ';',
       '  --mode-accent-border: ' + accentBorder + ';',
       '  --mode-accent-text: ' + accentText + ';',
+      '  --editorial-rule: color-mix(in srgb, var(--mode-accent-border) 38%, var(--n-200));',
+      '  --editorial-cell-border: color-mix(in srgb, var(--mode-accent-border) 22%, var(--n-200));',
+      '  --editorial-table-frame: color-mix(in srgb, var(--mode-accent-border) 28%, var(--n-200));',
       '  --strat-ground: #2d7a3a;',
       '  --strat-ground-bg: #f0fdf4;',
       '  --strat-roof: #2563eb;',
@@ -15349,6 +16080,17 @@ if (typeof window !== 'undefined') {
       '  line-height: 1;',
       '  color: var(--n-900);',
       '  margin-bottom: 8px;',
+      '  position: relative;',
+      '  padding-bottom: 4px;',
+      '}',
+      '.report-title::after {',
+      '  content: "";',
+      '  display: block;',
+      '  width: min(4.5rem, 22vw);',
+      '  height: 3px;',
+      '  margin-top: 10px;',
+      '  border-radius: 2px;',
+      '  background: linear-gradient(90deg, var(--mode-accent), color-mix(in srgb, var(--mode-accent-border) 55%, transparent));',
       '}',
       '.report-subtitle { font-size: 0.95rem; color: var(--n-600); margin-bottom: 14px; max-width: 70ch; }',
       '.report-meta {',
@@ -15387,8 +16129,8 @@ if (typeof window !== 'undefined') {
       '  font-weight: 800;',
       '  text-transform: uppercase;',
       '  letter-spacing: 0.08em;',
-      '  color: var(--mode-accent-text);',
-      '  border-bottom: 1px solid var(--mode-accent-border);',
+      '  color: color-mix(in srgb, var(--mode-accent-text) 22%, var(--n-700));',
+      '  border-bottom: 1px solid var(--editorial-rule);',
       '  padding-bottom: 8px;',
       '  margin-bottom: 12px;',
       '}',
@@ -15450,9 +16192,11 @@ if (typeof window !== 'undefined') {
       '.ps-roof-opportunity-footnote { font-size: 0.78rem; color: var(--n-500); margin-top: 8px; line-height: 1.4; }',
       '',
       '/* ── Tables ────────────────────────────────── */',
-      '.results-table-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }',
+      '.results-table-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; border: 1px solid var(--editorial-table-frame); border-radius: 10px; background: var(--n-0); }',
       '.results-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 12px; table-layout: auto; }',
-      '.results-table th, .results-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--n-200); vertical-align: top; }',
+      '.results-table th, .results-table td { padding: 6px 8px; text-align: left; vertical-align: top; }',
+      '.results-table td { border-bottom: 1px solid var(--editorial-cell-border); }',
+      '.results-table tbody tr:hover td { box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--mode-accent-bg) 24%, transparent); }',
       '.results-table th { background: var(--mode-accent-bg); border-bottom: 2px solid var(--mode-accent-border); font-weight: 600; font-size: 0.8rem; color: var(--mode-accent-text); text-transform: uppercase; letter-spacing: 0.03em; }',
       '.results-table th.col-num, .results-table td.col-num { text-align: right; font-variant-numeric: tabular-nums; }',
       '.results-table .required-area-cell { white-space: nowrap; font-variant-numeric: tabular-nums; }',
@@ -15476,8 +16220,8 @@ if (typeof window !== 'undefined') {
       '/* ── Warnings ──────────────────────────────── */',
       '.ps-assumptions { font-size: 0.85rem; color: var(--n-500); font-style: italic; margin-bottom: 8px; }',
       '.ps-assumptions-compact { font-size: 0.85rem; color: var(--n-600); margin-bottom: 6px; line-height: 1.45; font-style: normal; }',
-      '.ps-sales-pricing-note { font-size: 0.85rem; color: var(--n-600); margin: 0 0 2px; line-height: 1.4; }',
-      '.ps-sales-pricing-footnote { font-size: 0.78rem; color: var(--n-500); margin: 0 0 8px; line-height: 1.35; }',
+      '.ps-planning-pricing-note { font-size: 0.85rem; color: var(--n-600); margin: 0 0 2px; line-height: 1.4; }',
+      '.ps-planning-pricing-footnote { font-size: 0.78rem; color: var(--n-500); margin: 0 0 8px; line-height: 1.35; }',
       '.ps-top-options-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 8px; }',
       '.ps-view-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; color: var(--n-700); }',
       '.ps-view-toggle-note { font-size: 0.75rem; color: var(--n-500); }',
@@ -15536,12 +16280,21 @@ if (typeof window !== 'undefined') {
       '',
       '/* ── Mode badge ────────────────────────────── */',
       '.mode-badge { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-bottom: 12px; }',
-      '.mode-badge-sales { background: var(--brand-primary-light); color: var(--brand-primary-dark); border: 1px solid var(--brand-primary-mid); }',
+      '.mode-badge-planning { background: var(--brand-primary-light); color: var(--brand-primary-dark); border: 1px solid var(--brand-primary-mid); }',
       '.mode-badge-eng { background: #eff6ff; color: #1e40af; border: 1px solid #93c5fd; }',
       '',
-      '/* ── All BMPs ──────────────────────────────── */',
+      '/* ── All BMPs / ranked table ──────────────── */',
       '.ps-all-bmps { margin-top: 16px; }',
       '.ps-toggle { cursor: pointer; }',
+      '.ps-basis-note { font-size: 0.85rem; color: var(--n-600); line-height: 1.45; margin: 8px 0 10px; }',
+      '.ps-basis-note em { font-style: normal; font-weight: 600; color: var(--n-700); }',
+      '.ps-table-note { font-size: 0.78rem; color: var(--n-500); margin: 0 0 8px; line-height: 1.35; }',
+      '.bmp-status-ok { font-weight: 600; color: #166534; }',
+      '.bmp-status-warn { font-weight: 600; color: #a16207; }',
+      '.bmp-status-blocked { font-weight: 600; color: #b91c1c; }',
+      'table.results-table tr.ps-row-pick { background: var(--mode-accent-bg); }',
+      '.bmp-notes-cell { font-size: 0.78rem; max-width: 240px; }',
+      '.ps-eng-pick-line { font-size: 0.9rem; margin: 8px 0; }',
       '',
       '/* ── Report footer ─────────────────────────── */',
       '.report-footer {',
@@ -15588,7 +16341,8 @@ if (typeof window !== 'undefined') {
 
   global.V3RunAnalysis = {
     run: runAnalysis,
-    setSalesRoofOnlyView: function (enabled) { _salesTopOptionsRoofOnlyView = !!enabled; },
+    setPlanningRoofOnlyView: function (enabled) { _planningTopOptionsRoofOnlyView = !!enabled; },
+    pickRecommended: pickRecommended,
     getDatabase: getDatabase,
     refreshDatabase: refreshDatabase,
     generateReportHTML: generateReportHTML
@@ -15603,7 +16357,7 @@ if (typeof window !== 'undefined') {
 //
 // Uses V3RunAnalysis.generateReportHTML() which re-runs the full analysis
 // pipeline and builds a self-contained HTML document. The report respects
-// the current mode (sales vs engineering) and includes all mode-aware
+// the current mode (planning vs engineering) and includes all mode-aware
 // rendering logic.
 //
 // Usage: V3ReportView.open()

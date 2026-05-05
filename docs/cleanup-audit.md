@@ -116,3 +116,18 @@ Latest automated result:
 - Reference check reported 13 non-blocking warnings for legacy city icons and case study PDFs still listed in `data/city-data.js`.
 - V3 stress test passed 10 of 10 scenarios.
 - `v3/v3-standalone-test.html` and `v3/admin-editor-standalone.html` rebuilt successfully.
+
+## Cleanup pass 2
+
+See `docs/cleanup-pass-2.md`.
+
+Moderate root cleanup moved old root/V2 surfaces into `_archive/root-v2/`:
+- `index.html` -> `_archive/root-v2/index-v2.html`
+- `legacy.html` -> `_archive/root-v2/legacy.html`
+- `_redirects` -> `_archive/root-v2/_redirects`
+
+The active local entry is now `v3/index.html`; local startup instructions point to `http://localhost:3000/v3/`.
+
+Post-move checks passed:
+- `npm run check:references`
+- `npm run check`

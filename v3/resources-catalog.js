@@ -56,7 +56,7 @@
         section: 'product-data',
         docType: 'Guide',
         format: 'HTML',
-        audience: 'sales',
+        audience: 'planning',
         featured: true,
         updated: '2026-04-28',
         active: true
@@ -69,7 +69,7 @@
         section: 'brochures',
         docType: 'Brochure',
         format: 'PDF',
-        audience: 'sales',
+        audience: 'planning',
         note: 'Paste the current brochure URL or local PDF path here.',
         active: true
       },
@@ -117,7 +117,7 @@
         section: 'case-studies',
         docType: 'Case Study',
         format: 'PDF',
-        audience: 'sales',
+        audience: 'planning',
         note: 'Use for Purple Roof or Sempergreen project references.',
         active: true
       },
@@ -129,7 +129,7 @@
         section: 'web-links',
         docType: 'Web',
         format: 'Web',
-        audience: 'sales',
+        audience: 'planning',
         active: true
       },
       {
@@ -154,7 +154,7 @@
         section: 'product-data',
         docType: 'Product Data',
         format: 'PDF',
-        audience: 'sales',
+        audience: 'planning',
         featured: true,
         note: 'Add Over Easy, Contec, or other PV product data links.',
         active: true
@@ -167,7 +167,7 @@
         section: 'brochures',
         docType: 'Brochure',
         format: 'PDF',
-        audience: 'sales',
+        audience: 'planning',
         note: 'Sales brochure placeholder.',
         active: true
       },
@@ -227,7 +227,7 @@
         section: 'case-studies',
         docType: 'Case Study',
         format: 'PDF',
-        audience: 'sales',
+        audience: 'planning',
         note: 'Project reference placeholder.',
         active: true
       },
@@ -239,7 +239,7 @@
         section: 'web-links',
         docType: 'Web',
         format: 'Web',
-        audience: 'sales',
+        audience: 'planning',
         note: 'Official product page or hosted collateral link.',
         active: true
       },
@@ -253,7 +253,7 @@
         section: 'product-data',
         docType: 'Product Data',
         format: 'PDF',
-        audience: 'sales',
+        audience: 'planning',
         featured: true,
         note: 'Add DiaSafe or fall-protection product data links.',
         active: true
@@ -266,7 +266,7 @@
         section: 'brochures',
         docType: 'Brochure',
         format: 'PDF',
-        audience: 'sales',
+        audience: 'planning',
         note: 'Sales brochure placeholder.',
         active: true
       },
@@ -326,7 +326,7 @@
         section: 'case-studies',
         docType: 'Case Study',
         format: 'PDF',
-        audience: 'sales',
+        audience: 'planning',
         note: 'Project reference placeholder.',
         active: true
       },
@@ -338,7 +338,7 @@
         section: 'web-links',
         docType: 'Web',
         format: 'Web',
-        audience: 'sales',
+        audience: 'planning',
         note: 'Official product page or hosted collateral link.',
         active: true
       }

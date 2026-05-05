@@ -18,7 +18,7 @@
 //          salesOneLiner: 'Short sentence a salesperson needs to know.'
 //        }
 //        → Engineering mode shows ALL items
-//        → Sales mode shows ONLY the salesOneLiner
+//        → Planning mode shows ONLY the salesOneLiner
 //
 // The salesOneLiner should be a plain-English takeaway — not regulatory
 // jargon. Think "what does the salesperson say to the client?"

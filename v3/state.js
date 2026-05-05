@@ -29,6 +29,13 @@
   // Change listeners
   const _listeners = [];
 
+  /** Legacy project files used settings.mode "sales"; canonical value is "planning". */
+  function normalizeLegacyMode(project) {
+    if (project && project.settings && project.settings.mode === 'sales') {
+      project.settings.mode = 'planning';
+    }
+  }
+
 
   // ── Deep helpers ────────────────────────────────────────────────────
 
@@ -193,6 +200,7 @@
         // Merge saved data onto fresh defaults (ensures new schema fields get defaults)
         const fresh = createDefaultProject();
         _mergeDeep(fresh, saved);
+        normalizeLegacyMode(fresh);
         // Always stamp current schema version
         fresh.schemaVersion = currentVersion;
         _project = fresh;
@@ -220,6 +228,7 @@
 
         const fresh = createDefaultProject();
         _mergeDeep(fresh, saved);
+        normalizeLegacyMode(fresh);
         fresh.schemaVersion = SCHEMA_VERSION || '3.0';
         fresh.projectInfo.modifiedDate = new Date().toISOString().slice(0, 10);
         _project = fresh;

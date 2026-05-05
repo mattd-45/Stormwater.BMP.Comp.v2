@@ -117,8 +117,8 @@ function validateV3Project(schema) {
 
   // ── Mode must be valid ──────────────────────────────────────────────
   const mode = schema.settings && schema.settings.mode;
-  if (mode && mode !== 'sales' && mode !== 'engineering') {
-    errors.push(`settings.mode must be "sales" or "engineering". Got: "${mode}"`);
+  if (mode && mode !== 'planning' && mode !== 'engineering' && mode !== 'sales') {
+    errors.push(`settings.mode must be "planning" or "engineering". Got: "${mode}"`);
   }
 
   return { valid: errors.length === 0, errors, warnings };
@@ -307,8 +307,9 @@ function enrichEngineOutput(engineOutput, schema) {
     // ── v3 display context ──────────────────────────────────────────
     v3: {
       projectInfo:      schema.projectInfo || {},
-      mode:             settings.mode || 'sales',
+      mode:             (settings.mode === 'sales' ? 'planning' : settings.mode) || 'planning',
       sortResultsBy:    settings.sortResultsBy || 'totalCost',
+      recommendationBasis: settings.recommendationBasis || 'cheapest_package',
       showDetailCards:  settings.showDetailCards !== false,
       systemCategories: schema.systemCategories || {},
       cityKey:          (schema.site && schema.site.cityKey) || null,
@@ -465,6 +466,7 @@ const SAMPLE_V3_PROJECT = {
   settings: {
     mode:                    'engineering',
     sortResultsBy:           'totalCost',
+    recommendationBasis:      'cheapest_package',
     pricingOverrides:        {},
     purpleRoofPricingMode:   'green',
     showDetailCards:          true,

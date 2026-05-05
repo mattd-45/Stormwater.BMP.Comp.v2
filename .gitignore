@@ -1,6 +1,6 @@
 .claude/
 node_modules/
 .env
-.netlify/state.json
+.netlify/
 v3/stress-test-report.json
 docs/Sempergreen USA Product PPT- Master 2025 -Aug -Sales.pptx
