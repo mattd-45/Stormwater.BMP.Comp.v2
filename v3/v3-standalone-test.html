@@ -703,9 +703,20 @@ body[data-city-selected="true"] #app-header {
   content: '';
   position: absolute;
   inset: 0;
+  background-image: url('../images/iSempergreen-greencity-1200x1500.png');
+  background-size: cover;
+  background-position: center right;
+  opacity: 0.055;
+  pointer-events: none;
+}
+
+.flow-home-step::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background:
-    radial-gradient(circle at 92% 12%, color-mix(in srgb, var(--mode-accent-bg) 72%, transparent) 0, transparent 30%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.82));
+    radial-gradient(circle at 92% 12%, color-mix(in srgb, var(--mode-accent-bg) 64%, transparent) 0, transparent 32%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 250, 252, 0.88) 100%);
   pointer-events: none;
 }
 
@@ -4330,6 +4341,82 @@ body.ua-open { overflow: hidden; }
 }
 .pr-cta-launch-btn:hover { opacity: 0.88; }
 
+/* ══════════════════════════════════════════════════════════════════════
+   Homepage BMP showcase grid
+   ══════════════════════════════════════════════════════════════════════ */
+
+.flow-hero-panel .flow-panel-kicker {
+  color: var(--mode-accent-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+.home-bmp-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.home-bmp-card {
+  background: var(--n-0);
+  border: 1px solid var(--n-200);
+  border-radius: 10px;
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+  padding: 0 0 8px;
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+
+.home-bmp-card:hover {
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.10);
+  transform: translateY(-2px);
+}
+
+.home-bmp-img {
+  background: linear-gradient(135deg, var(--n-100), color-mix(in srgb, var(--mode-accent-bg) 40%, var(--n-50)));
+  border-radius: 9px 9px 0 0;
+  height: 80px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.home-bmp-img img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.home-bmp-card span {
+  color: var(--n-700);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.3;
+  padding: 0 8px;
+  text-align: center;
+}
+
+.home-bmp-more {
+  color: var(--n-400);
+  font-size: 0.75rem;
+  margin: 8px 0 0;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .home-bmp-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .home-bmp-img { height: 60px; }
+}
+
 </style>
   <!-- Google Analytics — replace G-XXXXXXXXXX with your GA4 Measurement ID -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
@@ -4460,28 +4547,44 @@ body.ua-open { overflow: hidden; }
               <small>jurisdictions</small>
             </div>
             <div class="flow-hero-metric">
-              <span>Site</span>
-              <small>area inputs</small>
+              <span>15+</span>
+              <small>systems evaluated</small>
             </div>
             <div class="flow-hero-metric">
-              <span>BMP</span>
-              <small>cost comparison</small>
+              <span>Free</span>
+              <small>to use</small>
             </div>
           </div>
         </div>
-        <aside class="flow-story-card flow-hero-panel" aria-label="Evaluation preview">
-          <div class="flow-hero-visual">
-            <img src="../images/isometric_architectural_diagram_of_a_single_building.jpeg" alt="Isometric building and site planning visualization" onerror="this.style.display='none'">
+        <aside class="flow-story-card flow-hero-panel" aria-label="BMP systems preview">
+          <p class="flow-panel-kicker">Systems this tool compares</p>
+          <div class="home-bmp-grid">
+            <div class="home-bmp-card">
+              <div class="home-bmp-img"><img src="../images/bmp-graphic-purple-veg-4-1-2.png" alt="Purple Roof Vegetated" onerror="this.style.display='none'"></div>
+              <span>Purple Roof (Vegetated)</span>
+            </div>
+            <div class="home-bmp-card">
+              <div class="home-bmp-img"><img src="../images/bmp-graphic-purple-paver-1-2.png" alt="Purple Roof Pavers" onerror="this.style.display='none'"></div>
+              <span>Purple Roof (Pavers)</span>
+            </div>
+            <div class="home-bmp-card">
+              <div class="home-bmp-img"><img src="../images/bmp-graphic-trad-green-roof-6-graphic.png" alt="Traditional Green Roof" onerror="this.style.display='none'"></div>
+              <span>Traditional Green Roof</span>
+            </div>
+            <div class="home-bmp-card">
+              <div class="home-bmp-img"><img src="../images/bmp-graphic-blue-roof.png" alt="Blue Roof" onerror="this.style.display='none'"></div>
+              <span>Blue Roof</span>
+            </div>
+            <div class="home-bmp-card">
+              <div class="home-bmp-img"><img src="../images/bmp-graphic-bioretention-cell-2.jpg" alt="Bioretention Cell" onerror="this.style.display='none'"></div>
+              <span>Bioretention</span>
+            </div>
+            <div class="home-bmp-card">
+              <div class="home-bmp-img"><img src="../images/bmp-graphic-underground-passive-cells-graphic.png" alt="Underground Passive Cells" onerror="this.style.display='none'"></div>
+              <span>Underground Cells</span>
+            </div>
           </div>
-          <div class="flow-hero-panel-copy">
-            <p class="flow-panel-kicker">Evaluation workflow</p>
-            <h3>Inputs used for BMP screening.</h3>
-            <ol>
-              <li><strong>Project information</strong><span>Project name, client, address, and applicable city or jurisdiction.</span></li>
-              <li><strong>Define site conditions</strong><span>Area split, constraints, and stormwater targets.</span></li>
-              <li><strong>Compare BMP options</strong><span>Viability, estimated cost, system role, and follow-up items.</span></li>
-            </ol>
-          </div>
+          <p class="home-bmp-more">+ permeable pavers, on-structure tanks, and more</p>
         </aside>
       </div>
     </section>
