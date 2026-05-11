@@ -135,6 +135,80 @@
   }
 
 
+  // ── User Agreement Modal ───────────────────────────────────────────
+
+  function _submitAgreementForm() {
+    try {
+      const name = (document.getElementById('ua-name') || {}).value || '';
+      const email = (document.getElementById('ua-email') || {}).value || '';
+      const org = (document.getElementById('ua-org') || {}).value || '';
+      if (!name && !email && !org) return;
+      const body = new URLSearchParams();
+      body.append('form-name', 'bmp-tool-users');
+      body.append('name', name);
+      body.append('email', email);
+      body.append('organization', org);
+      body.append('agreed_at', new Date().toISOString());
+      fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
+  function initAgreementModal() {
+    const overlay = document.getElementById('ua-overlay');
+    if (!overlay) return;
+
+    // Set footer year
+    const yearEl = document.getElementById('footer-year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    // Already accepted — keep overlay hidden
+    if (localStorage.getItem('sgBmpTermsAccepted')) {
+      overlay.hidden = true;
+      _bindReopenBtn(overlay);
+      return;
+    }
+
+    // First visit — show modal and lock scroll
+    overlay.hidden = false;
+    document.body.classList.add('ua-open');
+
+    // Focus the accept button after a short delay
+    setTimeout(() => {
+      const btn = document.getElementById('ua-btn-accept');
+      if (btn) btn.focus();
+    }, 80);
+
+    const btnAccept = document.getElementById('ua-btn-accept');
+    if (btnAccept) {
+      btnAccept.addEventListener('click', () => {
+        _submitAgreementForm();
+        localStorage.setItem('sgBmpTermsAccepted', '1');
+        overlay.hidden = true;
+        document.body.classList.remove('ua-open');
+      });
+    }
+
+    _bindReopenBtn(overlay);
+  }
+
+  function _bindReopenBtn(overlay) {
+    const btnReopen = document.getElementById('ua-reopen-btn');
+    if (btnReopen) {
+      btnReopen.addEventListener('click', () => {
+        overlay.hidden = false;
+        document.body.classList.add('ua-open');
+        overlay.scrollTop = 0;
+        const dialog = overlay.querySelector('.ua-dialog');
+        if (dialog) dialog.scrollTop = 0;
+      });
+    }
+  }
+
+
   // ── Init ───────────────────────────────────────────────────────────
 
   function init() {
@@ -161,6 +235,9 @@
 
     // Start auto-save
     setupAutoSave();
+
+    // Show user agreement on first visit
+    initAgreementModal();
 
     console.log('[V3] App initialized.' + (restored ? ' State restored from localStorage.' : ' Using defaults.'));
   }

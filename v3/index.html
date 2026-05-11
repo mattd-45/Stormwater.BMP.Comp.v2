@@ -5,8 +5,79 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stormwater BMP Evaluation Tool — V3</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Google Analytics — replace G-XXXXXXXXXX with your GA4 Measurement ID -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
 </head>
 <body data-mode="planning">
+
+  <!-- ── User Agreement Modal ──────────────────────────────────────────── -->
+  <div id="ua-overlay" class="ua-overlay" role="dialog" aria-modal="true" aria-labelledby="ua-title" hidden>
+    <div class="ua-dialog">
+      <div class="ua-header">
+        <img src="../images/logo-sempergreen.png" alt="Sempergreen" class="ua-logo" onerror="this.style.display='none'">
+        <h2 id="ua-title" class="ua-title">Terms of Use</h2>
+        <p class="ua-subtitle">Stormwater BMP Evaluation Tool — Sempergreen USA</p>
+      </div>
+      <div class="ua-body">
+        <p class="ua-intro">Please read the following terms before using this tool.</p>
+        <h3>1. Ownership and Intellectual Property</h3>
+        <p>This Software is not "Open Source." All rights, title, and interest in and to the Software—including all copyrights, patents, trade secrets, and other intellectual property rights—are owned jointly and exclusively by Anthropocene Engineering, LLC and Sempergreen USA ("The Owners"). No ownership rights are transferred to any user.</p>
+        <h3>2. Grant of License</h3>
+        <p>The Owners hereby grant you a personal, non-exclusive, non-transferable, non-sublicensable, and royalty-free license to access and use the Software for its intended purpose.</p>
+        <h3>3. Prohibited Uses and Restrictions</h3>
+        <p>By using this Software, you agree that you will not:</p>
+        <ul>
+          <li><strong>Copy or Redistribute:</strong> Reproduce, copy, distribute, resell, or lease the Software or any portion thereof.</li>
+          <li><strong>Reverse Engineer:</strong> Decompile, disassemble, or attempt to derive the source code of the Software.</li>
+          <li><strong>Adversarial Use:</strong> Use the Software, its output, its data, or any information derived from its use to initiate litigation, regulatory action, or any form of legal or competitive claim against Anthropocene Engineering, LLC or Sempergreen USA.</li>
+          <li><strong>Derivative Works:</strong> Modify the software or create derivative works based on the software.</li>
+        </ul>
+        <h3>4. "As-Is" and Disclaimer of Warranty</h3>
+        <p>THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH YOU.</p>
+        <h3>5. Limitation of Liability</h3>
+        <p>IN NO EVENT SHALL ANTHROPOCENE ENGINEERING, LLC OR SEMPERGREEN USA BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. YOU USE THIS TOOL ENTIRELY AT YOUR OWN RISK.</p>
+        <h3>6. Termination</h3>
+        <p>This license is effective until terminated. The Owners reserve the right to terminate your access to the software at any time if you breach any of these terms.</p>
+      </div>
+      <div class="ua-register">
+        <p class="ua-register-intro">Optional — tell us who you are so we can follow up:</p>
+        <div class="ua-fields">
+          <div class="ua-field">
+            <label for="ua-name">Name</label>
+            <input type="text" id="ua-name" name="name" placeholder="Your name" autocomplete="name">
+          </div>
+          <div class="ua-field">
+            <label for="ua-email">Email</label>
+            <input type="email" id="ua-email" name="email" placeholder="you@company.com" autocomplete="email">
+          </div>
+          <div class="ua-field">
+            <label for="ua-org">Organization</label>
+            <input type="text" id="ua-org" name="organization" placeholder="Company or firm" autocomplete="organization">
+          </div>
+        </div>
+      </div>
+      <div class="ua-actions">
+        <button type="button" id="ua-btn-accept" class="ua-btn ua-btn-accept">I Agree — Continue to Tool</button>
+        <a href="https://www.sempergreen.com/en/solutions/us-green-roof-system" class="ua-btn ua-btn-decline" id="ua-btn-decline">Decline</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Netlify Form for user registration (processed at deploy time) -->
+  <form name="bmp-tool-users" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="bmp-tool-users">
+    <input name="bot-field" type="hidden">
+    <input name="name" type="text">
+    <input name="email" type="email">
+    <input name="organization" type="text">
+    <input name="agreed_at" type="hidden">
+  </form>
 
   <!-- ── Header ─────────────────────────────────────────────────────── -->
   <header id="app-header">
@@ -557,6 +628,11 @@
     </div>
 
   </main>
+
+  <footer id="app-footer" class="app-footer">
+    <p>&copy; <span id="footer-year"></span> Anthropocene Engineering, LLC &amp; Sempergreen USA.
+    <button type="button" id="ua-reopen-btn" class="ua-reopen-link">Terms of Use</button></p>
+  </footer>
 
   <!-- Scripts: data files, then v3 modules -->
   <script src="../data/bmp-options.js"></script>

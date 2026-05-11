@@ -39,6 +39,119 @@
 
 (function (global) {
 
+  // ── Purple Roof Simulator integration ─────────────────────────────
+
+  var _PURPLE_ROOF_BMP_IDS = ['10', '10B', '11', '11B'];
+
+  function _isPurpleRoofId(id) {
+    return _PURPLE_ROOF_BMP_IDS.indexOf(String(id)) !== -1;
+  }
+
+  function renderPurpleRoofSimulatorCta(viable, project, meta) {
+    if (!viable || viable.length === 0) return '';
+    var prViable = viable.filter(function (r) { return _isPurpleRoofId(r.id); });
+    if (prViable.length === 0) return '';
+
+    var site = (project && project.site) || {};
+    var cityKey = site.cityKey || (meta && meta.cityKey) || '';
+    var city = cityKey && CITY_DATA && CITY_DATA[cityKey] ? CITY_DATA[cityKey] : null;
+    var lat = city && city.coords ? city.coords.lat : '';
+    var lon = city && city.coords ? city.coords.lon : '';
+    var cityName = city ? (city.name || cityKey) : (cityKey || 'Not selected');
+
+    var areas = site.areas || {};
+    var roofArea = Math.round(
+      (areas.flatDeckOnStructureArea || 0) +
+      (areas.slopedRoofArea || 0) +
+      (areas.paversOnStructureArea || 0)
+    ) || '';
+
+    var assemblyName = prViable[0] ? (prViable[0].name || '') : '';
+    var locDisplay = escHtml(cityName) + (lat ? ' (' + lat + '\u00b0, ' + lon + '\u00b0)' : '');
+
+    var html = '<div class="pr-simulator-cta" id="pr-simulator-cta">';
+    html += '<div class="pr-cta-kicker">Next step \u2014 final design &amp; permitting</div>';
+    html += '<div class="pr-cta-title">Ready for the Purple Roof Simulator?</div>';
+    html += '<p class="pr-cta-desc">A Purple Roof assembly is viable for this site. The Purple Roof Simulator can model detention performance, generate a permit-ready hydrograph, and export an .hcp file for use in HydroCAD or SWMM.</p>';
+
+    html += '<div class="pr-cta-method">';
+    html += '<p class="pr-cta-section-label">Choose a simulation method:</p>';
+    html += '<div class="pr-cta-radios">';
+    html += '<label class="pr-cta-radio"><input type="radio" name="pr-sim-method" value="tr20" checked> ';
+    html += '<span><strong>TR-20 (HydroCAD-style)</strong> \u2014 single design storm, peak flow and volume, .hcp export</span></label>';
+    html += '<label class="pr-cta-radio"><input type="radio" name="pr-sim-method" value="swmm"> ';
+    html += '<span><strong>SWMM continuous simulation</strong> \u2014 multi-year hourly climate data, long-period performance metrics</span></label>';
+    html += '<span class="pr-cta-radio-disabled">More methods coming soon\u2026</span>';
+    html += '</div></div>';
+
+    html += '<div class="pr-cta-values">';
+    html += '<p class="pr-cta-section-label">Values that will be passed to the simulator:</p>';
+    html += '<div class="pr-cta-fields">';
+
+    html += '<div class="pr-cta-field">';
+    html += '<span class="pr-cta-field-label">Location</span>';
+    html += '<span class="pr-cta-field-display" id="pr-loc-display">' + locDisplay + '</span>';
+    html += '<div class="pr-cta-field-edit" id="pr-loc-edit" style="display:none">';
+    html += '<input type="number" id="pr-lat-input" class="pr-cta-input" placeholder="Lat" value="' + escHtml(String(lat)) + '" step="0.0001">';
+    html += '<input type="number" id="pr-lon-input" class="pr-cta-input" placeholder="Lon" value="' + escHtml(String(lon)) + '" step="0.0001">';
+    html += '</div>';
+    html += '<button type="button" class="pr-cta-edit-btn" onclick="(function(b){';
+    html += 'var d=document.getElementById(\'pr-loc-display\'),e=document.getElementById(\'pr-loc-edit\');';
+    html += 'if(e.style.display===\'none\'){e.style.display=\'flex\';d.style.display=\'none\';b.textContent=\'Done\';}';
+    html += 'else{e.style.display=\'none\';d.style.display=\'\';b.textContent=\'Edit\';}})(this)">Edit</button>';
+    html += '</div>';
+
+    html += '<div class="pr-cta-field">';
+    html += '<span class="pr-cta-field-label">Roof area (SF)</span>';
+    html += '<span class="pr-cta-field-display" id="pr-area-display">' + escHtml(roofArea ? Number(roofArea).toLocaleString() : '\u2014') + '</span>';
+    html += '<div class="pr-cta-field-edit" id="pr-area-edit" style="display:none">';
+    html += '<input type="number" id="pr-area-input" class="pr-cta-input" placeholder="SF" value="' + escHtml(String(roofArea)) + '" step="100">';
+    html += '</div>';
+    html += '<button type="button" class="pr-cta-edit-btn" onclick="(function(b){';
+    html += 'var d=document.getElementById(\'pr-area-display\'),e=document.getElementById(\'pr-area-edit\');';
+    html += 'if(e.style.display===\'none\'){e.style.display=\'flex\';d.style.display=\'none\';b.textContent=\'Done\';}';
+    html += 'else{e.style.display=\'none\';d.style.display=\'\';b.textContent=\'Edit\';}})(this)">Edit</button>';
+    html += '</div>';
+
+    if (assemblyName) {
+      html += '<div class="pr-cta-field pr-cta-field-readonly">';
+      html += '<span class="pr-cta-field-label">Assembly</span>';
+      html += '<span class="pr-cta-field-display">' + escHtml(assemblyName) + '</span>';
+      html += '</div>';
+    }
+
+    html += '</div></div>';
+    html += '<button type="button" class="pr-cta-launch-btn" onclick="window.V3RunAnalysis.launchPurpleRoofSimulator()">Open Purple Roof Simulator \u2192</button>';
+    html += '</div>';
+    return html;
+  }
+
+  function launchPurpleRoofSimulator() {
+    var methodEl = document.querySelector('#pr-simulator-cta input[name="pr-sim-method"]:checked');
+    var method = methodEl ? methodEl.value : 'tr20';
+
+    var latEl = document.getElementById('pr-lat-input');
+    var lonEl = document.getElementById('pr-lon-input');
+    var areaEl = document.getElementById('pr-area-input');
+
+    var lat = latEl ? latEl.value.trim() : '';
+    var lon = lonEl ? lonEl.value.trim() : '';
+    var area = areaEl ? areaEl.value.trim() : '';
+
+    var base = method === 'swmm'
+      ? 'https://purple-roof-simulator.com/swmm-dashboard'
+      : 'https://purple-roof-simulator.com/roof-simulator';
+
+    var params = [];
+    if (lat) params.push('lat=' + encodeURIComponent(lat));
+    if (lon) params.push('lon=' + encodeURIComponent(lon));
+    if (area) params.push('area=' + encodeURIComponent(area));
+    params.push('ref=bmp-tool');
+
+    window.open(base + '?' + params.join('&'), '_blank', 'noopener,noreferrer');
+  }
+
+
   // ── Database assembly ──────────────────────────────────────────────
 
   let _database = null;
@@ -2088,11 +2201,13 @@
     if (isPlanning) {
       var planningExplanationHtml = renderSectionRecommendationExplanation(project, viable, results, targets, regProfileId, mode, sortBy, pick, basis);
       var rankedTableSales = renderRankedBmpTable(results, targets, regProfileId, mode, layout, pick);
+      var prCtaPlanning = layout !== 'report' ? renderPurpleRoofSimulatorCta(viable, project, meta) : '';
       return badge
         + renderSectionSalesCityContext(meta, project)
         + renderSectionSalesSiteInputs(project)
         + renderSectionSalesPlanningSummary(strategy, project, viable, regProfileId, sortBy)
         + renderSectionTopOptions(viable, targets, regProfileId, mode, sortBy, layout, results, pick, basis)
+        + prCtaPlanning
         + rankedTableSales
         + planningExplanationHtml
         + renderSectionObservations(project, strategy, viable, results, targets, mode)
@@ -2110,6 +2225,7 @@
     var warningsHtml = renderSectionWarnings(warnings, results, mode);
 
     var html = badge;
+    var prCtaEng = layout !== 'report' ? renderPurpleRoofSimulatorCta(viable, project, meta) : '';
 
     if (layout === 'report') {
       html += summaryCore;
@@ -2124,6 +2240,7 @@
       html += strategyHtml;
       html += roofOpportunityHtml;
       html += topOptionsHtml;
+      html += prCtaEng;
       html += explanationHtml;
       html += observationsHtml;
       html += warningsHtml;
@@ -2814,7 +2931,8 @@
     pickRecommended: pickRecommended,
     getDatabase: getDatabase,
     refreshDatabase: refreshDatabase,
-    generateReportHTML: generateReportHTML
+    generateReportHTML: generateReportHTML,
+    launchPurpleRoofSimulator: launchPurpleRoofSimulator
   };
 
 })(window);

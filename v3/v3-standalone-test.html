@@ -4020,9 +4020,390 @@ table.results-table tr.ps-row-pick {
   padding: 3px 8px;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   User Agreement Modal
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ua-overlay {
+  align-items: flex-start;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 40px 20px;
+  position: fixed;
+  z-index: 9999;
+}
+.ua-overlay[hidden] { display: none; }
+
+body.ua-open { overflow: hidden; }
+
+.ua-dialog {
+  background: var(--n-0);
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.30);
+  max-width: 680px;
+  padding: 32px;
+  width: 100%;
+}
+
+.ua-header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+.ua-logo {
+  height: 32px;
+  margin-bottom: 12px;
+  object-fit: contain;
+}
+.ua-title {
+  color: var(--n-900);
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+}
+.ua-subtitle {
+  color: var(--n-500);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.ua-body {
+  background: var(--n-50);
+  border: 1px solid var(--n-200);
+  border-radius: 10px;
+  color: var(--n-700);
+  font-size: 0.855rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+.ua-body h3 {
+  color: var(--n-900);
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin: 14px 0 4px;
+}
+.ua-body h3:first-of-type { margin-top: 0; }
+.ua-body p,
+.ua-body ul { margin: 0 0 8px; }
+.ua-body ul { padding-left: 20px; }
+.ua-body li { margin-bottom: 4px; }
+.ua-intro {
+  color: var(--n-600);
+  font-size: 0.84rem;
+  font-style: italic;
+  margin-bottom: 12px !important;
+}
+
+.ua-register { margin-bottom: 20px; }
+.ua-register-intro {
+  color: var(--n-600);
+  font-size: 0.84rem;
+  margin: 0 0 10px;
+}
+.ua-fields {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+@media (max-width: 560px) {
+  .ua-fields { grid-template-columns: 1fr; }
+}
+.ua-field label {
+  color: var(--n-700);
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.ua-field input {
+  background: var(--n-0);
+  border: 1px solid var(--n-300);
+  border-radius: 7px;
+  color: var(--n-900);
+  font-size: 0.875rem;
+  padding: 7px 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ua-field input:focus {
+  outline: 2px solid var(--mode-accent-border);
+  outline-offset: 1px;
+}
+
+.ua-actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+.ua-btn-accept {
+  background: var(--mode-accent-text);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 12px 20px;
+  transition: opacity 0.15s;
+}
+.ua-btn-accept:hover { opacity: 0.88; }
+.ua-btn-decline {
+  color: var(--n-400);
+  font-size: 0.84rem;
+  padding: 8px;
+  text-decoration: none;
+}
+.ua-btn-decline:hover { color: var(--n-600); }
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+.app-footer {
+  border-top: 1px solid var(--n-200);
+  color: var(--n-400);
+  font-size: 0.78rem;
+  margin-top: 24px;
+  padding: 16px 24px;
+  text-align: center;
+}
+.app-footer p { margin: 0; }
+.ua-reopen-link {
+  background: none;
+  border: none;
+  color: var(--n-500);
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+.ua-reopen-link:hover { color: var(--n-700); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Purple Roof Simulator CTA card
+   ══════════════════════════════════════════════════════════════════════ */
+
+.pr-simulator-cta {
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--mode-accent-bg) 50%, transparent) 0, transparent 50%),
+    var(--n-0);
+  border: 1px solid var(--mode-accent-border);
+  border-left: 4px solid var(--mode-accent-text);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+  margin: 20px 0;
+  padding: 20px 22px;
+}
+
+.pr-cta-kicker {
+  color: var(--mode-accent-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.pr-cta-title {
+  color: var(--n-900);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+.pr-cta-desc {
+  color: var(--n-600);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.pr-cta-section-label {
+  color: var(--n-700);
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.pr-cta-method { margin-bottom: 16px; }
+.pr-cta-radios {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pr-cta-radio {
+  align-items: flex-start;
+  cursor: pointer;
+  display: flex;
+  font-size: 0.875rem;
+  gap: 8px;
+  line-height: 1.45;
+}
+.pr-cta-radio input { flex-shrink: 0; margin-top: 3px; }
+.pr-cta-radio span { color: var(--n-700); }
+.pr-cta-radio strong { color: var(--n-900); }
+.pr-cta-radio-disabled {
+  color: var(--n-400);
+  cursor: not-allowed;
+  font-size: 0.84rem;
+  padding-left: 2px;
+}
+
+.pr-cta-values { margin-bottom: 18px; }
+.pr-cta-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pr-cta-field {
+  align-items: center;
+  background: var(--n-50);
+  border: 1px solid var(--n-200);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  min-width: 200px;
+  padding: 8px 12px;
+}
+.pr-cta-field-readonly { background: transparent; border-color: transparent; }
+.pr-cta-field-label {
+  color: var(--n-500);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  width: 100%;
+}
+.pr-cta-field-display {
+  color: var(--n-800);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.pr-cta-field-edit {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+.pr-cta-input {
+  background: var(--n-0);
+  border: 1px solid var(--n-300);
+  border-radius: 6px;
+  color: var(--n-900);
+  font-size: 0.855rem;
+  padding: 5px 8px;
+  width: 110px;
+}
+.pr-cta-input:focus {
+  outline: 2px solid var(--mode-accent-border);
+  outline-offset: 1px;
+}
+.pr-cta-edit-btn {
+  background: none;
+  border: 1px solid var(--n-300);
+  border-radius: 5px;
+  color: var(--n-500);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 8px;
+}
+.pr-cta-edit-btn:hover {
+  background: var(--n-100);
+  color: var(--n-700);
+}
+
+.pr-cta-launch-btn {
+  background: var(--mode-accent-text);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 11px 22px;
+  transition: opacity 0.15s;
+}
+.pr-cta-launch-btn:hover { opacity: 0.88; }
+
 </style>
+  <!-- Google Analytics — replace G-XXXXXXXXXX with your GA4 Measurement ID -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
 </head>
 <body data-mode="planning">
+
+  <!-- ── User Agreement Modal ──────────────────────────────────────────── -->
+  <div id="ua-overlay" class="ua-overlay" role="dialog" aria-modal="true" aria-labelledby="ua-title" hidden>
+    <div class="ua-dialog">
+      <div class="ua-header">
+        <img src="../images/logo-sempergreen.png" alt="Sempergreen" class="ua-logo" onerror="this.style.display='none'">
+        <h2 id="ua-title" class="ua-title">Terms of Use</h2>
+        <p class="ua-subtitle">Stormwater BMP Evaluation Tool — Sempergreen USA</p>
+      </div>
+      <div class="ua-body">
+        <p class="ua-intro">Please read the following terms before using this tool.</p>
+        <h3>1. Ownership and Intellectual Property</h3>
+        <p>This Software is not "Open Source." All rights, title, and interest in and to the Software—including all copyrights, patents, trade secrets, and other intellectual property rights—are owned jointly and exclusively by Anthropocene Engineering, LLC and Sempergreen USA ("The Owners"). No ownership rights are transferred to any user.</p>
+        <h3>2. Grant of License</h3>
+        <p>The Owners hereby grant you a personal, non-exclusive, non-transferable, non-sublicensable, and royalty-free license to access and use the Software for its intended purpose.</p>
+        <h3>3. Prohibited Uses and Restrictions</h3>
+        <p>By using this Software, you agree that you will not:</p>
+        <ul>
+          <li><strong>Copy or Redistribute:</strong> Reproduce, copy, distribute, resell, or lease the Software or any portion thereof.</li>
+          <li><strong>Reverse Engineer:</strong> Decompile, disassemble, or attempt to derive the source code of the Software.</li>
+          <li><strong>Adversarial Use:</strong> Use the Software, its output, its data, or any information derived from its use to initiate litigation, regulatory action, or any form of legal or competitive claim against Anthropocene Engineering, LLC or Sempergreen USA.</li>
+          <li><strong>Derivative Works:</strong> Modify the software or create derivative works based on the software.</li>
+        </ul>
+        <h3>4. "As-Is" and Disclaimer of Warranty</h3>
+        <p>THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH YOU.</p>
+        <h3>5. Limitation of Liability</h3>
+        <p>IN NO EVENT SHALL ANTHROPOCENE ENGINEERING, LLC OR SEMPERGREEN USA BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. YOU USE THIS TOOL ENTIRELY AT YOUR OWN RISK.</p>
+        <h3>6. Termination</h3>
+        <p>This license is effective until terminated. The Owners reserve the right to terminate your access to the software at any time if you breach any of these terms.</p>
+      </div>
+      <div class="ua-register">
+        <p class="ua-register-intro">Optional — tell us who you are so we can follow up:</p>
+        <div class="ua-fields">
+          <div class="ua-field">
+            <label for="ua-name">Name</label>
+            <input type="text" id="ua-name" name="name" placeholder="Your name" autocomplete="name">
+          </div>
+          <div class="ua-field">
+            <label for="ua-email">Email</label>
+            <input type="email" id="ua-email" name="email" placeholder="you@company.com" autocomplete="email">
+          </div>
+          <div class="ua-field">
+            <label for="ua-org">Organization</label>
+            <input type="text" id="ua-org" name="organization" placeholder="Company or firm" autocomplete="organization">
+          </div>
+        </div>
+      </div>
+      <div class="ua-actions">
+        <button type="button" id="ua-btn-accept" class="ua-btn ua-btn-accept">I Agree — Continue to Tool</button>
+        <a href="https://www.sempergreen.com/en/solutions/us-green-roof-system" class="ua-btn ua-btn-decline" id="ua-btn-decline">Decline</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Netlify Form for user registration (processed at deploy time) -->
+  <form name="bmp-tool-users" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="bmp-tool-users">
+    <input name="bot-field" type="hidden">
+    <input name="name" type="text">
+    <input name="email" type="email">
+    <input name="organization" type="text">
+    <input name="agreed_at" type="hidden">
+  </form>
 
   <!-- ── Header ─────────────────────────────────────────────────────── -->
   <header id="app-header">
@@ -4573,6 +4954,11 @@ table.results-table tr.ps-row-pick {
     </div>
 
   </main>
+
+  <footer id="app-footer" class="app-footer">
+    <p>&copy; <span id="footer-year"></span> Anthropocene Engineering, LLC &amp; Sempergreen USA.
+    <button type="button" id="ua-reopen-btn" class="ua-reopen-link">Terms of Use</button></p>
+  </footer>
 
   <script>
 // ═══════════════════════════════════════════════════════════════════════
@@ -13570,6 +13956,119 @@ if (typeof window !== 'undefined') {
 
 (function (global) {
 
+  // ── Purple Roof Simulator integration ─────────────────────────────
+
+  var _PURPLE_ROOF_BMP_IDS = ['10', '10B', '11', '11B'];
+
+  function _isPurpleRoofId(id) {
+    return _PURPLE_ROOF_BMP_IDS.indexOf(String(id)) !== -1;
+  }
+
+  function renderPurpleRoofSimulatorCta(viable, project, meta) {
+    if (!viable || viable.length === 0) return '';
+    var prViable = viable.filter(function (r) { return _isPurpleRoofId(r.id); });
+    if (prViable.length === 0) return '';
+
+    var site = (project && project.site) || {};
+    var cityKey = site.cityKey || (meta && meta.cityKey) || '';
+    var city = cityKey && CITY_DATA && CITY_DATA[cityKey] ? CITY_DATA[cityKey] : null;
+    var lat = city && city.coords ? city.coords.lat : '';
+    var lon = city && city.coords ? city.coords.lon : '';
+    var cityName = city ? (city.name || cityKey) : (cityKey || 'Not selected');
+
+    var areas = site.areas || {};
+    var roofArea = Math.round(
+      (areas.flatDeckOnStructureArea || 0) +
+      (areas.slopedRoofArea || 0) +
+      (areas.paversOnStructureArea || 0)
+    ) || '';
+
+    var assemblyName = prViable[0] ? (prViable[0].name || '') : '';
+    var locDisplay = escHtml(cityName) + (lat ? ' (' + lat + '\u00b0, ' + lon + '\u00b0)' : '');
+
+    var html = '<div class="pr-simulator-cta" id="pr-simulator-cta">';
+    html += '<div class="pr-cta-kicker">Next step \u2014 final design &amp; permitting</div>';
+    html += '<div class="pr-cta-title">Ready for the Purple Roof Simulator?</div>';
+    html += '<p class="pr-cta-desc">A Purple Roof assembly is viable for this site. The Purple Roof Simulator can model detention performance, generate a permit-ready hydrograph, and export an .hcp file for use in HydroCAD or SWMM.</p>';
+
+    html += '<div class="pr-cta-method">';
+    html += '<p class="pr-cta-section-label">Choose a simulation method:</p>';
+    html += '<div class="pr-cta-radios">';
+    html += '<label class="pr-cta-radio"><input type="radio" name="pr-sim-method" value="tr20" checked> ';
+    html += '<span><strong>TR-20 (HydroCAD-style)</strong> \u2014 single design storm, peak flow and volume, .hcp export</span></label>';
+    html += '<label class="pr-cta-radio"><input type="radio" name="pr-sim-method" value="swmm"> ';
+    html += '<span><strong>SWMM continuous simulation</strong> \u2014 multi-year hourly climate data, long-period performance metrics</span></label>';
+    html += '<span class="pr-cta-radio-disabled">More methods coming soon\u2026</span>';
+    html += '</div></div>';
+
+    html += '<div class="pr-cta-values">';
+    html += '<p class="pr-cta-section-label">Values that will be passed to the simulator:</p>';
+    html += '<div class="pr-cta-fields">';
+
+    html += '<div class="pr-cta-field">';
+    html += '<span class="pr-cta-field-label">Location</span>';
+    html += '<span class="pr-cta-field-display" id="pr-loc-display">' + locDisplay + '</span>';
+    html += '<div class="pr-cta-field-edit" id="pr-loc-edit" style="display:none">';
+    html += '<input type="number" id="pr-lat-input" class="pr-cta-input" placeholder="Lat" value="' + escHtml(String(lat)) + '" step="0.0001">';
+    html += '<input type="number" id="pr-lon-input" class="pr-cta-input" placeholder="Lon" value="' + escHtml(String(lon)) + '" step="0.0001">';
+    html += '</div>';
+    html += '<button type="button" class="pr-cta-edit-btn" onclick="(function(b){';
+    html += 'var d=document.getElementById(\'pr-loc-display\'),e=document.getElementById(\'pr-loc-edit\');';
+    html += 'if(e.style.display===\'none\'){e.style.display=\'flex\';d.style.display=\'none\';b.textContent=\'Done\';}';
+    html += 'else{e.style.display=\'none\';d.style.display=\'\';b.textContent=\'Edit\';}})(this)">Edit</button>';
+    html += '</div>';
+
+    html += '<div class="pr-cta-field">';
+    html += '<span class="pr-cta-field-label">Roof area (SF)</span>';
+    html += '<span class="pr-cta-field-display" id="pr-area-display">' + escHtml(roofArea ? Number(roofArea).toLocaleString() : '\u2014') + '</span>';
+    html += '<div class="pr-cta-field-edit" id="pr-area-edit" style="display:none">';
+    html += '<input type="number" id="pr-area-input" class="pr-cta-input" placeholder="SF" value="' + escHtml(String(roofArea)) + '" step="100">';
+    html += '</div>';
+    html += '<button type="button" class="pr-cta-edit-btn" onclick="(function(b){';
+    html += 'var d=document.getElementById(\'pr-area-display\'),e=document.getElementById(\'pr-area-edit\');';
+    html += 'if(e.style.display===\'none\'){e.style.display=\'flex\';d.style.display=\'none\';b.textContent=\'Done\';}';
+    html += 'else{e.style.display=\'none\';d.style.display=\'\';b.textContent=\'Edit\';}})(this)">Edit</button>';
+    html += '</div>';
+
+    if (assemblyName) {
+      html += '<div class="pr-cta-field pr-cta-field-readonly">';
+      html += '<span class="pr-cta-field-label">Assembly</span>';
+      html += '<span class="pr-cta-field-display">' + escHtml(assemblyName) + '</span>';
+      html += '</div>';
+    }
+
+    html += '</div></div>';
+    html += '<button type="button" class="pr-cta-launch-btn" onclick="window.V3RunAnalysis.launchPurpleRoofSimulator()">Open Purple Roof Simulator \u2192</button>';
+    html += '</div>';
+    return html;
+  }
+
+  function launchPurpleRoofSimulator() {
+    var methodEl = document.querySelector('#pr-simulator-cta input[name="pr-sim-method"]:checked');
+    var method = methodEl ? methodEl.value : 'tr20';
+
+    var latEl = document.getElementById('pr-lat-input');
+    var lonEl = document.getElementById('pr-lon-input');
+    var areaEl = document.getElementById('pr-area-input');
+
+    var lat = latEl ? latEl.value.trim() : '';
+    var lon = lonEl ? lonEl.value.trim() : '';
+    var area = areaEl ? areaEl.value.trim() : '';
+
+    var base = method === 'swmm'
+      ? 'https://purple-roof-simulator.com/swmm-dashboard'
+      : 'https://purple-roof-simulator.com/roof-simulator';
+
+    var params = [];
+    if (lat) params.push('lat=' + encodeURIComponent(lat));
+    if (lon) params.push('lon=' + encodeURIComponent(lon));
+    if (area) params.push('area=' + encodeURIComponent(area));
+    params.push('ref=bmp-tool');
+
+    window.open(base + '?' + params.join('&'), '_blank', 'noopener,noreferrer');
+  }
+
+
   // ── Database assembly ──────────────────────────────────────────────
 
   let _database = null;
@@ -15619,11 +16118,13 @@ if (typeof window !== 'undefined') {
     if (isPlanning) {
       var planningExplanationHtml = renderSectionRecommendationExplanation(project, viable, results, targets, regProfileId, mode, sortBy, pick, basis);
       var rankedTableSales = renderRankedBmpTable(results, targets, regProfileId, mode, layout, pick);
+      var prCtaPlanning = layout !== 'report' ? renderPurpleRoofSimulatorCta(viable, project, meta) : '';
       return badge
         + renderSectionSalesCityContext(meta, project)
         + renderSectionSalesSiteInputs(project)
         + renderSectionSalesPlanningSummary(strategy, project, viable, regProfileId, sortBy)
         + renderSectionTopOptions(viable, targets, regProfileId, mode, sortBy, layout, results, pick, basis)
+        + prCtaPlanning
         + rankedTableSales
         + planningExplanationHtml
         + renderSectionObservations(project, strategy, viable, results, targets, mode)
@@ -15641,6 +16142,7 @@ if (typeof window !== 'undefined') {
     var warningsHtml = renderSectionWarnings(warnings, results, mode);
 
     var html = badge;
+    var prCtaEng = layout !== 'report' ? renderPurpleRoofSimulatorCta(viable, project, meta) : '';
 
     if (layout === 'report') {
       html += summaryCore;
@@ -15655,6 +16157,7 @@ if (typeof window !== 'undefined') {
       html += strategyHtml;
       html += roofOpportunityHtml;
       html += topOptionsHtml;
+      html += prCtaEng;
       html += explanationHtml;
       html += observationsHtml;
       html += warningsHtml;
@@ -16345,7 +16848,8 @@ if (typeof window !== 'undefined') {
     pickRecommended: pickRecommended,
     getDatabase: getDatabase,
     refreshDatabase: refreshDatabase,
-    generateReportHTML: generateReportHTML
+    generateReportHTML: generateReportHTML,
+    launchPurpleRoofSimulator: launchPurpleRoofSimulator
   };
 
 })(window);
@@ -16538,6 +17042,80 @@ if (typeof window !== 'undefined') {
   }
 
 
+  // ── User Agreement Modal ───────────────────────────────────────────
+
+  function _submitAgreementForm() {
+    try {
+      const name = (document.getElementById('ua-name') || {}).value || '';
+      const email = (document.getElementById('ua-email') || {}).value || '';
+      const org = (document.getElementById('ua-org') || {}).value || '';
+      if (!name && !email && !org) return;
+      const body = new URLSearchParams();
+      body.append('form-name', 'bmp-tool-users');
+      body.append('name', name);
+      body.append('email', email);
+      body.append('organization', org);
+      body.append('agreed_at', new Date().toISOString());
+      fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
+  function initAgreementModal() {
+    const overlay = document.getElementById('ua-overlay');
+    if (!overlay) return;
+
+    // Set footer year
+    const yearEl = document.getElementById('footer-year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    // Already accepted — keep overlay hidden
+    if (localStorage.getItem('sgBmpTermsAccepted')) {
+      overlay.hidden = true;
+      _bindReopenBtn(overlay);
+      return;
+    }
+
+    // First visit — show modal and lock scroll
+    overlay.hidden = false;
+    document.body.classList.add('ua-open');
+
+    // Focus the accept button after a short delay
+    setTimeout(() => {
+      const btn = document.getElementById('ua-btn-accept');
+      if (btn) btn.focus();
+    }, 80);
+
+    const btnAccept = document.getElementById('ua-btn-accept');
+    if (btnAccept) {
+      btnAccept.addEventListener('click', () => {
+        _submitAgreementForm();
+        localStorage.setItem('sgBmpTermsAccepted', '1');
+        overlay.hidden = true;
+        document.body.classList.remove('ua-open');
+      });
+    }
+
+    _bindReopenBtn(overlay);
+  }
+
+  function _bindReopenBtn(overlay) {
+    const btnReopen = document.getElementById('ua-reopen-btn');
+    if (btnReopen) {
+      btnReopen.addEventListener('click', () => {
+        overlay.hidden = false;
+        document.body.classList.add('ua-open');
+        overlay.scrollTop = 0;
+        const dialog = overlay.querySelector('.ua-dialog');
+        if (dialog) dialog.scrollTop = 0;
+      });
+    }
+  }
+
+
   // ── Init ───────────────────────────────────────────────────────────
 
   function init() {
@@ -16564,6 +17142,9 @@ if (typeof window !== 'undefined') {
 
     // Start auto-save
     setupAutoSave();
+
+    // Show user agreement on first visit
+    initAgreementModal();
 
     console.log('[V3] App initialized.' + (restored ? ' State restored from localStorage.' : ' Using defaults.'));
   }
