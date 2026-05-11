@@ -2991,7 +2991,7 @@ body[data-mode="planning"] #section-city-admin { display: none !important; }
 /* ── Project Summary Sections ─────────────────────────────────────── */
 
 .ps-section {
-  margin-bottom: 28px;
+  margin-bottom: 40px;
 }
 
 .ps-story-section {
@@ -3001,8 +3001,8 @@ body[data-mode="planning"] #section-city-admin { display: none !important; }
     linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.82)),
     var(--n-0);
   box-shadow: 0 18px 42px rgba(15, 23, 42, 0.055);
-  margin-bottom: 22px;
-  padding: 18px;
+  margin-bottom: 30px;
+  padding: 22px 24px;
 }
 
 .ps-story-section .ps-heading {
@@ -3172,6 +3172,125 @@ table.results-table tr.ps-row-pick {
   max-width: 280px;
 }
 
+/* ── Ranked table collapse toggle (planning mode) ─────────────────── */
+
+.ps-ranked-table-details {
+  border: 1px solid color-mix(in srgb, var(--mode-accent-border) 36%, var(--n-200));
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  overflow: hidden;
+}
+
+.ps-ranked-table-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mode-accent-text);
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.ps-ranked-table-toggle::-webkit-details-marker { display: none; }
+.ps-ranked-table-toggle::marker { display: none; }
+
+.ps-ranked-table-toggle::before {
+  content: '▸';
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.ps-ranked-table-details[open] .ps-ranked-table-toggle::before {
+  content: '▾';
+}
+
+.ps-ranked-table-toggle:hover {
+  background: color-mix(in srgb, var(--mode-accent-bg) 38%, #ffffff);
+}
+
+.ps-ranked-table-inner {
+  border-top: 1px solid color-mix(in srgb, var(--mode-accent-border) 28%, var(--n-200));
+  padding: 14px 16px 16px;
+}
+
+/* ── Note bullets in table cells ─────────────────────────────────── */
+
+.note-bullets {
+  margin: 0;
+  padding-left: 14px;
+  list-style: disc;
+}
+
+.note-bullets li {
+  font-size: 12px;
+  color: var(--n-600);
+  line-height: 1.45;
+  margin-bottom: 3px;
+}
+
+.note-bullets li:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Alt-options overflow toggle button ──────────────────────────── */
+
+.ps-alt-overflow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mode-accent-text);
+  background: color-mix(in srgb, var(--mode-accent-bg) 52%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--mode-accent-border) 44%, #cbd5e1);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ps-alt-overflow-btn::before {
+  content: '▸';
+  font-size: 10px;
+}
+
+.ps-alt-overflow-btn:hover {
+  background: color-mix(in srgb, var(--mode-accent-bg) 34%, #ffffff);
+  border-color: color-mix(in srgb, var(--mode-accent-border) 60%, #94a3b8);
+}
+
+/* ── Zone divider ────────────────────────────────────────────────── */
+
+.ps-zone-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 44px 0 36px;
+  color: var(--n-400);
+}
+
+.ps-zone-divider::before,
+.ps-zone-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--n-200);
+}
+
+.ps-zone-divider span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--n-400);
+}
+
 .ps-eng-pick-line {
   font-size: 14px;
   margin: 8px 0 12px;
@@ -3329,7 +3448,7 @@ table.results-table tr.ps-row-pick {
 
 .ps-alt-list {
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .ps-alt-pick {

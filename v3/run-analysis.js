@@ -759,22 +759,22 @@
       ? sortedResults.slice(0, PLANNING_RANKED_TABLE_ROW_CAP)
       : sortedResults;
 
-    var html = '<div class="ps-section ps-ranked-table-section">';
-    html += '<h3 class="ps-heading">' + (isPlanning ? 'Top stormwater BMPs (ranked preview)' : 'All stormwater BMPs (ranked)') + '</h3>';
+    var innerHtml = '';
+    innerHtml += '<h3 class="ps-heading">' + (isPlanning ? 'All systems ranked' : 'All stormwater BMPs (ranked)') + '</h3>';
     if (cappedPlanning) {
-      html += '<p class="ps-table-note ps-table-note-planning-cap">Showing the top ' + PLANNING_RANKED_TABLE_ROW_CAP + ' rows for the current sort. Switch to <strong>Engineering</strong> mode for the full ranked table.</p>';
+      innerHtml += '<p class="ps-table-note ps-table-note-planning-cap">Showing the top ' + PLANNING_RANKED_TABLE_ROW_CAP + ' rows for the current sort. Switch to <strong>Engineering</strong> mode for the full ranked table.</p>';
     }
-    html += '<p class="ps-table-note">Viable options appear first, then systems with warnings, then blocked rows. Estimates may still show for blocked systems when a notional layout was evaluated before rule screens.</p>';
-    html += '<div class="results-table-scroll">';
-    html += '<table class="results-table">';
-    html += '<thead><tr>';
-    html += '<th class="rank-cell">#</th><th>Status</th><th>System</th>';
-    html += '<th>Area (SF)</th><th>Ret.</th><th>Det.</th><th class="col-num">Est. total</th>';
+    innerHtml += '<p class="ps-table-note">Viable options appear first, then systems with warnings, then blocked rows. Estimates may still show for blocked systems when a notional layout was evaluated before rule screens.</p>';
+    innerHtml += '<div class="results-table-scroll">';
+    innerHtml += '<table class="results-table">';
+    innerHtml += '<thead><tr>';
+    innerHtml += '<th class="rank-cell">#</th><th>Status</th><th>System</th>';
+    innerHtml += '<th>Area (SF)</th><th>Ret.</th><th>Det.</th><th class="col-num">Est. total</th>';
     if (!isCompact) {
-      html += '<th class="col-num">$/SF direct</th><th class="col-num">$/SF sell</th><th>Role</th>';
+      innerHtml += '<th class="col-num">$/SF direct</th><th class="col-num">$/SF sell</th><th>Role</th>';
     }
-    html += '<th>Notes</th>';
-    html += '</tr></thead><tbody>';
+    innerHtml += '<th>Notes</th>';
+    innerHtml += '</tr></thead><tbody>';
 
     var pickIds = {};
     if (pick && pick.kind === 'single' && pick.single) pickIds[String(pick.single.id)] = true;
@@ -794,23 +794,41 @@
       var costStr = Number.isFinite(r.costDesigned) ? $(r.costDesigned) : '—';
       var noteParts = [];
       if (!r.isViable && r.blockers && r.blockers.length) {
-        noteParts.push('Blocked: ' + r.blockers.join('; '));
+        for (var bi = 0; bi < r.blockers.length; bi++) {
+          noteParts.push('Blocked: ' + r.blockers[bi]);
+        }
       }
-      if (r.warnings && r.warnings.length) noteParts.push(r.warnings.join('; '));
-      var notesCell = noteParts.length ? noteParts.join(' ') : '—';
+      if (r.warnings && r.warnings.length) {
+        for (var wi = 0; wi < r.warnings.length; wi++) {
+          noteParts.push(r.warnings[wi]);
+        }
+      }
 
-      html += '<tr class="' + escHtml(rowCls.trim()) + '">';
-      html += '<td class="rank-cell">' + (i + 1) + '</td>';
-      html += '<td><span class="' + escHtml(st.cls) + '">' + escHtml(st.label) + '</span></td>';
-      if (isCompact) {
-        html += '<td>' + escHtml(r.name) + '</td>';
+      var notesCellHtml;
+      if (noteParts.length === 0) {
+        notesCellHtml = '—';
+      } else if (noteParts.length === 1) {
+        notesCellHtml = escHtml(noteParts[0]);
       } else {
-        html += '<td>' + renderSystemCell(r, pr) + '</td>';
+        notesCellHtml = '<ul class="note-bullets">';
+        for (var ni = 0; ni < noteParts.length; ni++) {
+          notesCellHtml += '<li>' + escHtml(noteParts[ni]) + '</li>';
+        }
+        notesCellHtml += '</ul>';
       }
-      html += '<td>' + num(r.grossDesignedArea) + '</td>';
-      html += '<td>' + retSt + '</td>';
-      html += '<td>' + detSt + '</td>';
-      html += '<td class="col-num">' + costStr + '</td>';
+
+      innerHtml += '<tr class="' + escHtml(rowCls.trim()) + '">';
+      innerHtml += '<td class="rank-cell">' + (i + 1) + '</td>';
+      innerHtml += '<td><span class="' + escHtml(st.cls) + '">' + escHtml(st.label) + '</span></td>';
+      if (isCompact) {
+        innerHtml += '<td>' + escHtml(r.name) + '</td>';
+      } else {
+        innerHtml += '<td>' + renderSystemCell(r, pr) + '</td>';
+      }
+      innerHtml += '<td>' + num(r.grossDesignedArea) + '</td>';
+      innerHtml += '<td>' + retSt + '</td>';
+      innerHtml += '<td>' + detSt + '</td>';
+      innerHtml += '<td class="col-num">' + costStr + '</td>';
       if (!isCompact) {
         var directStr = '—';
         var sellStr = '—';
@@ -820,15 +838,26 @@
           directStr = '<span class="ps-unmapped">not mapped</span>';
           sellStr = '<span class="ps-unmapped">not mapped</span>';
         }
-        html += '<td class="col-num">' + directStr + '</td>';
-        html += '<td class="col-num">' + sellStr + '</td>';
-        html += '<td>' + escHtml(formatSystemRoleNote(r, targets)) + '</td>';
+        innerHtml += '<td class="col-num">' + directStr + '</td>';
+        innerHtml += '<td class="col-num">' + sellStr + '</td>';
+        innerHtml += '<td>' + escHtml(formatSystemRoleNote(r, targets)) + '</td>';
       }
-      html += '<td class="note-cell bmp-notes-cell">' + escHtml(notesCell) + '</td>';
-      html += '</tr>';
+      innerHtml += '<td class="note-cell bmp-notes-cell">' + notesCellHtml + '</td>';
+      innerHtml += '</tr>';
     }
 
-    html += '</tbody></table></div></div>';
+    innerHtml += '</tbody></table></div>';
+
+    var html = '<div class="ps-section ps-ranked-table-section">';
+    if (isPlanning) {
+      html += '<details class="ps-ranked-table-details">';
+      html += '<summary class="ps-ranked-table-toggle">Show ranked comparison table</summary>';
+      html += '<div class="ps-ranked-table-inner">' + innerHtml + '</div>';
+      html += '</details>';
+    } else {
+      html += innerHtml;
+    }
+    html += '</div>';
     return html;
   }
 
@@ -1725,43 +1754,61 @@
       }
 
       if (hasAnyViable) {
-        html += '<div class="ps-secondary-options-label">Next options (by table sort)</div>';
-        html += '<div class="ps-alt-list">';
-        var nextCount = 0;
+        var VISIBLE_ALT = 3;
+        var altCards = [];
         var maxNext = PLANNING_RANKED_TABLE_ROW_CAP;
-        for (var ni = 0; ni < viewPool.length && nextCount < maxNext; ni++) {
+        for (var ni = 0; ni < viewPool.length && altCards.length < maxNext; ni++) {
           var rs = viewPool[ni];
           if (pickIdObj[String(rs.id)]) continue;
-          nextCount++;
           var ps = resolvePricing(rs, regProfileId);
           var retS = targets.retentionNeeded ? pct(rs.retPct) : '—';
           var detS = targets.detentionNeeded ? pct(rs.detPct) : '—';
           var noteS = formatSystemRoleNote(rs, targets);
           var sellTotS = $(displayTotalForOpportunity(rs, ps));
           var assetS = findTechnicalAsset(rs, ps);
-          html += '<article class="ps-alt-pick ps-ranked-row">';
-          html += '<div class="ps-alt-pick-layout">';
-          html += '<div class="ps-alt-pick-main">';
-          html += '<div class="ps-alt-pick-head">';
-          html += '<div class="ps-alt-pick-rank">Option</div>';
-          html += '<div class="ps-alt-pick-total">' + sellTotS + '</div>';
-          html += '</div>';
-          html += '<div class="ps-alt-pick-system-name">' + escHtml(rs.name) + '</div>';
-          html += '<div class="ps-top-pick-metrics">';
-          html += '<span class="ps-metric-chip">Area: ' + num(rs.grossDesignedArea) + ' SF</span>';
-          html += '<span class="ps-metric-chip">Retention: ' + retS + '</span>';
-          html += '<span class="ps-metric-chip">Detention: ' + detS + '</span>';
-          html += '</div>';
-          html += '<div class="ps-top-pick-role">' + escHtml(noteS) + '</div>';
-          html += '</div>';
-          html += '<div class="ps-alt-pick-visual">' + renderAssetHero(assetS, 'Representative system profile') + '</div>';
-          html += '</div>';
-          html += '</article>';
+          var cardHtml = '<article class="ps-alt-pick ps-ranked-row">';
+          cardHtml += '<div class="ps-alt-pick-layout">';
+          cardHtml += '<div class="ps-alt-pick-main">';
+          cardHtml += '<div class="ps-alt-pick-head">';
+          cardHtml += '<div class="ps-alt-pick-rank">Option</div>';
+          cardHtml += '<div class="ps-alt-pick-total">' + sellTotS + '</div>';
+          cardHtml += '</div>';
+          cardHtml += '<div class="ps-alt-pick-system-name">' + escHtml(rs.name) + '</div>';
+          cardHtml += '<div class="ps-top-pick-metrics">';
+          cardHtml += '<span class="ps-metric-chip">Area: ' + num(rs.grossDesignedArea) + ' SF</span>';
+          cardHtml += '<span class="ps-metric-chip">Retention: ' + retS + '</span>';
+          cardHtml += '<span class="ps-metric-chip">Detention: ' + detS + '</span>';
+          cardHtml += '</div>';
+          cardHtml += '<div class="ps-top-pick-role">' + escHtml(noteS) + '</div>';
+          cardHtml += '</div>';
+          cardHtml += '<div class="ps-alt-pick-visual">' + renderAssetHero(assetS, 'Representative system profile') + '</div>';
+          cardHtml += '</div>';
+          cardHtml += '</article>';
+          altCards.push(cardHtml);
         }
-        if (nextCount === 0) {
+
+        if (altCards.length === 0) {
           html += '<p class="results-empty">No additional viable options in this filtered view.</p>';
+        } else {
+          html += '<div class="ps-secondary-options-label">Other options (by table sort)</div>';
+          html += '<div class="ps-alt-list">';
+          var visibleCards = altCards.slice(0, VISIBLE_ALT);
+          var hiddenCards = altCards.slice(VISIBLE_ALT);
+          for (var vi2 = 0; vi2 < visibleCards.length; vi2++) {
+            html += visibleCards[vi2];
+          }
+          if (hiddenCards.length > 0) {
+            var overflowId = 'ps-alt-overflow-' + Math.floor(Math.random() * 999999);
+            html += '<div class="ps-alt-overflow" id="' + overflowId + '" hidden>';
+            for (var hi = 0; hi < hiddenCards.length; hi++) {
+              html += hiddenCards[hi];
+            }
+            html += '</div>';
+            html += '<button type="button" class="ps-alt-overflow-btn" onclick="var el=document.getElementById(\'' + overflowId + '\');el.hidden=false;this.hidden=true;">'
+              + 'Show ' + hiddenCards.length + ' more option' + (hiddenCards.length === 1 ? '' : 's') + '</button>';
+          }
+          html += '</div>';
         }
-        html += '</div>';
       }
 
       html += '</div>';
@@ -2197,6 +2244,8 @@
     var badge = '<div class="mode-badge mode-badge-' + (isPlanning ? 'planning' : 'eng') + '">'
       + (isPlanning ? 'Planning Mode' : 'Engineering Mode') + '</div>';
 
+    var zoneDivider = '<div class="ps-zone-divider"><span>Reference data</span></div>';
+
     // ── Planning mode: city -> site inputs -> planning summary -> options
     if (isPlanning) {
       var planningExplanationHtml = renderSectionRecommendationExplanation(project, viable, results, targets, regProfileId, mode, sortBy, pick, basis);
@@ -2208,10 +2257,11 @@
         + renderSectionSalesPlanningSummary(strategy, project, viable, regProfileId, sortBy)
         + renderSectionTopOptions(viable, targets, regProfileId, mode, sortBy, layout, results, pick, basis)
         + prCtaPlanning
-        + rankedTableSales
         + planningExplanationHtml
         + renderSectionObservations(project, strategy, viable, results, targets, mode)
-        + renderSectionWarningsPlanning(warnings);
+        + renderSectionWarningsPlanning(warnings)
+        + zoneDivider
+        + rankedTableSales;
     }
 
     // ── Engineering: full technical stack
@@ -2241,6 +2291,7 @@
       html += roofOpportunityHtml;
       html += topOptionsHtml;
       html += prCtaEng;
+      html += zoneDivider;
       html += explanationHtml;
       html += observationsHtml;
       html += warningsHtml;
