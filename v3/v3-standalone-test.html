@@ -458,66 +458,45 @@ body[data-flow-step="home"] {
   position: sticky;
   top: calc(var(--app-header-height) + var(--sticky-shell-gap));
   z-index: 30;
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 2px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
   margin: 0 auto 30px;
-  max-width: 960px;
-  padding: 5px;
-  background: rgba(255, 255, 255, 0.96);
+  max-width: 1060px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.94);
   border: 1px solid color-mix(in srgb, var(--mode-accent-border) 36%, var(--n-200));
   border-radius: 999px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
-  backdrop-filter: blur(12px);
-  overflow: hidden;
-}
-
-/* Chevron connector between steps */
-.flow-progress-step + .flow-progress-step::before {
-  content: '';
-  display: inline-block;
-  width: 1px;
-  height: 16px;
-  background: color-mix(in srgb, var(--mode-accent-border) 38%, var(--n-200));
-  border-radius: 1px;
-  flex-shrink: 0;
-  margin-right: 2px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.085);
+  backdrop-filter: blur(10px);
 }
 
 .flow-progress-step {
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
-  color: var(--n-500);
+  color: var(--n-600);
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  flex: 0 0 auto;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  min-height: 32px;
-  padding: 5px 12px;
-  white-space: nowrap;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  min-height: 34px;
+  padding: 7px 10px;
+  text-transform: uppercase;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
 
 .flow-progress-step:hover {
-  background: color-mix(in srgb, var(--mode-accent-bg) 48%, #ffffff);
-  color: var(--mode-accent-text);
+  background: var(--n-0);
+  color: var(--n-700);
+  transform: translateY(-1px);
 }
 
 .flow-progress-step.is-active {
   background: var(--mode-accent);
   border-color: var(--mode-accent-border);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--mode-accent) 22%, transparent);
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--mode-accent) 18%, transparent);
   color: var(--n-0);
-}
-
-.flow-progress-step.is-active .step-num {
-  opacity: 0.7;
 }
 
 .flow-progress-step.is-complete {
@@ -525,16 +504,7 @@ body[data-flow-step="home"] {
 }
 
 .flow-progress-step.is-complete:not(.is-active) {
-  background: color-mix(in srgb, var(--mode-accent-bg) 46%, #ffffff);
-}
-
-.step-num {
-  font-size: 9px;
-  font-weight: 700;
-  opacity: 0.45;
-  letter-spacing: 0;
-  line-height: 1;
-  flex-shrink: 0;
+  background: color-mix(in srgb, var(--mode-accent-bg) 54%, #ffffff);
 }
 
 .flow-alert {
@@ -1718,8 +1688,7 @@ body[data-mode="engineering"] .field input[type="number"] {
   .flow-progress {
     position: static;
     border-radius: 18px;
-    flex-wrap: wrap;
-    justify-content: center;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -1765,16 +1734,10 @@ body[data-mode="engineering"] .field input[type="number"] {
   }
 
   .flow-progress {
-    flex-wrap: wrap;
-    justify-content: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     border-radius: 14px;
     position: static;
     margin-bottom: 18px;
-  }
-
-  .flow-progress-step {
-    font-size: 10px;
-    padding: 5px 9px;
   }
 
   .flow-home-grid {
@@ -4840,13 +4803,13 @@ body.ua-open { overflow: hidden; }
   <main id="app-main">
 
     <nav class="flow-progress" aria-label="Project evaluation progress">
-      <button type="button" class="flow-progress-step" data-flow-goto="home"><span class="step-num">—</span>Home</button>
-      <button type="button" class="flow-progress-step" data-flow-goto="city"><span class="step-num">1</span>Project</button>
-      <button type="button" class="flow-progress-step" data-flow-goto="city-context"><span class="step-num">2</span>Requirements</button>
-      <button type="button" class="flow-progress-step" data-flow-goto="site"><span class="step-num">3</span>Site</button>
-      <button type="button" class="flow-progress-step" data-flow-goto="conditions"><span class="step-num">4</span>Conditions</button>
-      <button type="button" class="flow-progress-step" data-flow-goto="targets"><span class="step-num">5</span>Targets</button>
-      <button type="button" class="flow-progress-step" data-flow-goto="results"><span class="step-num">6</span>Results</button>
+      <button type="button" class="flow-progress-step" data-flow-goto="home">Home</button>
+      <button type="button" class="flow-progress-step" data-flow-goto="city">Project</button>
+      <button type="button" class="flow-progress-step" data-flow-goto="city-context">Requirements</button>
+      <button type="button" class="flow-progress-step" data-flow-goto="site">Site</button>
+      <button type="button" class="flow-progress-step" data-flow-goto="conditions">Conditions</button>
+      <button type="button" class="flow-progress-step" data-flow-goto="targets">Targets</button>
+      <button type="button" class="flow-progress-step" data-flow-goto="results">Recommendation</button>
     </nav>
 
     <div id="flow-alert" class="flow-alert" role="status" aria-live="polite" hidden></div>
