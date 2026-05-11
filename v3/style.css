@@ -2271,14 +2271,44 @@ body[data-mode="engineering"] .inline-field input[type="number"] {
 /* Contracting & markup (Step 4 — Site Conditions) */
 .contracting-cost-panel {
   margin-top: var(--space-4, 20px);
-  padding-top: var(--space-4, 20px);
   border-top: 1px solid var(--n-200);
+  border-radius: 8px;
 }
 
-.contracting-cost-heading {
-  font-size: 1.05rem;
-  margin: 0 0 8px 0;
+.contracting-cost-summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--n-600);
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.contracting-cost-summary::-webkit-details-marker { display: none; }
+.contracting-cost-summary::marker { display: none; }
+
+.contracting-cost-summary::before {
+  content: '▸';
+  font-size: 10px;
+  flex-shrink: 0;
+  color: var(--n-400);
+}
+
+.contracting-cost-panel[open] .contracting-cost-summary::before {
+  content: '▾';
+}
+
+.contracting-cost-summary:hover {
   color: var(--n-800);
+}
+
+.contracting-cost-body {
+  padding-bottom: 8px;
 }
 
 .contracting-cost-lede {

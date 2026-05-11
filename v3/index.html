@@ -496,59 +496,61 @@
         </div>
       </details>
 
-      <div id="section-contracting-cost" class="contracting-cost-panel">
-        <h3 class="contracting-cost-heading">Contracting &amp; cost assumptions</h3>
-        <p class="field-hint contracting-cost-lede">By default, screening costs use a <strong>GC + specialty installer</strong> path (two compounding markups). Turn on the option below only when you expect pricing that includes a waterproofer / single-source warranty chain.</p>
-        <label class="check-label contracting-warranty-check">
-          <input type="checkbox" id="f-waterprooferEnabled">
-          <span>
-            <strong>Add for single-source warranty</strong>
-            Purchasing through a waterproofer for a coordinated warranty scope adds a compounding markup tier and increases estimated sell price.
-          </span>
-        </label>
-        <p class="markup-planning-summary" id="markup-planning-summary">Effective combined markup (screening): <strong id="markup-planning-total-value">—</strong></p>
+      <details id="section-contracting-cost" class="contracting-cost-panel">
+        <summary class="contracting-cost-summary">Contracting &amp; cost assumptions</summary>
+        <div class="contracting-cost-body">
+          <p class="field-hint contracting-cost-lede">By default, screening costs use a <strong>GC + specialty installer</strong> path (two compounding markups). Turn on the option below only when you expect pricing that includes a waterproofer / single-source warranty chain.</p>
+          <label class="check-label contracting-warranty-check">
+            <input type="checkbox" id="f-waterprooferEnabled">
+            <span>
+              <strong>Add for single-source warranty</strong>
+              Purchasing through a waterproofer for a coordinated warranty scope adds a compounding markup tier and increases estimated sell price.
+            </span>
+          </label>
+          <p class="markup-planning-summary" id="markup-planning-summary">Effective combined markup (screening): <strong id="markup-planning-total-value">—</strong></p>
 
-        <div id="markup-engineering-details" class="markup-engineering-details">
-          <h4 class="markup-advanced-heading">Markup percentages</h4>
-          <div class="markup-chain">
-            <div class="markup-tier">
-              <label for="f-installerPct">Installer</label>
-              <div class="pct-input">
-                <input type="number" id="f-installerPct" min="0" max="100" step="1" value="25">
-                <span class="pct-suffix">%</span>
+          <div id="markup-engineering-details" class="markup-engineering-details">
+            <h4 class="markup-advanced-heading">Markup percentages</h4>
+            <div class="markup-chain">
+              <div class="markup-tier">
+                <label for="f-installerPct">Installer</label>
+                <div class="pct-input">
+                  <input type="number" id="f-installerPct" min="0" max="100" step="1" value="25">
+                  <span class="pct-suffix">%</span>
+                </div>
+              </div>
+
+              <span class="markup-arrow" id="markup-arrow-1" aria-hidden="true">→</span>
+
+              <div class="markup-tier markup-tier-optional" id="tier-waterproofer">
+                <label for="f-waterprooferPct">Waterproofer <span class="hint">(when warranty tier is on)</span></label>
+                <div class="pct-input">
+                  <input type="number" id="f-waterprooferPct" min="0" max="100" step="1" value="10" disabled>
+                  <span class="pct-suffix">%</span>
+                </div>
+              </div>
+
+              <span class="markup-arrow" id="markup-arrow-2" aria-hidden="true">→</span>
+
+              <div class="markup-tier">
+                <label for="f-gcPct">GC OH&amp;P</label>
+                <div class="pct-input">
+                  <input type="number" id="f-gcPct" min="0" max="100" step="1" value="10">
+                  <span class="pct-suffix">%</span>
+                </div>
+              </div>
+
+              <span class="markup-arrow" id="markup-arrow-eq" aria-hidden="true">=</span>
+
+              <div class="markup-total" id="markup-total-display">
+                <span class="markup-total-label">Total markup</span>
+                <span class="markup-total-value" id="markup-total-value">37.5%</span>
               </div>
             </div>
-
-            <span class="markup-arrow" id="markup-arrow-1" aria-hidden="true">→</span>
-
-            <div class="markup-tier markup-tier-optional" id="tier-waterproofer">
-              <label for="f-waterprooferPct">Waterproofer <span class="hint">(when warranty tier is on)</span></label>
-              <div class="pct-input">
-                <input type="number" id="f-waterprooferPct" min="0" max="100" step="1" value="10" disabled>
-                <span class="pct-suffix">%</span>
-              </div>
-            </div>
-
-            <span class="markup-arrow" id="markup-arrow-2" aria-hidden="true">→</span>
-
-            <div class="markup-tier">
-              <label for="f-gcPct">GC OH&amp;P</label>
-              <div class="pct-input">
-                <input type="number" id="f-gcPct" min="0" max="100" step="1" value="10">
-                <span class="pct-suffix">%</span>
-              </div>
-            </div>
-
-            <span class="markup-arrow" id="markup-arrow-eq" aria-hidden="true">=</span>
-
-            <div class="markup-total" id="markup-total-display">
-              <span class="markup-total-label">Total markup</span>
-              <span class="markup-total-value" id="markup-total-value">37.5%</span>
-            </div>
+            <p class="markup-hint" id="markup-hint">2-tier: Installer → GC (compounding)</p>
           </div>
-          <p class="markup-hint" id="markup-hint">2-tier: Installer → GC (compounding)</p>
         </div>
-      </div>
+      </details>
 
       <div class="flow-step-actions">
         <button type="button" class="btn-action btn-action-file" data-flow-prev>Back</button>
