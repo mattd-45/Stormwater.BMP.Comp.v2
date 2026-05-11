@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stormwater BMP Evaluation Tool — V3</title>
+  <title>Sempergreen Stormwater Planner</title>
   <link rel="stylesheet" href="style.css">
   <!-- Google Analytics — replace G-XXXXXXXXXX with your GA4 Measurement ID -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
@@ -22,7 +22,7 @@
       <div class="ua-header">
         <img src="../images/logo-sempergreen.png" alt="Sempergreen" class="ua-logo" onerror="this.style.display='none'">
         <h2 id="ua-title" class="ua-title">Terms of Use</h2>
-        <p class="ua-subtitle">Stormwater BMP Evaluation Tool — Sempergreen USA</p>
+        <p class="ua-subtitle">Sempergreen Stormwater Planner</p>
       </div>
       <div class="ua-body">
         <p class="ua-intro">Please read the following terms before using this tool.</p>
@@ -86,7 +86,7 @@
     </div>
     <div class="header-center" id="header-center">
       <div class="header-left">
-        <h1>Stormwater BMP Evaluation Tool</h1>
+        <h1>Sempergreen Stormwater Planner</h1>
         <span class="version-badge">v3</span>
       </div>
       <div class="header-right">
@@ -121,9 +121,9 @@
     <section class="input-section flow-step flow-home-step" id="section-home" data-flow-step="home" aria-labelledby="flow-home-title">
       <div class="flow-home-grid">
         <div class="flow-home-copy">
-          <p class="flow-kicker">Conceptual BMP evaluation</p>
-          <h2 id="flow-home-title">Screen stormwater BMP options against local requirements.</h2>
-          <p class="flow-lede">Enter the jurisdiction, site conditions, target volumes, and constraints to compare feasible BMP approaches.</p>
+          <p class="flow-kicker">By Sempergreen USA</p>
+          <h2 id="flow-home-title">Find the right stormwater system for your site.</h2>
+          <p class="flow-lede">Compare Sempergreen roof systems — Purple Roof, Sponge Roof, and traditional green roofs — alongside ground-level options, evaluated against your site conditions, local requirements, and budget.</p>
           <div class="flow-home-actions">
             <button type="button" class="btn-run flow-primary-action" data-flow-next>Start Evaluation</button>
             <button type="button" class="btn-action btn-action-file" data-flow-goto="results">View Results</button>
@@ -149,6 +149,72 @@
           </div>
         </aside>
       </div>
+
+      <details class="home-systems-panel" id="home-systems-panel">
+        <summary class="home-systems-summary">
+          <span class="home-systems-summary-label">Systems at a glance</span>
+          <span class="home-systems-summary-hint">Quick reference — expand to see all stormwater systems this tool evaluates</span>
+        </summary>
+        <div class="home-systems-grid">
+          <div class="home-sys-card">
+            <div class="home-sys-img"><img src="../images/bmp-graphic-purple-veg-4-1-2.png" alt="Purple Roof Vegetated" onerror="this.parentElement.classList.add('home-sys-img-fallback')"></div>
+            <div class="home-sys-body">
+              <strong>Purple Roof (Vegetated)</strong>
+              <span>Roof detention + retention with sedum vegetation and mineral wool</span>
+            </div>
+          </div>
+          <div class="home-sys-card">
+            <div class="home-sys-img"><img src="../images/bmp-graphic-purple-paver-1-2.png" alt="Purple Roof Pavers" onerror="this.parentElement.classList.add('home-sys-img-fallback')"></div>
+            <div class="home-sys-body">
+              <strong>Purple Roof (Pavers)</strong>
+              <span>Roof detention + retention under a paver or plaza surface</span>
+            </div>
+          </div>
+          <div class="home-sys-card">
+            <div class="home-sys-img"><img src="../images/bmp-graphic-trad-green-roof-6-graphic.png" alt="Traditional Green Roof" onerror="this.parentElement.classList.add('home-sys-img-fallback')"></div>
+            <div class="home-sys-body">
+              <strong>Traditional Green Roof</strong>
+              <span>Retention via engineered growing media and vegetation</span>
+            </div>
+          </div>
+          <div class="home-sys-card">
+            <div class="home-sys-img"><img src="../images/bmp-graphic-sponge-4-2-graphic.png" alt="Sponge Roof" onerror="this.parentElement.classList.add('home-sys-img-fallback')"></div>
+            <div class="home-sys-body">
+              <strong>Sponge Roof</strong>
+              <span>Enhanced retention using a needled mineral wool retention layer</span>
+            </div>
+          </div>
+          <div class="home-sys-card">
+            <div class="home-sys-img"><img src="../images/bmp-graphic-blue-roof.png" alt="Blue Roof" onerror="this.parentElement.classList.add('home-sys-img-fallback')"></div>
+            <div class="home-sys-body">
+              <strong>Blue Roof</strong>
+              <span>On-rooftop detention cells that slowly release water to the drain</span>
+            </div>
+          </div>
+          <div class="home-sys-card">
+            <div class="home-sys-img"><img src="../images/bmp-graphic-bioretention-cell-2.jpg" alt="Bioretention Cell" onerror="this.parentElement.classList.add('home-sys-img-fallback')"></div>
+            <div class="home-sys-body">
+              <strong>Bioretention Cell</strong>
+              <span>Planted at-grade basin that filters and infiltrates stormwater</span>
+            </div>
+          </div>
+          <div class="home-sys-card">
+            <div class="home-sys-img"><img src="../images/bmp-graphic-permeable-pavers.jpg" alt="Permeable Pavers" onerror="this.parentElement.classList.add('home-sys-img-fallback')"></div>
+            <div class="home-sys-body">
+              <strong>Permeable Pavers</strong>
+              <span>Paving system that allows stormwater to infiltrate through joints</span>
+            </div>
+          </div>
+          <div class="home-sys-card">
+            <div class="home-sys-img"><img src="../images/bmp-graphic-underground-passive-cells-graphic.png" alt="Underground Passive Cells" onerror="this.parentElement.classList.add('home-sys-img-fallback')"></div>
+            <div class="home-sys-body">
+              <strong>Underground Passive Cells</strong>
+              <span>Below-grade modular storage cells for retention or detention</span>
+            </div>
+          </div>
+        </div>
+      </details>
+
     </section>
 
     <!-- Section 1: Project Info -->
@@ -313,7 +379,7 @@
     <section class="input-section flow-step" id="section-constraints" data-flow-step="conditions">
       <p class="flow-kicker">Step 4</p>
       <h2>Site Conditions</h2>
-      <p class="flow-step-intro">Select known site conditions that may limit BMP feasibility, cost, or constructability.</p>
+      <p class="flow-step-intro">Select known site conditions that may limit system feasibility, cost, or constructability.</p>
       <div class="form-grid">
         <div class="field full-width">
           <label for="f-soilType">Native soil (infiltration)</label>
@@ -325,7 +391,7 @@
             <option value="sand">Sand</option>
             <option value="rock">Rock / Shallow Bedrock</option>
           </select>
-          <p class="field-hint">Low-permeability soils, such as clay, can limit infiltration-dependent BMPs including bioretention at grade and passive underground cells.</p>
+          <p class="field-hint">Low-permeability soils, such as clay, can limit infiltration-dependent systems including bioretention at grade and passive underground cells.</p>
         </div>
       </div>
       <details class="flow-collapsible-panel">
@@ -335,7 +401,7 @@
             <input type="checkbox" id="f-hasUndergroundUtilities" data-path="constraints.hasUndergroundUtilities">
             <span>
               <strong>Underground utilities</strong>
-              Blocks subsurface BMPs (bioretention, underground cells/tanks)
+              Blocks subsurface systems (bioretention, underground cells/tanks)
             </span>
             <span class="constraint-popup constraint-popup--portrait" aria-hidden="true">
               <img src="../images/image-constraint-underground-utilities.gif" alt="">
@@ -345,7 +411,7 @@
             <input type="checkbox" id="f-hasHighWaterTable" data-path="constraints.hasHighWaterTable">
             <span>
               <strong>High water table</strong>
-              Blocks subsurface infiltration BMPs (bioretention, underground cells/tanks)
+              Blocks subsurface infiltration systems (bioretention, underground cells/tanks)
             </span>
             <span class="constraint-popup constraint-popup--landscape" aria-hidden="true">
               <img src="../images/image-constraint-high-water.jpg" alt="">
@@ -365,7 +431,7 @@
             <input type="checkbox" id="f-hasSiteGradingConstraint" data-path="constraints.hasSiteGradingConstraint">
             <span>
               <strong>Site grading constraint</strong>
-              Warning — underground BMPs limited to low point of site
+              Warning — underground systems limited to low point of site
             </span>
             <span class="constraint-popup constraint-popup--portrait" aria-hidden="true">
               <img src="../images/image-constraint-grading.jpg" alt="">
@@ -387,12 +453,12 @@
       </details>
 
       <details class="flow-collapsible-panel">
-        <summary>Ground BMP footprint vs programming or revenue</summary>
+        <summary>Ground system footprint vs programming or revenue</summary>
         <div class="checkbox-group">
           <label class="check-label">
             <input type="checkbox" id="f-programmableSpaceHighValue" data-path="assumptions.programmableSpaceIsHighValue">
             <span>
-              <strong>Area needed for at-grade BMP could be used for programming or revenue instead</strong>
+              <strong>Area needed for at-grade system could be used for programming or revenue instead</strong>
               Check this when the footprint for a pond, tank, bioretention, or similar would displace high-value uses (amenity space, retail frontage, leaseable area, parking, and similar).
             </span>
           </label>
@@ -463,7 +529,7 @@
     <section class="input-section flow-step" id="section-targets" data-flow-step="targets">
       <p class="flow-kicker">Step 5</p>
       <h2>Stormwater Targets</h2>
-      <p class="flow-step-intro">Enter the required retention and detention volumes, then run the BMP screening.</p>
+      <p class="flow-step-intro">Enter the required retention and detention volumes, then run the system comparison.</p>
       <div class="target-group">
         <div class="target-row">
           <label class="check-label inline">
