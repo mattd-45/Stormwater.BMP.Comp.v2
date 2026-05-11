@@ -4471,13 +4471,40 @@ body.ua-open { overflow: hidden; }
   font-size: 0.8rem;
 }
 
+.home-systems-site-diagram {
+  margin: 0;
+  border-left: 1px solid color-mix(in srgb, var(--mode-accent-border) 40%, var(--n-200));
+  border-right: 1px solid color-mix(in srgb, var(--mode-accent-border) 40%, var(--n-200));
+  background: var(--n-50);
+  overflow: hidden;
+  line-height: 0;
+}
+
+.home-systems-site-diagram img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 380px;
+  object-fit: contain;
+  background: var(--n-50);
+}
+
+.home-systems-site-diagram figcaption {
+  background: rgba(255,255,255,0.82);
+  border-top: 1px solid color-mix(in srgb, var(--mode-accent-border) 30%, var(--n-200));
+  color: var(--n-500);
+  font-size: 0.72rem;
+  line-height: 1;
+  padding: 6px 14px;
+  text-align: center;
+}
+
 .home-systems-grid {
   border: 1px solid color-mix(in srgb, var(--mode-accent-border) 40%, var(--n-200));
   border-top: none;
   border-radius: 0 0 12px 12px;
   background: rgba(255, 255, 255, 0.72);
   display: grid;
-  gap: 1px;
   grid-template-columns: repeat(4, 1fr);
   overflow: hidden;
   padding: 16px;
