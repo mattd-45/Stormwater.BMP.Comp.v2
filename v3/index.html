@@ -81,25 +81,24 @@
 
   <!-- ── Header ─────────────────────────────────────────────────────── -->
   <header id="app-header">
-    <div class="header-side header-side-left" aria-label="Sempergreen logo">
-      <img src="../images/logo-sempergreen.png" alt="Sempergreen logo" class="header-brand-logo header-brand-logo-sempergreen" onerror="this.style.display='none'">
+    <div class="header-side header-side-left" aria-label="Brand logos">
+      <img src="../images/logo-sempergreen.png" alt="Sempergreen USA logo" class="header-brand-logo header-brand-logo-sempergreen" onerror="this.style.display='none'">
+      <span class="header-logo-divider" aria-hidden="true"></span>
+      <img src="../images/logo-lbg-transparent.png" alt="LBG logo" class="header-brand-logo header-brand-logo-lbg" onerror="this.style.display='none'">
     </div>
     <div class="header-center" id="header-center">
       <div class="header-left">
         <h1>Sempergreen Stormwater Planner</h1>
-        <span class="version-badge">v3</span>
       </div>
       <div class="header-right">
         <button type="button" id="btn-toggle-debug" class="btn-debug-toggle" hidden aria-expanded="false" aria-controls="debug-panel-container">Show Debug Data</button>
         <a href="https://sempergreen-usa-resource-portal.netlify.app/" target="_blank" rel="noopener noreferrer" id="btn-open-resources" class="btn-resource-page" aria-label="Open resources page">Resources</a>
+        <span class="header-ctrl-divider" aria-hidden="true"></span>
         <div class="mode-toggle" id="mode-toggle">
           <button class="mode-btn active" data-mode="planning">Planning</button>
           <button class="mode-btn" data-mode="engineering">Engineering</button>
         </div>
       </div>
-    </div>
-    <div class="header-side header-side-right" aria-label="LBG logo">
-      <img src="../images/logo-lbg-transparent.png" alt="LBG logo" class="header-brand-logo header-brand-logo-lbg" onerror="this.style.display='none'">
     </div>
   </header>
 
@@ -108,8 +107,8 @@
 
     <nav class="flow-progress" aria-label="Project evaluation progress">
       <button type="button" class="flow-progress-step" data-flow-goto="home">Home</button>
-      <button type="button" class="flow-progress-step" data-flow-goto="city">Project information</button>
-      <button type="button" class="flow-progress-step" data-flow-goto="city-context">Local Requirements</button>
+      <button type="button" class="flow-progress-step" data-flow-goto="city">Project</button>
+      <button type="button" class="flow-progress-step" data-flow-goto="city-context">Requirements</button>
       <button type="button" class="flow-progress-step" data-flow-goto="site">Site</button>
       <button type="button" class="flow-progress-step" data-flow-goto="conditions">Conditions</button>
       <button type="button" class="flow-progress-step" data-flow-goto="targets">Targets</button>
