@@ -41,114 +41,996 @@
 
   // ── Purple Roof Simulator integration ─────────────────────────────
 
-  var _PURPLE_ROOF_BMP_IDS = ['10', '10B', '11', '11B'];
+  var _PURPLE_ROOF_BMP_IDS = ['10', '10B', '10C', '10D', '11', '11B', '11C', '11D'];
+  var _PURPLE_VEG_PICK_IDS = ['10', '10B', '10C', '10D'];
+
+  var _lastViableResults = [];
+
+  // Static TR-20 defaults aligned with purple-roof-simulator.com roof-simulator.html handoff.
+  // See INTEGRATION.md for param meanings.
+  /** Default drainbox count: one per this many SF of total roof / on-structure area. */
+  var PURPLE_ROOF_DRAINBOX_SF_PER_UNIT = 1500;
+
+  var PURPLE_ROOF_SIMULATOR_DEFAULTS = {
+    th: 'l',
+    cf: 1000,
+    pv: 0,
+    tc: 6,
+    sp: 0.53,
+    wp: 0.93,
+    hp: 0.95,
+    nb: 5,
+    bw: 24,
+    oh: 0.2,
+    oc: 0.07,
+    st: 3.5,
+    du: 24,
+    ca: 120,
+    cb: 13,
+    cc: 0.786,
+    cr: 0.35,
+    ch: 2,
+    rain: 0,
+    ds: 't2'
+  };
+
+  // Assembly presets: BMP ID → layer depths (in) and porosities for sd/wd/hd/sp/wp/hp.
+  // Extend when new Purple Roof assemblies are added to bmp-options.js.
+  var ASSEMBLY_PRESETS = {
+    '10':  { sd: 4, wd: 1, hd: 2, sp: 0.53, wp: 0.93, hp: 0.95 },
+    '10C': { sd: 4, wd: 1, hd: 1, sp: 0.53, wp: 0.93, hp: 0.95 },
+    '10D': { sd: 4, wd: 1, hd: 3, sp: 0.53, wp: 0.93, hp: 0.95 },
+    '10B': { sd: 4, wd: 1, hd: 4, sp: 0.53, wp: 0.93, hp: 0.95 },
+    '11':  { sd: 0, wd: 1, hd: 2, sp: 0.53, wp: 0.93, hp: 0.95 },
+    '11C': { sd: 0, wd: 1, hd: 1, sp: 0.53, wp: 0.93, hp: 0.95 },
+    '11D': { sd: 0, wd: 1, hd: 3, sp: 0.53, wp: 0.93, hp: 0.95 },
+    '11B': { sd: 0, wd: 1, hd: 4, sp: 0.53, wp: 0.93, hp: 0.95 }
+  };
 
   function _isPurpleRoofId(id) {
     return _PURPLE_ROOF_BMP_IDS.indexOf(String(id)) !== -1;
   }
 
-  function renderPurpleRoofSimulatorCta(viable, project, meta) {
+  // Pure function — no DOM, no side effects.
+  // Returns the full URL string for the TR-20 Purple Roof Simulator handoff.
+  // opts.greenRoofAreaSqFt (gr) required; roofAreaSqFt accepted as alias for gr.
+  function buildPurpleRoofSimulatorUrl(opts) {
+    opts = opts || {};
+    var lat = opts.lat;
+    var lon = opts.lon;
+    var gr = opts.greenRoofAreaSqFt != null ? opts.greenRoofAreaSqFt : opts.roofAreaSqFt;
+    var cf = opts.contributingAreaSqFt != null ? opts.contributingAreaSqFt : PURPLE_ROOF_SIMULATOR_DEFAULTS.cf;
+    var pv = opts.paverAreaSqFt != null ? opts.paverAreaSqFt : PURPLE_ROOF_SIMULATOR_DEFAULTS.pv;
+    var assemblyId = opts.assemblyId;
+    var projectName = opts.projectName || '';
+    var drainboxCount = opts.drainboxCount != null
+      ? opts.drainboxCount
+      : PURPLE_ROOF_SIMULATOR_DEFAULTS.nb;
+    var orificeWidthIn = opts.orificeWidthIn != null
+      ? opts.orificeWidthIn
+      : PURPLE_ROOF_SIMULATOR_DEFAULTS.bw;
+
+    var preset = ASSEMBLY_PRESETS[String(assemblyId)] || null;
+    var params = new URLSearchParams();
+
+    Object.keys(PURPLE_ROOF_SIMULATOR_DEFAULTS).forEach(function (key) {
+      params.set(key, String(PURPLE_ROOF_SIMULATOR_DEFAULTS[key]));
+    });
+
+    params.set('lat', Number(lat).toFixed(6));
+    params.set('lon', Number(lon).toFixed(6));
+    params.set('gr', String(Math.round(gr)));
+    params.set('cf', String(Math.round(cf)));
+    params.set('pv', String(Math.round(pv)));
+    params.set('nb', String(Math.round(drainboxCount)));
+    params.set('bw', String(orificeWidthIn));
+
+    if (opts.timeOfConcentrationMin != null) {
+      params.set('tc', String(opts.timeOfConcentrationMin));
+    }
+
+    var layer = opts.layerProfile || preset;
+    if (layer) {
+      params.set('sd', String(layer.sd != null ? layer.sd : 0));
+      params.set('wd', String(layer.wd != null ? layer.wd : 0));
+      params.set('hd', String(layer.hd != null ? layer.hd : 0));
+      params.set('sp', String(layer.sp != null ? layer.sp : PURPLE_ROOF_SIMULATOR_DEFAULTS.sp));
+      params.set('wp', String(layer.wp != null ? layer.wp : PURPLE_ROOF_SIMULATOR_DEFAULTS.wp));
+      params.set('hp', String(layer.hp != null ? layer.hp : PURPLE_ROOF_SIMULATOR_DEFAULTS.hp));
+    }
+
+    if (projectName) {
+      params.set('pn', String(projectName).slice(0, 100));
+    } else {
+      params.delete('pn');
+    }
+
+    return 'https://purple-roof-simulator.com/roof-simulator.html?' + params.toString();
+  }
+
+  function getPurpleRoofLayerPreset(assemblyId) {
+    return ASSEMBLY_PRESETS[String(assemblyId)] || {
+      sd: 4, wd: 1, hd: 2, sp: 0.53, wp: 0.93, hp: 0.95
+    };
+  }
+
+  var PURPLE_VEG_HC_STEPS = [1, 2, 3, 4];
+  var PURPLE_VEG_NMW_STEPS = [1, 2];
+  var PURPLE_VEG_SOIL_STEPS = [4];
+  var PURPLE_PAV_HC_STEPS = [1, 2, 3, 4];
+  var SPONGE_NMW_STEPS = [1, 2];
+  var SPONGE_SOIL_STEPS = [3, 4, 5, 6];
+
+  var _prDepthSyncTimer = null;
+
+  function getEngineStormwater() {
+    return global.EngineStormwater || null;
+  }
+
+  function interpolatePurpleVegUnitPrice(hcDepth) {
+    var hd = Number(hcDepth) || 2;
+    return 35.87 + (43.72 - 35.87) * ((hd - 2) / 2);
+  }
+
+  function interpolatePurplePavUnitPrice(hcDepth) {
+    var hd = Number(hcDepth) || 2;
+    return 38.79 + (47.47 - 38.79) * ((hd - 2) / 2);
+  }
+
+  function interpolateSpongeUnitPrice(nmwDepth, soilDepth) {
+    var base = 28.39;
+    var nmw = Number(nmwDepth) || 2;
+    var soil = Number(soilDepth) || 4;
+    return base + (nmw - 2) * 1.2 + (soil - 4) * 0.8;
+  }
+
+  function formatVegetatedAssemblyLabel(sd, wd, hd) {
+    return String(sd) + '+' + String(wd) + '+' + String(hd);
+  }
+
+  function formatPaverAssemblyLabel(wd, hd) {
+    return 'P+' + String(wd) + '+' + String(hd);
+  }
+
+  function purpleVegDisplayName(sd, wd, hd) {
+    return 'Purple-Roof (Vegetated) ' + formatVegetatedAssemblyLabel(sd, wd, hd);
+  }
+
+  function purplePavDisplayName(wd, hd) {
+    return 'Purple-Roof (Pavers) ' + formatPaverAssemblyLabel(wd, hd);
+  }
+
+  function spongeDisplayName(sd, wd) {
+    return 'Sponge Roof ' + String(sd) + '+' + String(wd);
+  }
+
+  function nearestPurpleVegAssemblyId(hd) {
+    var h = Number(hd) || 2;
+    if (h <= 1) return '10C';
+    if (h === 2) return '10';
+    if (h === 3) return '10D';
+    return '10B';
+  }
+
+  function nearestPurplePavAssemblyId(hd) {
+    var h = Number(hd) || 2;
+    if (h <= 1) return '11C';
+    if (h === 2) return '11';
+    if (h === 3) return '11D';
+    return '11B';
+  }
+
+  function buildLayerProfileFromDepths(sd, wd, hd, isPaver) {
+    var base = getPurpleRoofLayerPreset(isPaver ? nearestPurplePavAssemblyId(hd) : nearestPurpleVegAssemblyId(hd));
+    return {
+      sd: isPaver ? 0 : sd,
+      wd: wd,
+      hd: hd,
+      sp: base.sp,
+      wp: base.wp,
+      hp: base.hp
+    };
+  }
+
+  function engineInputsFromProject(project, database) {
+    var adapted = typeof adaptV3ToEngine === 'function' ? adaptV3ToEngine(project) : null;
+    if (!adapted || !adapted.project || !adapted.project.inputs) return null;
+    var inp = adapted.project.inputs;
+    var cityKey = project.site && project.site.cityKey;
+    var cityRules = database.cityRulesByCityKey && database.cityRulesByCityKey[cityKey];
+    return {
+      v1: {
+        flatDeckOnStructureArea: Number(inp.areas.flatDeckOnStructureArea) || 0,
+        slopedRoofArea: Number(inp.areas.slopedRoofArea) || 0,
+        paversOnStructureArea: Number(inp.areas.paversOnStructureArea) || 0,
+        targetRetentionCF: inp.targets.retentionNeeded ? (Number(inp.targets.retentionCF) || 0) : 0,
+        targetDetentionCF: inp.targets.detentionNeeded ? (Number(inp.targets.detentionCF) || 0) : 0,
+        retentionNeeded: !!inp.targets.retentionNeeded,
+        detentionNeeded: !!inp.targets.detentionNeeded
+      },
+      profile: cityRules ? cityRules.profile : null,
+      profileId: (database.cityConfigs && database.cityConfigs[cityKey] && database.cityConfigs[cityKey].regulationProfileId) || 'general'
+    };
+  }
+
+  function evaluateBmpAtLayerDepths(bmpId, layerDepths, project, database) {
+    var eng = getEngineStormwater();
+    if (!eng || !database) return null;
+    var ctx = engineInputsFromProject(project, database);
+    if (!ctx || !ctx.profile) return null;
+    var bmpOpt = null;
+    var opts = database.bmpOptions || [];
+    for (var i = 0; i < opts.length; i++) {
+      if (String(opts[i].id) === String(bmpId)) {
+        bmpOpt = opts[i];
+        break;
+      }
+    }
+    if (!bmpOpt) return null;
+
+    var specPatch = {};
+    var isPav = eng.isPurplePavBmpId(bmpId);
+    var isVeg = eng.isPurpleVegBmpId(bmpId);
+    var isSponge = String(bmpId) === '9';
+
+    if (isVeg) {
+      specPatch = {
+        soilDepth: layerDepths.sd,
+        nmwDepth: layerDepths.wd,
+        hcDepth: layerDepths.hd,
+        soilPorosity: 0.20,
+        nmwPorosity: 0.93,
+        nmwRetentionPct: 0.40,
+        hcVoidRatio: 0.95,
+        dlDepth: 0.2,
+        dlPorosity: 0.93
+      };
+    } else if (isPav) {
+      specPatch = {
+        hcDepth: layerDepths.hd,
+        nmwDepth: layerDepths.wd,
+        hcVoidRatio: 0.95,
+        nmwRetentionPct: 0.40
+      };
+    } else if (isSponge) {
+      specPatch = {
+        mediaDepth: layerDepths.sd,
+        soilDepth: layerDepths.sd,
+        nmwDepth: layerDepths.wd,
+        soilPorosity: 0.20,
+        nmwRetentionPct: 0.40
+      };
+    } else {
+      return null;
+    }
+
+    var unitPrice = layerDepths.unitPrice;
+    if (unitPrice == null) {
+      if (isVeg) unitPrice = interpolatePurpleVegUnitPrice(layerDepths.hd);
+      else if (isPav) unitPrice = interpolatePurplePavUnitPrice(layerDepths.hd);
+      else if (isSponge) unitPrice = interpolateSpongeUnitPrice(layerDepths.wd, layerDepths.sd);
+      else unitPrice = bmpOpt.unitPrice;
+    }
+
+    var overrides = {};
+    overrides[bmpId] = { specs: specPatch, unitPrice: unitPrice };
+    var fullSpec = eng.getSpec(opts, bmpId, overrides);
+    var capacity = eng.calculateCapacity(bmpId, fullSpec, ctx.profile);
+    var v1 = ctx.v1;
+    var eligible = eng.getEligibleArea(bmpOpt, v1);
+    var packingFactor = (fullSpec.specs && fullSpec.specs.packingFactor != null) ? fullSpec.specs.packingFactor : 1;
+    var minAreaSF = (fullSpec.specs && fullSpec.specs.minAreaSF != null) ? fullSpec.specs.minAreaSF : 0;
+    var retCap = capacity.cfRetPerSf || 0;
+    var detCap = capacity.cfDetPerSf || 0;
+    var R = v1.targetRetentionCF;
+    var D = v1.targetDetentionCF;
+    var A_ret = R > 0 && retCap > 0 ? R / retCap : Infinity;
+    var A_det = D > 0 && detCap > 0 ? D / detCap : Infinity;
+    var finiteReqs = [A_ret, A_det].filter(function (v) { return Number.isFinite(v) && v > 0; });
+    var designRequired = finiteReqs.length ? Math.max.apply(null, finiteReqs) : Infinity;
+    var A_effectiveEligible = eligible * packingFactor;
+    var A_used = 0;
+    if (A_effectiveEligible > 0 && Number.isFinite(designRequired)) {
+      var baseArea = Math.max(designRequired || 0, minAreaSF || 0);
+      A_used = Math.min(Math.ceil(baseArea), Math.ceil(A_effectiveEligible));
+    }
+    var R_provided = A_used * retCap;
+    var D_provided = A_used * detCap;
+    var retPct = R > 0 ? Math.round((R_provided / R) * 100) : (retCap > 0 ? 100 : 0);
+    var detPct = D > 0 ? Math.round((D_provided / D) * 100) : (detCap > 0 ? 100 : 0);
+    var costDesigned = A_used * unitPrice;
+    return {
+      retPct: retPct,
+      detPct: detPct,
+      costDesigned: costDesigned,
+      grossDesignedArea: A_used,
+      retCap: retCap,
+      detCap: detCap,
+      unitPrice: unitPrice,
+      layerProfile: buildLayerProfileFromDepths(layerDepths.sd, layerDepths.wd, layerDepths.hd, isPav)
+    };
+  }
+
+  function optimizePurpleVegetatedLayers(baseRow, project, database) {
+    var targets = project.targets || {};
+    var detNeeded = !!targets.detentionNeeded;
+    var retNeeded = !!targets.retentionNeeded;
+    var candidates = [];
+    var hi, wi, si;
+    for (hi = 0; hi < PURPLE_VEG_HC_STEPS.length; hi++) {
+      for (wi = 0; wi < PURPLE_VEG_NMW_STEPS.length; wi++) {
+        for (si = 0; si < PURPLE_VEG_SOIL_STEPS.length; si++) {
+          var hd = PURPLE_VEG_HC_STEPS[hi];
+          var wd = PURPLE_VEG_NMW_STEPS[wi];
+          var sd = PURPLE_VEG_SOIL_STEPS[si];
+          var ev = evaluateBmpAtLayerDepths('10', { sd: sd, wd: wd, hd: hd }, project, database);
+          if (!ev || ev.grossDesignedArea <= 0) continue;
+          if (detNeeded && ev.detPct < 100) continue;
+          candidates.push({
+            sd: sd, wd: wd, hd: hd,
+            eval: ev,
+            assemblyId: nearestPurpleVegAssemblyId(hd)
+          });
+        }
+      }
+    }
+    if (candidates.length === 0) return null;
+    var standard412 = [];
+    for (var pi = 0; pi < candidates.length; pi++) {
+      if (candidates[pi].sd === 4 && candidates[pi].wd === 1 && candidates[pi].hd === 2) {
+        standard412.push(candidates[pi]);
+      }
+    }
+    var pool = standard412.length > 0 ? standard412 : candidates;
+    pool.sort(function (a, b) {
+      if (a.hd !== b.hd) return a.hd - b.hd;
+      if (a.wd !== b.wd) return a.wd - b.wd;
+      if (retNeeded && b.eval.retPct !== a.eval.retPct) return b.eval.retPct - a.eval.retPct;
+      return a.eval.costDesigned - b.eval.costDesigned;
+    });
+    var best = pool[0];
+    return {
+      sd: best.sd,
+      wd: best.wd,
+      hd: best.hd,
+      assemblyId: best.assemblyId,
+      layerProfile: best.eval.layerProfile,
+      displayName: purpleVegDisplayName(best.sd, best.wd, best.hd),
+      retPct: best.eval.retPct,
+      detPct: best.eval.detPct,
+      costDesigned: best.eval.costDesigned,
+      grossDesignedArea: best.eval.grossDesignedArea,
+      rightSized: true
+    };
+  }
+
+  function optimizePurplePaverLayers(baseRow, project, database) {
+    var targets = project.targets || {};
+    var detNeeded = !!targets.detentionNeeded;
+    var retNeeded = !!targets.retentionNeeded;
+    var candidates = [];
+    var hi, wi;
+    for (hi = 0; hi < PURPLE_PAV_HC_STEPS.length; hi++) {
+      for (wi = 0; wi < PURPLE_VEG_NMW_STEPS.length; wi++) {
+        var hd = PURPLE_PAV_HC_STEPS[hi];
+        var wd = PURPLE_VEG_NMW_STEPS[wi];
+        var ev = evaluateBmpAtLayerDepths('11', { sd: 0, wd: wd, hd: hd }, project, database);
+        if (!ev || ev.grossDesignedArea <= 0) continue;
+        if (detNeeded && ev.detPct < 100) continue;
+        candidates.push({
+          wd: wd, hd: hd, eval: ev,
+          assemblyId: nearestPurplePavAssemblyId(hd)
+        });
+      }
+    }
+    if (candidates.length === 0) return null;
+    var standardP12 = [];
+    for (var pj = 0; pj < candidates.length; pj++) {
+      if (candidates[pj].wd === 1 && candidates[pj].hd === 2) standardP12.push(candidates[pj]);
+    }
+    var poolP = standardP12.length > 0 ? standardP12 : candidates;
+    poolP.sort(function (a, b) {
+      if (a.hd !== b.hd) return a.hd - b.hd;
+      if (retNeeded && b.eval.retPct !== a.eval.retPct) return b.eval.retPct - a.eval.retPct;
+      return a.eval.costDesigned - b.eval.costDesigned;
+    });
+    var best = poolP[0];
+    return {
+      sd: 0,
+      wd: best.wd,
+      hd: best.hd,
+      assemblyId: best.assemblyId,
+      layerProfile: best.eval.layerProfile,
+      displayName: purplePavDisplayName(best.wd, best.hd),
+      retPct: best.eval.retPct,
+      detPct: best.eval.detPct,
+      costDesigned: best.eval.costDesigned,
+      grossDesignedArea: best.eval.grossDesignedArea,
+      rightSized: true
+    };
+  }
+
+  function optimizeSpongeLayers(baseRow, project, database) {
+    var targets = project.targets || {};
+    var retNeeded = !!targets.retentionNeeded;
+    var candidates = [];
+    var si, wi;
+    for (si = 0; si < SPONGE_SOIL_STEPS.length; si++) {
+      for (wi = 0; wi < SPONGE_NMW_STEPS.length; wi++) {
+        var sd = SPONGE_SOIL_STEPS[si];
+        var wd = SPONGE_NMW_STEPS[wi];
+        var ev = evaluateBmpAtLayerDepths('9', { sd: sd, wd: wd, hd: 0 }, project, database);
+        if (!ev || ev.grossDesignedArea <= 0) continue;
+        candidates.push({ sd: sd, wd: wd, eval: ev });
+      }
+    }
+    if (candidates.length === 0) return null;
+    candidates.sort(function (a, b) {
+      if (retNeeded && b.eval.retPct !== a.eval.retPct) return b.eval.retPct - a.eval.retPct;
+      if (a.eval.costDesigned !== b.eval.costDesigned) return a.eval.costDesigned - b.eval.costDesigned;
+      return a.wd - b.wd;
+    });
+    var best = candidates[0];
+    return {
+      sd: best.sd,
+      wd: best.wd,
+      hd: 0,
+      assemblyId: '9',
+      layerProfile: null,
+      displayName: spongeDisplayName(best.sd, best.wd),
+      retPct: best.eval.retPct,
+      detPct: best.eval.detPct,
+      costDesigned: best.eval.costDesigned,
+      grossDesignedArea: best.eval.grossDesignedArea,
+      rightSized: true
+    };
+  }
+
+  function applyLayerOptimizationToSingle(single, project, database) {
+    if (!single || !single.isViable) return;
+    var eng = getEngineStormwater();
+    if (!eng) return;
+    var settings = (project && project.settings) || {};
+    var savedHandoff = settings.purpleRoofHandoff || {};
+    var isEngineering = settings.mode === 'engineering';
+    var id = String(single.id);
+    if (isEngineering && _isPurpleRoofId(id)
+        && savedHandoff.soilDepthIn != null && savedHandoff.mineralWoolDepthIn != null
+        && savedHandoff.honeycombDepthIn != null) {
+      var sd = Math.round(Number(savedHandoff.soilDepthIn));
+      var wd = Math.round(Number(savedHandoff.mineralWoolDepthIn));
+      var hd = Math.round(Number(savedHandoff.honeycombDepthIn));
+      var ev = evaluateBmpAtLayerDepths(
+        id,
+        { sd: eng.isPurplePavBmpId(id) ? 0 : sd, wd: wd, hd: hd },
+        project,
+        database
+      );
+      if (ev) {
+        single.layerDepths = { sd: sd, wd: wd, hd: hd };
+        single.layerProfile = buildLayerProfileFromDepths(sd, wd, hd, eng.isPurplePavBmpId(id));
+        single.displayName = eng.isPurplePavBmpId(id)
+          ? purplePavDisplayName(wd, hd)
+          : purpleVegDisplayName(sd, wd, hd);
+        single.retPct = ev.retPct;
+        single.detPct = ev.detPct;
+        single.costDesigned = ev.costDesigned;
+        single.grossDesignedArea = ev.grossDesignedArea;
+        single.rightSizedLayers = false;
+        single.optimizedAssemblyId = eng.isPurplePavBmpId(id)
+          ? nearestPurplePavAssemblyId(hd)
+          : nearestPurpleVegAssemblyId(hd);
+        return;
+      }
+    }
+    var opt = null;
+    if (eng.isPurpleVegBmpId(id)) {
+      opt = optimizePurpleVegetatedLayers(single, project, database);
+    } else if (eng.isPurplePavBmpId(id)) {
+      opt = optimizePurplePaverLayers(single, project, database);
+    } else if (id === '9') {
+      opt = optimizeSpongeLayers(single, project, database);
+    }
+    if (!opt) return;
+    single.displayName = opt.displayName;
+    single.layerProfile = opt.layerProfile;
+    single.optimizedAssemblyId = opt.assemblyId;
+    single.layerDepths = { sd: opt.sd, wd: opt.wd, hd: opt.hd };
+    single.rightSizedLayers = !!opt.rightSized;
+    if (Number.isFinite(opt.retPct)) single.retPct = opt.retPct;
+    if (Number.isFinite(opt.detPct)) single.detPct = opt.detPct;
+    if (Number.isFinite(opt.costDesigned)) single.costDesigned = opt.costDesigned;
+    if (Number.isFinite(opt.grossDesignedArea)) single.grossDesignedArea = opt.grossDesignedArea;
+  }
+
+  function enrichPickWithLayerOptimization(pick, project, database) {
+    if (!pick || pick.kind !== 'single' || !pick.single) return pick;
+    applyLayerOptimizationToSingle(pick.single, project, database);
+    return pick;
+  }
+
+  function getPickDisplayName(single) {
+    if (!single) return '';
+    return single.displayName || single.name || '';
+  }
+
+  function formatLayerStackCaption(single) {
+    if (!single || !single.layerDepths) return 'Representative system profile';
+    var d = single.layerDepths;
+    var eng = getEngineStormwater();
+    if (eng && eng.isPurplePavBmpId(single.id)) {
+      return 'Layer stack — ' + formatPaverAssemblyLabel(d.wd, d.hd);
+    }
+    if (String(single.id) === '9') {
+      return 'Layer stack — ' + String(d.sd) + '+' + String(d.wd);
+    }
+    return 'Layer stack — ' + formatVegetatedAssemblyLabel(d.sd, d.wd, d.hd);
+  }
+
+  function renderAssemblyLayerStackNote(pick, mode) {
+    if (!pick || pick.kind !== 'single' || !pick.single) return '';
+    var s = pick.single;
+    var depths = s.layerDepths;
+    if (!depths && s.layerProfile) {
+      depths = { sd: s.layerProfile.sd, wd: s.layerProfile.wd, hd: s.layerProfile.hd };
+    }
+    if (!depths) return '';
+    var parts = [];
+    var eng = getEngineStormwater();
+    if (eng && eng.isPurplePavBmpId(s.id)) {
+      if (depths.wd > 0) parts.push('Mineral wool ' + depths.wd + '"');
+      if (depths.hd > 0) parts.push('Honeycomb ' + depths.hd + '"');
+    } else if (String(s.id) === '9') {
+      if (depths.sd > 0) parts.push('Media ' + depths.sd + '"');
+      if (depths.wd > 0) parts.push('Mineral wool ' + depths.wd + '"');
+      parts.push('No honeycomb (retention-focused)');
+    } else {
+      if (depths.sd > 0) parts.push('Media ' + depths.sd + '"');
+      if (depths.wd > 0) parts.push('Mineral wool ' + depths.wd + '"');
+      if (depths.hd > 0) parts.push('Honeycomb ' + depths.hd + '"');
+    }
+    if (parts.length === 0) return '';
+    var html = '<p class="ps-layer-stack">' + escHtml(parts.join(' · ')) + '</p>';
+    if (s.rightSizedLayers) {
+      html += '<p class="ps-layer-stack-note">Right-sized for this site'
+        + (mode === 'engineering' ? ' — adjust depths below or in the Purple Roof Simulator.' : ' — depths can be refined in Engineering and the Purple Roof Simulator.')
+        + '</p>';
+    }
+    return html;
+  }
+
+  function renderPlanningLayerTailoringNote() {
+    return '<p class="ps-layer-tailoring-note">Assembly depths (media, mineral wool, honeycomb) are starting points. '
+      + 'The highlighted system is right-sized where possible so detention is not oversold with deeper honeycomb than needed.</p>';
+  }
+
+  function renderRecommendedLayerDepthsDetails(pick, targets, mode, layout) {
+    if (layout === 'report') return '';
+    if (!pick || pick.kind !== 'single' || !pick.single || !pick.single.layerDepths) return '';
+    var d = pick.single.layerDepths;
+    var html = '<details class="ps-layer-depths-details">';
+    html += '<summary>Recommended layer depths</summary>';
+    html += '<div class="ps-layer-depths-body">';
+    html += '<table class="ps-layer-depths-table"><tbody>';
+    if (String(pick.single.id) !== '9' && d.sd > 0) {
+      html += '<tr><th scope="row">Growing media</th><td>' + escHtml(String(d.sd)) + ' in</td></tr>';
+    }
+    if (String(pick.single.id) === '9' && d.sd > 0) {
+      html += '<tr><th scope="row">Growing media</th><td>' + escHtml(String(d.sd)) + ' in</td></tr>';
+    }
+    html += '<tr><th scope="row">Mineral wool</th><td>' + escHtml(String(d.wd)) + ' in</td></tr>';
+    if (d.hd > 0) {
+      html += '<tr><th scope="row">Honeycomb detention</th><td>' + escHtml(String(d.hd)) + ' in</td></tr>';
+    } else {
+      html += '<tr><th scope="row">Honeycomb detention</th><td>None (retention-only assembly)</td></tr>';
+    }
+    html += '<tr><th scope="row">Retention vs target</th><td>' + escHtml(pct(pick.single.retPct)) + '</td></tr>';
+    html += '<tr><th scope="row">Detention vs target</th><td>' + escHtml(pct(pick.single.detPct)) + '</td></tr>';
+    html += '</tbody></table></div></details>';
+    return html;
+  }
+
+  function onPurpleRoofDepthInputChange() {
+    persistPurpleRoofHandoffFromDom();
+    if (typeof V3State === 'undefined' || typeof V3State.get !== 'function') return;
+    var mode = V3State.get('settings.mode');
+    if (mode !== 'engineering') return;
+    if (_prDepthSyncTimer) clearTimeout(_prDepthSyncTimer);
+    _prDepthSyncTimer = setTimeout(function () {
+      if (global.V3RunAnalysis && typeof global.V3RunAnalysis.run === 'function') {
+        global.V3RunAnalysis.run();
+      }
+    }, 450);
+  }
+
+  function totalRoofAreaSqFt(areas) {
+    areas = areas || {};
+    return Math.round(
+      (areas.flatDeckOnStructureArea || 0)
+      + (areas.slopedRoofArea || 0)
+      + (areas.paversOnStructureArea || 0)
+    );
+  }
+
+  function defaultPurpleRoofDrainboxCount(roofAreaSqFt) {
+    var sf = Math.max(0, Number(roofAreaSqFt) || 0);
+    if (sf <= 0) return 1;
+    return Math.max(1, Math.ceil(sf / PURPLE_ROOF_DRAINBOX_SF_PER_UNIT));
+  }
+
+  function isPurpleVegetatedPickId(id) {
+    return _PURPLE_VEG_PICK_IDS.indexOf(String(id)) !== -1;
+  }
+
+  function resolvePreferredPurpleAssembly(prViable, preferredId) {
+    if (!prViable || !prViable.length) return '10';
+    var pref = preferredId ? String(preferredId) : '';
+    if (pref && _isPurpleRoofId(pref)) {
+      for (var i = 0; i < prViable.length; i++) {
+        if (String(prViable[i].id) === pref) return pref;
+      }
+    }
+    for (var j = 0; j < prViable.length; j++) {
+      if (isPurpleVegetatedPickId(prViable[j].id)) return String(prViable[j].id);
+    }
+    return String(prViable[0].id);
+  }
+
+  function resolvePurpleRoofHandoffDefaults(project, prViable, city, areas, preferredAssemblyId, pick) {
+    var saved = (project && project.settings && project.settings.purpleRoofHandoff) || {};
+    var defaultAssembly = resolvePreferredPurpleAssembly(prViable, preferredAssemblyId);
+    if (pick && pick.kind === 'single' && pick.single) {
+      if (pick.single.optimizedAssemblyId) {
+        defaultAssembly = String(pick.single.optimizedAssemblyId);
+      }
+    }
+    var layer = getPurpleRoofLayerPreset(saved.assemblyId || defaultAssembly);
+    if (pick && pick.kind === 'single' && pick.single && pick.single.layerProfile) {
+      layer = pick.single.layerProfile;
+    }
+    var greenRoofArea = Math.round(
+      (areas.flatDeckOnStructureArea || 0) + (areas.slopedRoofArea || 0)
+    );
+    var paverArea = Math.round(areas.paversOnStructureArea || 0);
+    var untreated = Math.round(areas.imperviousCAUntreated || 0);
+    var defaultCf = untreated > 0 ? untreated : PURPLE_ROOF_SIMULATOR_DEFAULTS.cf;
+    var roofArea = totalRoofAreaSqFt(areas);
+    var defaultDrainboxes = defaultPurpleRoofDrainboxCount(roofArea);
+
+    return {
+      assemblyId: saved.assemblyId || defaultAssembly,
+      lat: saved.lat != null ? saved.lat : (city && city.coords ? city.coords.lat : ''),
+      lon: saved.lon != null ? saved.lon : (city && city.coords ? city.coords.lon : ''),
+      greenRoofAreaSqFt: saved.greenRoofAreaSqFt != null ? saved.greenRoofAreaSqFt : greenRoofArea,
+      contributingAreaSqFt: saved.contributingAreaSqFt != null
+        ? saved.contributingAreaSqFt
+        : defaultCf,
+      paverAreaSqFt: saved.paverAreaSqFt != null ? saved.paverAreaSqFt : paverArea,
+      timeOfConcentrationMin: saved.timeOfConcentrationMin != null
+        ? saved.timeOfConcentrationMin
+        : PURPLE_ROOF_SIMULATOR_DEFAULTS.tc,
+      soilDepthIn: saved.soilDepthIn != null ? saved.soilDepthIn
+        : (pick && pick.single && pick.single.layerDepths ? pick.single.layerDepths.sd : layer.sd),
+      mineralWoolDepthIn: saved.mineralWoolDepthIn != null ? saved.mineralWoolDepthIn
+        : (pick && pick.single && pick.single.layerDepths ? pick.single.layerDepths.wd : layer.wd),
+      honeycombDepthIn: saved.honeycombDepthIn != null ? saved.honeycombDepthIn
+        : (pick && pick.single && pick.single.layerDepths ? pick.single.layerDepths.hd : layer.hd),
+      drainboxCount: saved.drainboxCount != null ? saved.drainboxCount : defaultDrainboxes,
+      orificeWidthIn: saved.orificeWidthIn != null ? saved.orificeWidthIn : PURPLE_ROOF_SIMULATOR_DEFAULTS.bw,
+      roofAreaSqFt: roofArea,
+      defaultDrainboxCount: defaultDrainboxes
+    };
+  }
+
+  function _prFormNumberRow(label, id, value, attrs) {
+    attrs = attrs || {};
+    var html = '<div class="pr-cta-form-row">';
+    html += '<label class="pr-cta-form-label" for="' + id + '">' + escHtml(label) + '</label>';
+    html += '<input type="number" id="' + id + '" class="pr-cta-input pr-cta-input-wide"';
+    html += ' value="' + escHtml(String(value != null ? value : '')) + '"';
+    if (attrs.min != null) html += ' min="' + escHtml(String(attrs.min)) + '"';
+    if (attrs.step != null) html += ' step="' + escHtml(String(attrs.step)) + '"';
+    if (attrs.required) html += ' required';
+    html += '>';
+    if (attrs.hint) {
+      html += '<p class="pr-cta-help">' + escHtml(attrs.hint) + '</p>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function applyPurpleRoofAssemblyToForm(assemblyId) {
+    var layer = getPurpleRoofLayerPreset(assemblyId);
+    var sd = document.getElementById('pr-sd-input');
+    var wd = document.getElementById('pr-wd-input');
+    var hd = document.getElementById('pr-hd-input');
+    var sp = document.getElementById('pr-sp-display');
+    var wp = document.getElementById('pr-wp-display');
+    var hp = document.getElementById('pr-hp-display');
+    if (sd) sd.value = String(layer.sd);
+    if (wd) wd.value = String(layer.wd);
+    if (hd) hd.value = String(layer.hd);
+    if (sp) sp.textContent = String(layer.sp);
+    if (wp) wp.textContent = String(layer.wp);
+    if (hp) hp.textContent = String(layer.hp);
+  }
+
+  function persistPurpleRoofHandoffFromDom() {
+    if (typeof V3State === 'undefined' || typeof V3State.set !== 'function') return;
+    var assemblyEl = document.getElementById('pr-assembly-select');
+    var handoff = {
+      assemblyId: assemblyEl ? assemblyEl.value : '10',
+      lat: parseFloat((document.getElementById('pr-lat-input') || {}).value),
+      lon: parseFloat((document.getElementById('pr-lon-input') || {}).value),
+      greenRoofAreaSqFt: parseFloat((document.getElementById('pr-gr-input') || {}).value),
+      contributingAreaSqFt: parseFloat((document.getElementById('pr-cf-input') || {}).value),
+      paverAreaSqFt: parseFloat((document.getElementById('pr-pv-input') || {}).value),
+      timeOfConcentrationMin: parseFloat((document.getElementById('pr-tc-input') || {}).value),
+      soilDepthIn: parseFloat((document.getElementById('pr-sd-input') || {}).value),
+      mineralWoolDepthIn: parseFloat((document.getElementById('pr-wd-input') || {}).value),
+      honeycombDepthIn: parseFloat((document.getElementById('pr-hd-input') || {}).value),
+      drainboxCount: parseInt((document.getElementById('pr-nb-input') || {}).value, 10),
+      orificeWidthIn: parseFloat((document.getElementById('pr-bw-input') || {}).value)
+    };
+    V3State.set('settings.purpleRoofHandoff', handoff);
+  }
+
+  function renderPurpleRoofSimulatorCta(viable, project, meta, pick, mode) {
     if (!viable || viable.length === 0) return '';
     var prViable = viable.filter(function (r) { return _isPurpleRoofId(r.id); });
     if (prViable.length === 0) return '';
+    _lastViableResults = viable;
+
+    var preferredAssemblyId = null;
+    if (pick && pick.kind === 'single' && pick.single && _isPurpleRoofId(pick.single.id)) {
+      preferredAssemblyId = pick.single.id;
+    }
 
     var site = (project && project.site) || {};
     var cityKey = site.cityKey || (meta && meta.cityKey) || '';
     var city = cityKey && CITY_DATA && CITY_DATA[cityKey] ? CITY_DATA[cityKey] : null;
-    var lat = city && city.coords ? city.coords.lat : '';
-    var lon = city && city.coords ? city.coords.lon : '';
     var cityName = city ? (city.name || cityKey) : (cityKey || 'Not selected');
-
     var areas = site.areas || {};
-    var roofArea = Math.round(
-      (areas.flatDeckOnStructureArea || 0) +
-      (areas.slopedRoofArea || 0) +
-      (areas.paversOnStructureArea || 0)
-    ) || '';
-
-    var assemblyName = prViable[0] ? (prViable[0].name || '') : '';
-    var locDisplay = escHtml(cityName) + (lat ? ' (' + lat + '\u00b0, ' + lon + '\u00b0)' : '');
+    var handoff = resolvePurpleRoofHandoffDefaults(project, prViable, city, areas, preferredAssemblyId, pick);
+    var layer = getPurpleRoofLayerPreset(handoff.assemblyId);
+    if (pick && pick.kind === 'single' && pick.single && pick.single.layerProfile) {
+      layer = pick.single.layerProfile;
+    }
+    var isEngineering = (mode === 'engineering');
+    var depthChangeAttr = isEngineering
+      ? ' onchange="window.V3RunAnalysis.onPurpleRoofDepthInputChange()"'
+      : '';
+    var drainboxHint = 'Default: 1 drainbox per '
+      + num(PURPLE_ROOF_DRAINBOX_SF_PER_UNIT)
+      + ' SF of roof area ('
+      + num(handoff.roofAreaSqFt || 0)
+      + ' SF \u2192 '
+      + String(handoff.defaultDrainboxCount || 1)
+      + '). Adjust for this job as needed.';
 
     var html = '<div class="pr-simulator-cta" id="pr-simulator-cta">';
-    html += '<div class="pr-cta-kicker">Next step \u2014 final design &amp; permitting</div>';
-    html += '<div class="pr-cta-title">Ready for the Purple Roof Simulator?</div>';
-    html += '<p class="pr-cta-desc">A Purple Roof assembly is viable for this site. The Purple Roof Simulator can model detention performance, generate a permit-ready hydrograph, and export an .hcp file for use in HydroCAD or SWMM.</p>';
+    html += '<div class="pr-cta-kicker">Next step \u2014 HydroCAD / Purple Roof Simulator</div>';
+    html += '<div class="pr-cta-title">Confirm simulator inputs</div>';
+    html += '<p class="pr-cta-desc">A Purple Roof assembly is viable for this site. Review the fields below \u2014 they match the Purple Roof Simulator layout and will pre-fill the TR-20 model so you can export a hydrograph and .hcp file for HydroCAD.</p>';
 
     html += '<div class="pr-cta-method">';
-    html += '<p class="pr-cta-section-label">Choose a simulation method:</p>';
+    html += '<p class="pr-cta-section-label">Simulation method</p>';
     html += '<div class="pr-cta-radios">';
     html += '<label class="pr-cta-radio"><input type="radio" name="pr-sim-method" value="tr20" checked> ';
     html += '<span><strong>TR-20 (HydroCAD-style)</strong> \u2014 single design storm, peak flow and volume, .hcp export</span></label>';
     html += '<label class="pr-cta-radio"><input type="radio" name="pr-sim-method" value="swmm"> ';
-    html += '<span><strong>SWMM continuous simulation</strong> \u2014 multi-year hourly climate data, long-period performance metrics</span></label>';
+    html += '<span><strong>SWMM continuous simulation</strong> \u2014 multi-year hourly climate data</span></label>';
     html += '<span class="pr-cta-radio-disabled">More methods coming soon\u2026</span>';
     html += '</div></div>';
 
-    html += '<div class="pr-cta-values">';
-    html += '<p class="pr-cta-section-label">Values that will be passed to the simulator:</p>';
-    html += '<div class="pr-cta-fields">';
+    html += '<div class="pr-cta-form">';
 
-    html += '<div class="pr-cta-field">';
-    html += '<span class="pr-cta-field-label">Location</span>';
-    html += '<span class="pr-cta-field-display" id="pr-loc-display">' + locDisplay + '</span>';
-    html += '<div class="pr-cta-field-edit" id="pr-loc-edit" style="display:none">';
-    html += '<input type="number" id="pr-lat-input" class="pr-cta-input" placeholder="Lat" value="' + escHtml(String(lat)) + '" step="0.0001">';
-    html += '<input type="number" id="pr-lon-input" class="pr-cta-input" placeholder="Lon" value="' + escHtml(String(lon)) + '" step="0.0001">';
-    html += '</div>';
-    html += '<button type="button" class="pr-cta-edit-btn" onclick="(function(b){';
-    html += 'var d=document.getElementById(\'pr-loc-display\'),e=document.getElementById(\'pr-loc-edit\');';
-    html += 'if(e.style.display===\'none\'){e.style.display=\'flex\';d.style.display=\'none\';b.textContent=\'Done\';}';
-    html += 'else{e.style.display=\'none\';d.style.display=\'\';b.textContent=\'Edit\';}})(this)">Edit</button>';
-    html += '</div>';
+    html += '<fieldset class="pr-cta-group">';
+    html += '<legend>Location</legend>';
+    html += '<p class="pr-cta-group-note">Rainfall atlas for <strong>' + escHtml(cityName) + '</strong>. Adjust coordinates if the project centroid differs from city center.</p>';
+    html += '<div class="pr-cta-form-grid pr-cta-form-grid-2">';
+    html += _prFormNumberRow('Latitude', 'pr-lat-input', handoff.lat, { step: 0.0001, required: true });
+    html += _prFormNumberRow('Longitude', 'pr-lon-input', handoff.lon, { step: 0.0001, required: true });
+    html += '</div></fieldset>';
 
-    html += '<div class="pr-cta-field">';
-    html += '<span class="pr-cta-field-label">Roof area (SF)</span>';
-    html += '<span class="pr-cta-field-display" id="pr-area-display">' + escHtml(roofArea ? Number(roofArea).toLocaleString() : '\u2014') + '</span>';
-    html += '<div class="pr-cta-field-edit" id="pr-area-edit" style="display:none">';
-    html += '<input type="number" id="pr-area-input" class="pr-cta-input" placeholder="SF" value="' + escHtml(String(roofArea)) + '" step="100">';
-    html += '</div>';
-    html += '<button type="button" class="pr-cta-edit-btn" onclick="(function(b){';
-    html += 'var d=document.getElementById(\'pr-area-display\'),e=document.getElementById(\'pr-area-edit\');';
-    html += 'if(e.style.display===\'none\'){e.style.display=\'flex\';d.style.display=\'none\';b.textContent=\'Done\';}';
-    html += 'else{e.style.display=\'none\';d.style.display=\'\';b.textContent=\'Edit\';}})(this)">Edit</button>';
-    html += '</div>';
-
-    if (assemblyName) {
-      html += '<div class="pr-cta-field pr-cta-field-readonly">';
-      html += '<span class="pr-cta-field-label">Assembly</span>';
-      html += '<span class="pr-cta-field-display">' + escHtml(assemblyName) + '</span>';
-      html += '</div>';
+    html += '<fieldset class="pr-cta-group">';
+    html += '<legend>Purple Roof assembly</legend>';
+    if (prViable.length > 1) {
+      html += '<div class="pr-cta-form-row">';
+      html += '<label class="pr-cta-form-label" for="pr-assembly-select">Assembly profile</label>';
+      html += '<select id="pr-assembly-select" class="pr-cta-select" onchange="window.V3RunAnalysis.applyPurpleRoofAssemblyToForm(this.value)">';
+      for (var a = 0; a < prViable.length; a++) {
+        var row = prViable[a];
+        var aid = String(row.id);
+        html += '<option value="' + escHtml(aid) + '"' + (aid === handoff.assemblyId ? ' selected' : '') + '>';
+        html += escHtml(row.name || aid) + '</option>';
+      }
+      html += '</select></div>';
+    } else {
+      var only = prViable[0];
+      html += '<p class="pr-cta-group-note"><strong>' + escHtml(only ? (only.name || handoff.assemblyId) : handoff.assemblyId) + '</strong></p>';
+      html += '<input type="hidden" id="pr-assembly-select" value="' + escHtml(handoff.assemblyId) + '">';
     }
+    html += '</fieldset>';
 
-    html += '</div></div>';
+    html += '<fieldset class="pr-cta-group">';
+    html += '<legend>Site areas &amp; routing</legend>';
+    html += '<div class="pr-cta-form-grid">';
+    html += _prFormNumberRow('Green roof area (sq ft)', 'pr-gr-input', handoff.greenRoofAreaSqFt, { min: 0, step: 100, required: true });
+    html += _prFormNumberRow('Contributing area (sq ft)', 'pr-cf-input', handoff.contributingAreaSqFt, {
+      min: 0, step: 100, required: true,
+      hint: 'Impervious area draining to the roof BMP (defaults to untreated CA or 1,000 SF).'
+    });
+    html += _prFormNumberRow('Paver system area (sq ft)', 'pr-pv-input', handoff.paverAreaSqFt, { min: 0, step: 100 });
+    html += _prFormNumberRow('Time of concentration (min)', 'pr-tc-input', handoff.timeOfConcentrationMin, { min: 0.1, step: 0.1, required: true });
+    html += '</div></fieldset>';
+
+    html += '<fieldset class="pr-cta-group">';
+    html += '<legend>Profile layers (depths &amp; properties)</legend>';
+    html += '<div class="pr-cta-layers-inline">';
+    html += '<label class="pr-cta-mini-field"><span class="pr-cta-mini-label">Soil (in)</span>';
+    html += '<input type="number" id="pr-sd-input" class="pr-cta-input pr-cta-input-compact" min="0" step="1" value="'
+      + escHtml(String(handoff.soilDepthIn)) + '"' + depthChangeAttr + '></label>';
+    html += '<label class="pr-cta-mini-field"><span class="pr-cta-mini-label">Mineral wool (in)</span>';
+    html += '<input type="number" id="pr-wd-input" class="pr-cta-input pr-cta-input-compact" min="0" step="1" value="'
+      + escHtml(String(handoff.mineralWoolDepthIn)) + '"' + depthChangeAttr + '></label>';
+    html += '<label class="pr-cta-mini-field"><span class="pr-cta-mini-label">Honeycomb (in)</span>';
+    html += '<input type="number" id="pr-hd-input" class="pr-cta-input pr-cta-input-compact" min="0" step="1" value="'
+      + escHtml(String(handoff.honeycombDepthIn)) + '"' + depthChangeAttr + '></label>';
+    html += '</div>';
+    html += '<p class="pr-cta-porosity-line">Porosity — soil <strong id="pr-sp-display">' + escHtml(String(layer.sp))
+      + '</strong>, wool <strong id="pr-wp-display">' + escHtml(String(layer.wp))
+      + '</strong>, honeycomb <strong id="pr-hp-display">' + escHtml(String(layer.hp))
+      + '</strong>. Depths can be adjusted to match your design.</p>';
+    if (isEngineering) {
+      html += '<p class="pr-cta-help">Changing layer depths saves to the project and refreshes the recommendation summary.</p>';
+    }
+    html += '</fieldset>';
+
+    html += '<fieldset class="pr-cta-group">';
+    html += '<legend>Outlet characteristics</legend>';
+    html += '<div class="pr-cta-outlet-inline">';
+    html += '<label class="pr-cta-mini-field"><span class="pr-cta-mini-label">Drainboxes</span>';
+    html += '<input type="number" id="pr-nb-input" class="pr-cta-input pr-cta-input-compact" min="1" step="1" required value="'
+      + escHtml(String(handoff.drainboxCount)) + '"></label>';
+    html += '<label class="pr-cta-mini-field"><span class="pr-cta-mini-label">Orifice width (in)</span>';
+    html += '<input type="number" id="pr-bw-input" class="pr-cta-input pr-cta-input-compact" min="0.1" step="0.1" required value="'
+      + escHtml(String(handoff.orificeWidthIn)) + '"></label>';
+    html += '</div>';
+    html += '<p class="pr-cta-help">' + escHtml(drainboxHint) + '</p>';
+    html += '<p class="pr-cta-help">Standard orifice width: 24 in per drain.</p>';
+    html += '</fieldset>';
+
+    html += '</div>';
+
+    html += '<div id="pr-cta-message" class="pr-cta-message" role="status"></div>';
     html += '<button type="button" class="pr-cta-launch-btn" onclick="window.V3RunAnalysis.launchPurpleRoofSimulator()">Open Purple Roof Simulator \u2192</button>';
     html += '</div>';
     return html;
   }
 
   function launchPurpleRoofSimulator() {
+    var msgEl = document.getElementById('pr-cta-message');
+    function showMsg(text, isError) {
+      if (msgEl) {
+        msgEl.textContent = text;
+        msgEl.className = isError ? 'pr-cta-message pr-cta-message-error' : 'pr-cta-message pr-cta-message-info';
+      }
+    }
+    if (msgEl) msgEl.textContent = '';
+
     var methodEl = document.querySelector('#pr-simulator-cta input[name="pr-sim-method"]:checked');
     var method = methodEl ? methodEl.value : 'tr20';
 
-    var latEl = document.getElementById('pr-lat-input');
-    var lonEl = document.getElementById('pr-lon-input');
-    var areaEl = document.getElementById('pr-area-input');
+    if (method === 'swmm') {
+      showMsg('SWMM continuous simulation is coming soon. Select TR-20 to open the simulator now.', false);
+      return;
+    }
 
-    var lat = latEl ? latEl.value.trim() : '';
-    var lon = lonEl ? lonEl.value.trim() : '';
-    var area = areaEl ? areaEl.value.trim() : '';
+    var latVal = (document.getElementById('pr-lat-input') || {}).value || '';
+    var lonVal = (document.getElementById('pr-lon-input') || {}).value || '';
+    var lat = parseFloat(latVal);
+    var lon = parseFloat(lonVal);
 
-    var base = method === 'swmm'
-      ? 'https://purple-roof-simulator.com/swmm-dashboard'
-      : 'https://purple-roof-simulator.com/roof-simulator';
+    if (!latVal || !lonVal || isNaN(lat) || isNaN(lon)) {
+      showMsg('Enter latitude and longitude for the project location.', true);
+      return;
+    }
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      showMsg('Latitude must be between \u221290 and 90; longitude between \u2212180 and 180.', true);
+      return;
+    }
 
-    var params = [];
-    if (lat) params.push('lat=' + encodeURIComponent(lat));
-    if (lon) params.push('lon=' + encodeURIComponent(lon));
-    if (area) params.push('area=' + encodeURIComponent(area));
-    params.push('ref=bmp-tool');
+    var grVal = (document.getElementById('pr-gr-input') || {}).value || '';
+    var cfVal = (document.getElementById('pr-cf-input') || {}).value || '';
+    var pvVal = (document.getElementById('pr-pv-input') || {}).value || '';
+    var tcVal = (document.getElementById('pr-tc-input') || {}).value || '';
+    var sdVal = (document.getElementById('pr-sd-input') || {}).value || '';
+    var wdVal = (document.getElementById('pr-wd-input') || {}).value || '';
+    var hdVal = (document.getElementById('pr-hd-input') || {}).value || '';
+    var nbVal = (document.getElementById('pr-nb-input') || {}).value || '';
+    var bwVal = (document.getElementById('pr-bw-input') || {}).value || '';
 
-    window.open(base + '?' + params.join('&'), '_blank', 'noopener,noreferrer');
+    var greenRoofAreaSqFt = parseFloat(grVal);
+    var contributingAreaSqFt = parseFloat(cfVal);
+    var paverAreaSqFt = parseFloat(pvVal);
+    var timeOfConcentrationMin = parseFloat(tcVal);
+    var soilDepthIn = parseFloat(sdVal);
+    var mineralWoolDepthIn = parseFloat(wdVal);
+    var honeycombDepthIn = parseFloat(hdVal);
+    var drainboxCount = parseInt(nbVal, 10);
+    var orificeWidthIn = parseFloat(bwVal);
+
+    if (!grVal || isNaN(greenRoofAreaSqFt) || greenRoofAreaSqFt <= 0) {
+      showMsg('Enter green roof area in square feet (must be greater than 0).', true);
+      return;
+    }
+    if (!cfVal || isNaN(contributingAreaSqFt) || contributingAreaSqFt < 0) {
+      showMsg('Enter contributing area in square feet.', true);
+      return;
+    }
+    if (isNaN(paverAreaSqFt) || paverAreaSqFt < 0) {
+      showMsg('Enter paver system area in square feet (use 0 if none).', true);
+      return;
+    }
+    if (!tcVal || isNaN(timeOfConcentrationMin) || timeOfConcentrationMin <= 0) {
+      showMsg('Enter time of concentration in minutes.', true);
+      return;
+    }
+    if (isNaN(soilDepthIn) || soilDepthIn < 0 || isNaN(mineralWoolDepthIn) || mineralWoolDepthIn < 0
+        || isNaN(honeycombDepthIn) || honeycombDepthIn < 0) {
+      showMsg('Enter profile layer depths in inches (0 or greater).', true);
+      return;
+    }
+    if (!nbVal || isNaN(drainboxCount) || drainboxCount < 1) {
+      showMsg('Enter the number of drainboxes (at least 1).', true);
+      return;
+    }
+    if (!bwVal || isNaN(orificeWidthIn) || orificeWidthIn <= 0) {
+      showMsg('Enter orifice width per drain in inches (standard is 24 in).', true);
+      return;
+    }
+
+    var standardOrificeIn = PURPLE_ROOF_SIMULATOR_DEFAULTS.bw;
+    if (orificeWidthIn !== standardOrificeIn) {
+      showMsg(
+        'Standard orifice width is ' + standardOrificeIn + ' in per drain; you entered ' + orificeWidthIn + ' in. Opening simulator with your value.',
+        false
+      );
+    }
+
+    var assemblyEl = document.getElementById('pr-assembly-select');
+    var assemblyId = assemblyEl ? String(assemblyEl.value) : '10';
+    var preset = getPurpleRoofLayerPreset(assemblyId);
+    var layerProfile = {
+      sd: Math.round(soilDepthIn),
+      wd: Math.round(mineralWoolDepthIn),
+      hd: Math.round(honeycombDepthIn),
+      sp: preset.sp,
+      wp: preset.wp,
+      hp: preset.hp
+    };
+
+    persistPurpleRoofHandoffFromDom();
+
+    var project = typeof V3State !== 'undefined' ? V3State.get() : null;
+    var pn = project && project.projectInfo && project.projectInfo.projectName
+      ? project.projectInfo.projectName : '';
+
+    var url = buildPurpleRoofSimulatorUrl({
+      lat: lat,
+      lon: lon,
+      greenRoofAreaSqFt: Math.round(greenRoofAreaSqFt),
+      contributingAreaSqFt: Math.round(contributingAreaSqFt),
+      paverAreaSqFt: Math.round(paverAreaSqFt),
+      timeOfConcentrationMin: timeOfConcentrationMin,
+      layerProfile: layerProfile,
+      assemblyId: assemblyId,
+      projectName: pn,
+      drainboxCount: drainboxCount,
+      orificeWidthIn: orificeWidthIn
+    });
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
 
@@ -297,26 +1179,193 @@
 
   /** Client-facing copy for the Top System Options "System Role" column (display only). */
   function formatSystemRoleNote(r, targets) {
-    if (r.retPct >= 100 && r.detPct >= 100) {
+    if (String(r.id) === '9') {
+      var spongeNote = 'Detention: none — increase mineral wool or media depth (within product limits) to improve retention.';
+      var retP0 = Math.round(Number(r.retPct) || 0);
+      var detP0 = Math.round(Number(r.detPct) || 0);
+      if (retP0 >= 100 && detP0 >= 100) return spongeNote + ' Provides both retention and detention.';
+      if (retP0 < 100 && detP0 < 100) {
+        return spongeNote + ' Partially meets retention target.';
+      }
+      return spongeNote;
+    }
+    var retP = Math.round(Number(r.retPct) || 0);
+    var detP = Math.round(Number(r.detPct) || 0);
+    if (retP >= 100 && detP >= 100) {
       return 'Provides both retention and detention';
     }
-    if (targets.retentionNeeded && r.retPct >= 100 && targets.detentionNeeded && r.detPct < 100) {
+    if (targets.retentionNeeded && retP >= 100 && targets.detentionNeeded && detP < 100) {
+      if (detP > 0) {
+        return 'Meets retention target; provides partial detention (' + detP + '% of target)';
+      }
       return 'Provides retention only (no detention benefit)';
     }
-    if (targets.detentionNeeded && r.detPct >= 100 && targets.retentionNeeded && r.retPct < 100) {
+    if (targets.detentionNeeded && detP >= 100 && targets.retentionNeeded && retP < 100) {
+      if (retP > 0) {
+        return 'Meets detention target; provides partial retention (' + retP + '% of target)';
+      }
       return 'Provides detention only (no retention benefit)';
     }
-    if (r.retPct < 100 && r.detPct < 100) {
+    if (retP < 100 && detP < 100) {
       return 'Partially meets retention and/or detention targets';
     }
     return '';
   }
 
+  function axisComplianceStatus(needed, pctVal) {
+    if (!needed) return { label: 'N/A', cls: 'ps-tc-status-na' };
+    var p = Math.round(Number(pctVal) || 0);
+    if (p >= 100) return { label: 'Met', cls: 'ps-tc-status-met' };
+    if (p > 0) return { label: 'Partial (' + p + '%)', cls: 'ps-tc-status-partial' };
+    return { label: 'Not met', cls: 'ps-tc-status-not' };
+  }
+
+  function targetComplianceHeadline(pick, targets) {
+    if (pick.kind === 'combo' && pick.combo) return 'Two-system package meets both targets';
+    if (pick.kind === 'single' && pick.single) {
+      if (rowMeetsBothEngine(pick.single, targets)) return 'One system meets both targets';
+      if (pick.basis === 'closest_dual_target') {
+        return 'Closest to both targets (partial compliance)';
+      }
+      return 'Lowest-cost viable system (partial compliance)';
+    }
+    return '';
+  }
+
+  function targetComplianceStrategyNote(pick, targets) {
+    if (pick.kind === 'combo' && pick.combo) {
+      return 'Retention and detention are split across two systems; package totals sum credited volume (capped at target).';
+    }
+    if (pick.kind === 'single' && pick.single) {
+      if (rowMeetsBothEngine(pick.single, targets)) {
+        return 'Retention and detention credited on the same assembly.';
+      }
+      return 'This system does not fully meet both targets on its own; see alternates or a two-BMP package in Engineering.';
+    }
+    return '';
+  }
+
+  function renderAxisComplianceCell(needed, targetCf, credit, pctVal, showCredits) {
+    if (!needed) {
+      return '<td class="ps-tc-cell"><span class="ps-tc-inline ps-tc-na">N/A</span></td>';
+    }
+    var st = axisComplianceStatus(true, pctVal);
+    var creditN = Number(credit) || 0;
+    var targetN = Number(targetCf) || 0;
+    var p = Math.round(Number(pctVal) || 0);
+    var parts = [];
+    if (showCredits && targetN > 0) {
+      parts.push(num(creditN) + ' / ' + num(targetN) + ' CF');
+    }
+    parts.push(pct(p) + ' of target');
+    parts.push(st.label);
+    return '<td class="ps-tc-cell"><span class="ps-tc-inline ' + st.cls + '">'
+      + escHtml(parts.join(' · ')) + '</span></td>';
+  }
+
+  function renderTargetComplianceSystemRow(label, row, targets, showCredits) {
+    var retTarget = Number(targets.retentionCF) || 0;
+    var detTarget = Number(targets.detentionCF) || 0;
+    var html = '<tr class="ps-tc-row">';
+    html += '<th scope="row" class="ps-tc-system">' + escHtml(label) + '</th>';
+    html += renderAxisComplianceCell(
+      targets.retentionNeeded,
+      retTarget,
+      row ? row.retCredit : 0,
+      row ? row.retPct : 0,
+      showCredits
+    );
+    html += renderAxisComplianceCell(
+      targets.detentionNeeded,
+      detTarget,
+      row ? row.detCredit : 0,
+      row ? row.detPct : 0,
+      showCredits
+    );
+    html += '</tr>';
+    return html;
+  }
+
+  /**
+   * Collapsible retention/detention breakdown for highlighted recommendation (on-screen only).
+   */
+  function renderTargetComplianceDetails(pick, targets, sortedAll, mode, layout) {
+    if (layout === 'report') return '';
+    if (!pick || pick.kind === 'none') return '';
+
+    var isEngineering = (mode === 'engineering');
+    var showCredits = isEngineering;
+    var headline = targetComplianceHeadline(pick, targets);
+    var strategyNote = targetComplianceStrategyNote(pick, targets);
+    if (!headline) return '';
+
+    var retSummary = targets.retentionNeeded
+      ? formatTargetVolumeSummary(targets.retentionCF)
+      : 'Not required';
+    var detSummary = targets.detentionNeeded
+      ? formatTargetVolumeSummary(targets.detentionCF)
+      : 'Not required';
+
+    var isPartialFallback = pick.kind === 'single' && pick.single
+      && !rowMeetsBothEngine(pick.single, targets);
+
+    var html = '<details class="ps-target-compliance" id="target-compliance-panel">';
+    html += '<summary>How retention and detention targets are met</summary>';
+    html += '<div class="ps-tc-body">';
+
+    html += '<p class="ps-tc-headline">' + escHtml(headline) + '</p>';
+    if (strategyNote) {
+      html += '<p class="ps-tc-strategy">' + escHtml(strategyNote) + '</p>';
+    }
+    if (isPartialFallback) {
+      if (pick.basis === 'closest_dual_target') {
+        html += '<p class="ps-tc-footnote">No single BMP meets both targets at this site; the highlighted system is closest to retention and detention under <em>Closest to both targets</em>. When detention is already met, the tool prefers Purple-Roof vegetated <strong>4+1+2</strong> (or the shallowest assembly that still meets detention) rather than deeper honeycomb.</p>';
+      } else {
+        html += '<p class="ps-tc-footnote">No single BMP meets both targets at this site; the highlighted system is the lowest-cost viable option under <em>Lowest-cost package</em>.</p>';
+      }
+    }
+
+    html += '<p class="ps-tc-targets-line">';
+    html += '<span><strong>Retention:</strong> ' + escHtml(retSummary) + '</span>';
+    html += '<span class="ps-tc-targets-sep">|</span>';
+    html += '<span><strong>Detention:</strong> ' + escHtml(detSummary) + '</span>';
+    html += '</p>';
+
+    html += '<table class="ps-tc-table ps-tc-table-compact">';
+    html += '<thead><tr>';
+    html += '<th scope="col">System</th>';
+    html += '<th scope="col">Retention</th>';
+    html += '<th scope="col">Detention</th>';
+    html += '</tr></thead><tbody>';
+
+    if (pick.kind === 'combo' && pick.combo && pick.combo.members) {
+      for (var mi = 0; mi < pick.combo.members.length; mi++) {
+        var mem = pick.combo.members[mi];
+        var memRow = findRowById(sortedAll, mem.id);
+        var memLabel = (memRow && memRow.name) || mem.name || ('BMP ' + mem.id);
+        html += renderTargetComplianceSystemRow(memLabel, memRow || mem, targets, showCredits);
+      }
+      var comboRow = {
+        retCredit: pick.combo.retCredit,
+        detCredit: pick.combo.detCredit,
+        retPct: pick.combo.retPct,
+        detPct: pick.combo.detPct
+      };
+      html += renderTargetComplianceSystemRow('Package total (credited)', comboRow, targets, showCredits);
+    } else if (pick.kind === 'single' && pick.single) {
+      html += renderTargetComplianceSystemRow(pick.single.name, pick.single, targets, showCredits);
+    }
+
+    html += '</tbody></table>';
+    html += '</div></details>';
+    return html;
+  }
+
   // Roof Opportunity Check comparator set:
   // prioritize preferred roof solutions only (Sponge + Purple variants).
-  var ROOF_OPP_BMP_IDS = ['9', '10', '10B', '11', '11B'];
+  var ROOF_OPP_BMP_IDS = ['9', '10', '10B', '10C', '10D', '11', '11B', '11C', '11D'];
   // Broader roof-forward set used for optional Planning view filtering.
-  var ROOF_VIEW_BMP_IDS = ['6', '7', '8', '9', '10', '10B', '11', '11B'];
+  var ROOF_VIEW_BMP_IDS = ['6', '7', '8', '9', '10', '10B', '10C', '10D', '11', '11B', '11C', '11D'];
   var GROUND_OPP_BMP_IDS = ['1', '2', '3', '4', '5'];
 
   function isRoofOpportunityBmpId(id) {
@@ -331,7 +1380,7 @@
     var key = String(id || '');
     if (['12', '15'].indexOf(key) !== -1) return 'pv';
     if (['16'].indexOf(key) !== -1) return 'fall-pro';
-    if (['8', '9', '10', '10B', '11', '11B'].indexOf(key) !== -1) return 'green-roof';
+    if (['8', '9', '10', '10B', '10C', '10D', '11', '11B', '11C', '11D'].indexOf(key) !== -1) return 'green-roof';
     return 'green-roof';
   }
 
@@ -567,6 +1616,113 @@
     return best;
   }
 
+  function cappedTargetPct(pctVal) {
+    return Math.min(Math.max(Number(pctVal) || 0, 0), 100);
+  }
+
+  function purpleVegHoneycombDepthIn(id) {
+    if (!isPurpleVegetatedPickId(id)) return null;
+    var preset = ASSEMBLY_PRESETS[String(id)];
+    return preset && preset.hd != null ? preset.hd : null;
+  }
+
+  function dualTargetClosenessScore(row, targets) {
+    var retP = cappedTargetPct(row.retPct);
+    var detP = cappedTargetPct(row.detPct);
+    if (!targets.retentionNeeded) retP = 100;
+    if (!targets.detentionNeeded) detP = 100;
+    return {
+      minPct: Math.min(retP, detP),
+      shortfall: (100 - retP) + (100 - detP)
+    };
+  }
+
+  function sortByRetentionThenCost(a, b, retNeeded) {
+    var retA = retNeeded ? cappedTargetPct(a.retPct) : 100;
+    var retB = retNeeded ? cappedTargetPct(b.retPct) : 100;
+    if (retB !== retA) return retB - retA;
+    var ca = Number.isFinite(a.costDesigned) ? a.costDesigned : Infinity;
+    var cb = Number.isFinite(b.costDesigned) ? b.costDesigned : Infinity;
+    return ca - cb;
+  }
+
+  /**
+   * When detention is already met, prefer Purple-Roof vegetated 4+1+2, then the
+   * shallowest honeycomb depth that still meets detention — excess detention % does not
+   * justify deeper (more expensive) assemblies.
+   */
+  function pickAmongDetentionSatisfied(meetsDet, targets) {
+    var retNeeded = !!targets.retentionNeeded;
+    var veg = [];
+    for (var i = 0; i < meetsDet.length; i++) {
+      if (isPurpleVegetatedPickId(meetsDet[i].id)) veg.push(meetsDet[i]);
+    }
+    if (veg.length > 0) {
+      var fourOneTwo = null;
+      for (var j = 0; j < veg.length; j++) {
+        if (String(veg[j].id) === '10') {
+          fourOneTwo = veg[j];
+          break;
+        }
+      }
+      if (fourOneTwo && (Number(fourOneTwo.detPct) || 0) >= 100) {
+        return fourOneTwo;
+      }
+      var minHd = Infinity;
+      for (var k = 0; k < veg.length; k++) {
+        var hd = purpleVegHoneycombDepthIn(veg[k].id);
+        if (hd != null && hd < minHd) minHd = hd;
+      }
+      var shallow = [];
+      for (var m = 0; m < veg.length; m++) {
+        if (purpleVegHoneycombDepthIn(veg[m].id) === minHd) shallow.push(veg[m]);
+      }
+      shallow.sort(function (a, b) { return sortByRetentionThenCost(a, b, retNeeded); });
+      return shallow[0];
+    }
+    meetsDet.sort(function (a, b) {
+      var sa = dualTargetClosenessScore(a, targets);
+      var sb = dualTargetClosenessScore(b, targets);
+      if (sb.minPct !== sa.minPct) return sb.minPct - sa.minPct;
+      if (sa.shortfall !== sb.shortfall) return sa.shortfall - sb.shortfall;
+      return sortByRetentionThenCost(a, b, retNeeded);
+    });
+    return meetsDet[0];
+  }
+
+  function pickClosestDualTarget(rows, targets) {
+    var viable = [];
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].isViable) viable.push(rows[i]);
+    }
+    if (viable.length === 0) return null;
+
+    if (targets.detentionNeeded) {
+      var meetsDet = [];
+      for (var d = 0; d < viable.length; d++) {
+        if ((Number(viable[d].detPct) || 0) >= 100) meetsDet.push(viable[d]);
+      }
+      if (meetsDet.length > 0) {
+        return pickAmongDetentionSatisfied(meetsDet, targets);
+      }
+    }
+
+    viable.sort(function (a, b) {
+      var sa = dualTargetClosenessScore(a, targets);
+      var sb = dualTargetClosenessScore(b, targets);
+      if (sb.minPct !== sa.minPct) return sb.minPct - sa.minPct;
+      if (sa.shortfall !== sb.shortfall) return sa.shortfall - sb.shortfall;
+      var aVeg = isPurpleVegetatedPickId(a.id) ? 0 : 1;
+      var bVeg = isPurpleVegetatedPickId(b.id) ? 0 : 1;
+      if (aVeg !== bVeg) return aVeg - bVeg;
+      var hdA = purpleVegHoneycombDepthIn(a.id);
+      var hdB = purpleVegHoneycombDepthIn(b.id);
+      if (hdA != null && hdB != null && hdA !== hdB) return hdA - hdB;
+      return sortByRetentionThenCost(a, b, !!targets.retentionNeeded);
+    });
+    return viable[0];
+  }
+
   function comboStillValid(combo, rows) {
     if (!combo || !combo.members || combo.members.length < 2) return null;
     var a = findRowById(rows, combo.members[0].id);
@@ -589,6 +1745,7 @@
   }
 
   var RECOMMENDATION_BASIS_LABELS = {
+    closest_dual_target: 'Closest to both targets (4+1+2 vegetated when detention is met)',
     cheapest_package: 'Lowest-cost package (single or two-BMP)',
     cheapest_single: 'Lowest-cost viable single system',
     full_compliance_single: 'Single system — full retention + detention compliance',
@@ -598,6 +1755,31 @@
   /** Planning mode: cap ranked table rows; engineering shows full list. */
   var PLANNING_RANKED_TABLE_ROW_CAP = 4;
 
+  /** Fixed ranking/recommendation behavior in Planning (sales) mode. */
+  var PLANNING_RESULTS_DEFAULTS = {
+    recommendationBasis: 'closest_dual_target',
+    sortResultsBy: 'totalCost'
+  };
+
+  /**
+   * Planning always uses lowest-cost package + cost sort; Engineering uses saved settings.
+   * @returns {{ recommendationBasis: string, sortResultsBy: string }}
+   */
+  function getEffectiveResultsSettings(project) {
+    var settings = (project && project.settings) || {};
+    var mode = settings.mode || 'planning';
+    if (mode !== 'engineering') {
+      return {
+        recommendationBasis: PLANNING_RESULTS_DEFAULTS.recommendationBasis,
+        sortResultsBy: PLANNING_RESULTS_DEFAULTS.sortResultsBy
+      };
+    }
+    return {
+      recommendationBasis: settings.recommendationBasis || 'cheapest_package',
+      sortResultsBy: settings.sortResultsBy || 'totalCost'
+    };
+  }
+
   function recommendationBasisLabel(basis) {
     return RECOMMENDATION_BASIS_LABELS[basis] || String(basis || '');
   }
@@ -606,6 +1788,13 @@
    * Chooses hero recommendation from engine output + display rows (after roof-load screening).
    * @returns {{ kind: 'single'|'combo'|'none', single: object|null, combo: object|null, basis: string, emptyMessage: string|null }}
    */
+  function finalizePickRecommendation(pick, project) {
+    if (pick && pick.kind === 'single' && pick.single) {
+      enrichPickWithLayerOptimization(pick, project, getDatabase());
+    }
+    return pick;
+  }
+
   function pickRecommended(project, engineOutput, sortedResults, basis) {
     var sw = engineOutput.stormwater || {};
     var targets = project.targets || {};
@@ -631,7 +1820,7 @@
       if (roofViable) {
         pick.kind = 'single';
         pick.single = roofViable;
-        return pick;
+        return finalizePickRecommendation(pick, project);
       }
       var roofCombo = firstRoofOnlyCombo(comboCandidates, rows);
       if (roofCombo) {
@@ -656,7 +1845,7 @@
       if (compliant.length > 0) {
         pick.kind = 'single';
         pick.single = compliant[0];
-        return pick;
+        return finalizePickRecommendation(pick, project);
       }
       pick.emptyMessage = 'No single BMP meets full retention and detention within tolerance. Try “Lowest-cost package” for a two-system combination, or adjust targets and areas.';
       return pick;
@@ -667,19 +1856,19 @@
       if (best) {
         pick.kind = 'single';
         pick.single = best;
-        return pick;
+        return finalizePickRecommendation(pick, project);
       }
       pick.emptyMessage = 'No viable BMPs for the current inputs.';
       return pick;
     }
 
-    // cheapest_package
+    // closest_dual_target | cheapest_package
     if (recommended) {
       var rowRec = findRowById(rows, recommended.id);
       if (rowRec && rowRec.isViable && rowMeetsBothEngine(rowRec, targets)) {
         pick.kind = 'single';
         pick.single = rowRec;
-        return pick;
+        return finalizePickRecommendation(pick, project);
       }
     }
     var validCombo = comboStillValid(recommendedCombo, rows);
@@ -688,11 +1877,13 @@
       pick.combo = validCombo;
       return pick;
     }
-    var fallback = cheapestViableSingle(rows, null);
+    var fallback = basis === 'closest_dual_target'
+      ? pickClosestDualTarget(rows, targets)
+      : cheapestViableSingle(rows, null);
     if (fallback) {
       pick.kind = 'single';
       pick.single = fallback;
-      return pick;
+      return finalizePickRecommendation(pick, project);
     }
     pick.emptyMessage = 'No viable BMPs for the current inputs.';
     return pick;
@@ -927,8 +2118,12 @@
     8:    { costItemId: null,                       roofProfileId: 'trad-gr-6',  pricingMode: 'assembly'   },
     9:    { costItemId: null,                       roofProfileId: 'sponge-42',  pricingMode: 'assembly'   },
     10:   { costItemId: null,                       roofProfileId: 'pr-veg-412', pricingMode: 'assembly'   },
+    '10C':{ costItemId: null,                       roofProfileId: 'pr-veg-411', pricingMode: 'assembly'   },
+    '10D':{ costItemId: null,                       roofProfileId: 'pr-veg-413', pricingMode: 'assembly'   },
     '10B':{ costItemId: null,                       roofProfileId: 'pr-veg-414', pricingMode: 'assembly'   },
     11:   { costItemId: null,                       roofProfileId: 'pr-pav-p12', pricingMode: 'assembly'   },
+    '11C':{ costItemId: null,                       roofProfileId: 'pr-pav-p11', pricingMode: 'assembly'   },
+    '11D':{ costItemId: null,                       roofProfileId: 'pr-pav-p13', pricingMode: 'assembly'   },
     '11B':{ costItemId: null,                       roofProfileId: 'pr-pav-p14', pricingMode: 'assembly'   },
     // PV / fall protection — turnkey
     12:   { costItemId: 'pv-overeasy-xm3',         roofProfileId: null,         pricingMode: 'turnkey'    },
@@ -1338,7 +2533,8 @@
     // Step 5: Classify strategy
     const sw = engineOutput.stormwater || {};
     const results = sw.results || [];
-    const sortBy = (project.settings && project.settings.sortResultsBy) || 'totalCost';
+    var resultsSettings = getEffectiveResultsSettings(project);
+    const sortBy = resultsSettings.sortResultsBy;
     const regProfileId = (engineOutput.meta && engineOutput.meta.regulationProfileId) || 'general';
     const roofLoadScreen = applyRoofLoadScreening(project, results, regProfileId);
     const displayResults = roofLoadScreen.results;
@@ -1346,7 +2542,7 @@
     const viable = sortedResults.filter(function (r) { return r.isViable; });
     const strategy = V3Strategy.classify(project, viable);
     try {
-      var recBasis = (project.settings && project.settings.recommendationBasis) || 'cheapest_package';
+      var recBasis = resultsSettings.recommendationBasis;
       var recPick = pickRecommended(project, engineOutput, sortedResults, recBasis);
       var suggestedFamily = 'green-roof';
       if (recPick.kind === 'single' && recPick.single) {
@@ -1665,8 +2861,10 @@
     var html = '<div class="ps-section' + (isPlanning ? ' ps-section-planning-options' : '') + '">';
     html += '<h3 class="ps-heading">' + (isPlanning ? 'Recommended options' : 'Top system options & ranking') + '</h3>';
 
-    html += '<p class="ps-basis-note">Highlighted recommendation uses <strong>' + escHtml(recommendationBasisLabel(basis)) + '</strong>. ';
-    html += 'Under <em>Lowest-cost package</em>, a two-BMP combination may be promoted when no single system meets both retention and detention.</p>';
+    if (!isPlanning) {
+      html += '<p class="ps-basis-note">Highlighted recommendation uses <strong>' + escHtml(recommendationBasisLabel(basis)) + '</strong>. ';
+      html += 'Under <em>Lowest-cost package</em>, a two-BMP combination may be promoted when no single system meets both retention and detention.</p>';
+    }
 
     if (isPlanning && !isReport) {
       html += '<div class="ps-top-options-toolbar">';
@@ -1686,6 +2884,7 @@
     if (isPlanning) {
       html += '<p class="ps-planning-pricing-note">Planning mode shows one all-in delivered + installed total per system (packages use the sum of member totals).</p>';
       html += '<p class="ps-planning-pricing-footnote">Switch to Engineering for detailed estimating inputs and technical breakdowns.</p>';
+      html += renderPlanningLayerTailoringNote();
 
       if (pick.kind === 'none' || !hasAnyViable) {
         html += '<div class="results-empty">';
@@ -1740,7 +2939,8 @@
         html += '<div class="ps-top-pick-kicker">Highlighted recommendation</div>';
         html += '<div class="ps-top-pick-total">' + topPickTotal + '</div>';
         html += '</div>';
-        html += '<div class="ps-top-pick-system-name">' + escHtml(topPick.name) + '</div>';
+        html += '<div class="ps-top-pick-system-name">' + escHtml(getPickDisplayName(topPick)) + '</div>';
+        html += renderAssemblyLayerStackNote(pick, mode);
         html += '<div class="ps-top-pick-metrics">';
         html += '<span class="ps-metric-chip">Area: ' + num(topPick.grossDesignedArea) + ' SF</span>';
         html += '<span class="ps-metric-chip">Retention: ' + topPickRet + '</span>';
@@ -1748,9 +2948,14 @@
         html += '</div>';
         html += '<div class="ps-top-pick-role">' + escHtml(topPickRole) + '</div>';
         html += '</div>';
-        html += '<div class="ps-top-pick-visual">' + renderAssetHero(topPickAsset, 'Representative system profile') + '</div>';
+        html += '<div class="ps-top-pick-visual">' + renderAssetHero(topPickAsset, formatLayerStackCaption(topPick)) + '</div>';
         html += '</div>';
         html += '</article>';
+      }
+
+      if (pick.kind !== 'none' && hasAnyViable) {
+        html += renderTargetComplianceDetails(pick, targets, sortedAll, mode, layout);
+        html += renderRecommendedLayerDepthsDetails(pick, targets, mode, layout);
       }
 
       if (hasAnyViable) {
@@ -1821,6 +3026,10 @@
       html += '<p class="ps-eng-pick-line"><strong>Highlighted package:</strong> ' + escHtml(formatPickOneLine(pick, sortedAll, regProfileId)) + '</p>';
     } else if (pick.emptyMessage) {
       html += '<div class="results-empty"><p>' + escHtml(pick.emptyMessage) + '</p></div>';
+    }
+
+    if (pick.kind !== 'none' && hasAnyViable) {
+      html += renderTargetComplianceDetails(pick, targets, sortedAll, mode, layout);
     }
 
     html += renderRankedBmpTable(sortedAll, targets, regProfileId, mode, layout, pick);
@@ -1989,7 +3198,7 @@
       topPick = viewPool[0] || ranked[0] || null;
     }
     var topPickPricing = topPick ? resolvePricing(topPick, regProfileId) : null;
-    var basisVal = basis || (project.settings && project.settings.recommendationBasis) || 'cheapest_package';
+    var basisVal = basis || getEffectiveResultsSettings(project).recommendationBasis;
     var explanation = global.V3Strategy.buildRecommendationExplanation(project, topPick, viable, results, {
       pricing: topPickPricing,
       regProfileId: regProfileId,
@@ -2074,8 +3283,8 @@
     // Roof value observation
     var roofViable = viable.filter(function (r) {
       var id = r.id;
-      return [6, 7, 8, 9, 10, '10B', 11, '11B'].indexOf(id) !== -1
-          || [6, 7, 8, 9, 10, '10B', 11, '11B'].indexOf(String(id)) !== -1;
+      return ROOF_VIEW_BMP_IDS.indexOf(id) !== -1
+          || ROOF_VIEW_BMP_IDS.indexOf(String(id)) !== -1;
     });
     var groundViable = viable.filter(function (r) {
       return [1, 2, 3, 4, 5].indexOf(r.id) !== -1;
@@ -2238,7 +3447,9 @@
     var regProfileId = meta.regulationProfileId || 'general';
     var isPlanning = (mode !== 'engineering');
     layout = layout || 'screen';
-    var basis = (project.settings && project.settings.recommendationBasis) || 'cheapest_package';
+    var resultsSettings = getEffectiveResultsSettings(project);
+    var basis = resultsSettings.recommendationBasis;
+    if (!sortBy) sortBy = resultsSettings.sortResultsBy;
     var pick = pickRecommended(project, engineOutput, results, basis);
 
     var badge = '<div class="mode-badge mode-badge-' + (isPlanning ? 'planning' : 'eng') + '">'
@@ -2246,15 +3457,18 @@
 
     var zoneDivider = '<div class="ps-zone-divider"><span>Reference data</span></div>';
 
-    // ── Planning mode: city -> site inputs -> planning summary -> options
+    // ── Planning mode: city -> site inputs -> options (planning summary omitted on screen)
     if (isPlanning) {
       var planningExplanationHtml = renderSectionRecommendationExplanation(project, viable, results, targets, regProfileId, mode, sortBy, pick, basis);
       var rankedTableSales = renderRankedBmpTable(results, targets, regProfileId, mode, layout, pick);
-      var prCtaPlanning = layout !== 'report' ? renderPurpleRoofSimulatorCta(viable, project, meta) : '';
+      var prCtaPlanning = layout !== 'report' ? renderPurpleRoofSimulatorCta(viable, project, meta, pick, mode) : '';
+      var planningSummaryHtml = layout === 'report'
+        ? renderSectionSalesPlanningSummary(strategy, project, viable, regProfileId, sortBy)
+        : '';
       return badge
         + renderSectionSalesCityContext(meta, project)
         + renderSectionSalesSiteInputs(project)
-        + renderSectionSalesPlanningSummary(strategy, project, viable, regProfileId, sortBy)
+        + planningSummaryHtml
         + renderSectionTopOptions(viable, targets, regProfileId, mode, sortBy, layout, results, pick, basis)
         + prCtaPlanning
         + planningExplanationHtml
@@ -2275,7 +3489,7 @@
     var warningsHtml = renderSectionWarnings(warnings, results, mode);
 
     var html = badge;
-    var prCtaEng = layout !== 'report' ? renderPurpleRoofSimulatorCta(viable, project, meta) : '';
+    var prCtaEng = layout !== 'report' ? renderPurpleRoofSimulatorCta(viable, project, meta, pick, mode) : '';
 
     if (layout === 'report') {
       html += summaryCore;
@@ -2407,7 +3621,8 @@
       ? CITY_DATA[site.cityKey].name
       : (site.cityKey || 'Not selected');
     var isPlanning = (mode !== 'engineering');
-    var basis = (project.settings && project.settings.recommendationBasis) || 'cheapest_package';
+    var resultsSettings = getEffectiveResultsSettings(project);
+    var basis = resultsSettings.recommendationBasis;
     var pick = pickRecommended(project, engineOutput, sortedResults || [], basis);
     var reg = meta.regulationProfileId || 'general';
 
@@ -2421,7 +3636,9 @@
     html += psItem('Retention Target', targets.retentionNeeded ? formatTargetVolumeSummary(targets.retentionCF) : 'Not required');
     html += psItem('Detention Target', targets.detentionNeeded ? formatTargetVolumeSummary(targets.detentionCF) : 'Not required');
     html += psItem('Viable BMPs', String((viable || []).length));
-    html += psItem('Recommendation basis', recommendationBasisLabel(basis));
+    if (!isPlanning) {
+      html += psItem('Recommendation basis', recommendationBasisLabel(basis));
+    }
     html += psItem('Highlighted recommendation', formatPickOneLine(pick, sortedResults || [], reg));
     html += '</div>';
     html += '<p class="report-memo-note"><strong>Constraints noted:</strong> ' + escHtml(reportConstraintText(project)) + '.</p>';
@@ -2488,7 +3705,8 @@
 
     var sw       = engineOutput.stormwater || {};
     var results  = sw.results || [];
-    var sortBy   = (project.settings && project.settings.sortResultsBy) || 'totalCost';
+    var resultsSettings = getEffectiveResultsSettings(project);
+    var sortBy   = resultsSettings.sortResultsBy;
     var regProfileId = (engineOutput.meta && engineOutput.meta.regulationProfileId) || 'general';
     var roofLoadScreen = applyRoofLoadScreening(project, results, regProfileId);
     var displayResults = roofLoadScreen.results;
@@ -2983,7 +4201,12 @@
     getDatabase: getDatabase,
     refreshDatabase: refreshDatabase,
     generateReportHTML: generateReportHTML,
-    launchPurpleRoofSimulator: launchPurpleRoofSimulator
+    launchPurpleRoofSimulator: launchPurpleRoofSimulator,
+    buildPurpleRoofSimulatorUrl: buildPurpleRoofSimulatorUrl,
+    applyPurpleRoofAssemblyToForm: applyPurpleRoofAssemblyToForm,
+    defaultPurpleRoofDrainboxCount: defaultPurpleRoofDrainboxCount,
+    totalRoofAreaSqFt: totalRoofAreaSqFt,
+    onPurpleRoofDepthInputChange: onPurpleRoofDepthInputChange
   };
 
 })(window);

@@ -81,24 +81,22 @@
 
   <!-- ── Header ─────────────────────────────────────────────────────── -->
   <header id="app-header">
-    <div class="header-side header-side-left" aria-label="Brand logos">
-      <img src="../images/logo-sempergreen.png" alt="Sempergreen USA logo" class="header-brand-logo header-brand-logo-sempergreen" onerror="this.style.display='none'">
-      <span class="header-logo-divider" aria-hidden="true"></span>
+    <div class="header-side header-side-left" aria-label="LBG">
       <img src="../images/logo-lbg-transparent.png" alt="LBG logo" class="header-brand-logo header-brand-logo-lbg" onerror="this.style.display='none'">
     </div>
     <div class="header-center" id="header-center">
-      <div class="header-left">
-        <h1>Sempergreen Stormwater Planner</h1>
-      </div>
-      <div class="header-right">
-        <button type="button" id="btn-toggle-debug" class="btn-debug-toggle" hidden aria-expanded="false" aria-controls="debug-panel-container">Show Debug Data</button>
+      <h1>Sempergreen Stormwater Planner</h1>
+    </div>
+    <div class="header-side header-side-right" aria-label="Sempergreen and controls">
+      <div class="header-toolbar">
         <a href="https://sempergreen-usa-resource-portal.netlify.app/" target="_blank" rel="noopener noreferrer" id="btn-open-resources" class="btn-resource-page" aria-label="Open resources page">Resources</a>
-        <span class="header-ctrl-divider" aria-hidden="true"></span>
+        <button type="button" id="btn-toggle-debug" class="btn-debug-toggle" hidden aria-expanded="false" aria-controls="debug-panel-container">Show Debug Data</button>
         <div class="mode-toggle" id="mode-toggle">
           <button class="mode-btn active" data-mode="planning">Planning</button>
           <button class="mode-btn" data-mode="engineering">Engineering</button>
         </div>
       </div>
+      <img src="../images/logo-sempergreen.png" alt="Sempergreen USA logo" class="header-brand-logo header-brand-logo-sempergreen" onerror="this.style.display='none'">
     </div>
   </header>
 
@@ -313,7 +311,7 @@
     <section class="input-section flow-step" id="section-site-info" data-flow-step="site">
       <p class="flow-kicker">Step 3</p>
       <h2>Site Type</h2>
-      <p class="flow-step-intro">Select the closest site pattern and enter total site area. The tool applies the assumed surface-area split for screening.</p>
+      <p class="flow-step-intro">Select the closest site pattern, enter total site area, and adjust the building, landscape, and pavement percentages after selection if your site differs from the template.</p>
 
       <div class="form-grid">
         <div class="field full-width">
@@ -342,7 +340,7 @@
       <div class="site-type-selector field full-width">
         <div class="site-type-selector-head">
           <span id="site-type-label" class="site-type-label">Site type</span>
-          <span class="site-type-hint">Select one site type below. After selection, the assumed building, landscape, and pavement areas are calculated from total site area.</span>
+          <span class="site-type-hint">Select one site type below. After selection, edit the area split percentages (must total 100%) to recalculate building, landscape, and pavement SF.</span>
         </div>
         <div id="site-type-tiles" class="site-type-tiles"></div>
       </div>
@@ -603,7 +601,8 @@
       </div>
     </section>
 
-    <!-- Actions -->
+    <div id="engineering-actions-slot" class="engineering-actions-slot" hidden aria-hidden="true">
+    <!-- Engineering utility actions (re-parented by flow.js; hidden in Planning) -->
     <section class="input-section actions-bar flow-utility-panel" id="section-actions">
       <div class="actions-bar-inner">
         <div class="actions-cluster actions-cluster--analysis" role="group" aria-label="Analysis">
@@ -626,6 +625,7 @@
       <input type="file" id="file-import" accept=".json" style="display:none">
       <span id="save-status" class="save-status"></span>
     </section>
+    </div>
 
     <section class="input-section city-admin-panel" id="section-city-admin" hidden aria-hidden="true">
       <div class="city-admin-head">
@@ -680,9 +680,10 @@
       <p class="flow-kicker">Step 6</p>
       <h2>Recommendation and Planning Report</h2>
       <p class="flow-step-intro">Review the screening result and generate a planning report for follow-up.</p>
-      <div class="results-toolbar field cluster" id="results-toolbar">
+      <div class="results-toolbar field cluster results-toolbar-engineering" id="results-toolbar">
         <label for="f-recommendation-basis">Recommendation basis</label>
         <select id="f-recommendation-basis" data-path="settings.recommendationBasis" aria-describedby="results-toolbar-basis-help">
+          <option value="closest_dual_target">Closest to both targets (4+1+2 vegetated when detention is met)</option>
           <option value="cheapest_package">Lowest-cost package (single or two-BMP retention + detention)</option>
           <option value="cheapest_single">Lowest-cost viable single system</option>
           <option value="full_compliance_single">Single system — full retention + detention compliance</option>
@@ -704,9 +705,10 @@
         <button type="button" class="btn-report" id="flow-generate-report">Generate Planning Report</button>
         <button type="button" class="btn-action btn-action-clear" data-flow-goto="home">New Evaluation</button>
       </div>
+      <div id="results-actions-slot" class="results-actions-slot"></div>
     </section>
 
-    <!-- Debug Panel (hidden by default; toggle via Engineering mode or ?debug=true) -->
+    <!-- Debug Panel (hidden unless URL has ?debug=true) -->
     <div id="debug-panel-container" class="debug-panel" hidden aria-hidden="true">
       <section class="input-section debug-section" id="section-debug">
         <div class="debug-header">

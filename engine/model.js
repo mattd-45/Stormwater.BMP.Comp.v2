@@ -59,6 +59,16 @@
     retentionFactorPct: 0.10
   };
 
+  function isPurpleVegBmpId(id) {
+    const s = String(id);
+    return s === '10' || s === '10B' || s === '10C' || s === '10D';
+  }
+
+  function isPurplePavBmpId(id) {
+    const s = String(id);
+    return s === '11' || s === '11B' || s === '11C' || s === '11D';
+  }
+
   // Optional method-based engines (e.g. NYC DEP RRV/Vv/outflow)
   const METHOD_MAP = {
     NYC_DEP_RRV_VV_OUTFLOW: global.NYC_DEP_RRV_VV_OUTFLOW || null
@@ -162,7 +172,7 @@
       const retentionVoidDepthIn = (soilDepth * retentionFactor) + (nmwDepth * nmwRet);
       retCap = (retentionVoidDepthIn / 12) * lossFactor;
       detCap = 0;
-    } else if (bmpId === 10 || bmpId === '10B') {
+    } else if (isPurpleVegBmpId(bmpId)) {
       const nmwRet = baseNmwRet * nmwReductionFactor;
       const hcDepth = specs.hcDepth || 0;
       const hcVoid = specs.hcVoidRatio != null ? specs.hcVoidRatio : honeycombVoidDefault;
@@ -172,7 +182,7 @@
       const detentionVoidDepthIn = (soilDepth * soilPorosity) + (hcDepth * hcVoid) + (dlDepth * dlPorosity);
       retCap = (retentionVoidDepthIn / 12) * lossFactor;
       detCap = (detentionVoidDepthIn / 12) * lossFactor;
-    } else if (bmpId === 11 || bmpId === '11B') {
+    } else if (isPurplePavBmpId(bmpId)) {
       const nmwRet = baseNmwRet * nmwReductionFactor;
       const hcDepth = specs.hcDepth || 0;
       const hcVoid = specs.hcVoidRatio != null ? specs.hcVoidRatio : honeycombVoidDefault;
@@ -244,7 +254,7 @@
       const D_pct = D_target > 0 ? Math.round((D_provided / D_target) * 100) : (detCap > 0 ? 100 : 0);
 
       let unitPrice = fullSpec.unitPrice;
-      if (bmp.id == 10 || bmp.id == '10B') {
+      if (isPurpleVegBmpId(bmp.id)) {
         unitPrice = fullSpec.extra.pricingMode === 'green' ? fullSpec.extra.pricingUpgrade : fullSpec.extra.pricingBase;
       }
 
@@ -281,11 +291,11 @@
         blockers.push('Requires Sloped Roof area');
       }
 
-      if ((bmp.id === 10 || bmp.id === '10B') && v1Inputs.slopedRoofArea === 0 && v1Inputs.flatDeckOnStructureArea === 0) {
+      if (isPurpleVegBmpId(bmp.id) && v1Inputs.slopedRoofArea === 0 && v1Inputs.flatDeckOnStructureArea === 0) {
         blockers.push('Requires Sloped Roof or Flat Deck/Plaza area');
       }
 
-      if ((bmp.id === 11 || bmp.id === '11B') && v1Inputs.paversOnStructureArea === 0 && v1Inputs.slopedRoofArea === 0 && v1Inputs.flatDeckOnStructureArea === 0) {
+      if (isPurplePavBmpId(bmp.id) && v1Inputs.paversOnStructureArea === 0 && v1Inputs.slopedRoofArea === 0 && v1Inputs.flatDeckOnStructureArea === 0) {
         blockers.push('Requires Pavers on Structure, Sloped Roof, or Flat Deck/Plaza area');
       }
 
@@ -309,7 +319,7 @@
         blockers.push('Requires Usable Landscape or Vehicular Pavement area for interior usable space');
       }
 
-      if (capacity.nmwRestricted && (bmp.id === 9 || bmp.id === 10 || bmp.id === '10B' || bmp.id === 11 || bmp.id === '11B')) {
+      if (capacity.nmwRestricted && (bmp.id === 9 || isPurpleVegBmpId(bmp.id) || isPurplePavBmpId(bmp.id))) {
         warnings.push('NYC DEP: NMW credit reduced (requires ≥4" soil)');
       }
 
@@ -575,5 +585,12 @@
   }
 
   global.runModel = runModel;
+  global.EngineStormwater = {
+    calculateCapacity: calculateCapacity,
+    getSpec: getSpec,
+    getEligibleArea: getEligibleArea,
+    isPurpleVegBmpId: isPurpleVegBmpId,
+    isPurplePavBmpId: isPurplePavBmpId
+  };
 })(window);
 

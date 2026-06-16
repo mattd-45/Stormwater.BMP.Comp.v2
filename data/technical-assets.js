@@ -127,6 +127,26 @@ const TECHNICAL_ASSETS = [
     active: true
   },
   {
+    id: 'asset-profile-pr-veg-411',
+    title: 'Purple Roof Vegetative (4+1+1)',
+    category: 'roof-profile',
+    filePath: '../images/bmp-graphic-purple-veg-4-1-1.png',
+    related: { bmpId: '10C', profileId: 'pr-veg-411', systemId: 'stormwater' },
+    caption: 'Purple roof vegetative profile 4+1+1.',
+    hoverDescription: 'Profile cross-section for shallow honeycomb vegetative variant.',
+    active: true
+  },
+  {
+    id: 'asset-profile-pr-veg-413',
+    title: 'Purple Roof Vegetative (4+1+3)',
+    category: 'roof-profile',
+    filePath: '../images/bmp-graphic-purple-veg-4-1-3.png',
+    related: { bmpId: '10D', profileId: 'pr-veg-413', systemId: 'stormwater' },
+    caption: 'Purple roof vegetative profile 4+1+3.',
+    hoverDescription: 'Profile cross-section for mid-depth honeycomb vegetative variant.',
+    active: true
+  },
+  {
     id: 'asset-profile-pr-pav-p12',
     title: 'Purple Roof Paver (1+2)',
     category: 'roof-profile',
@@ -144,6 +164,26 @@ const TECHNICAL_ASSETS = [
     related: { bmpId: '11B', profileId: 'pr-pav-p14', systemId: 'stormwater' },
     caption: 'Purple roof paver profile 1+4.',
     hoverDescription: 'Paver profile variant with deeper section.',
+    active: true
+  },
+  {
+    id: 'asset-profile-pr-pav-p11',
+    title: 'Purple Roof Paver (1+1)',
+    category: 'roof-profile',
+    filePath: '../images/bmp-graphic-purple-paver-1-1.png',
+    related: { bmpId: '11C', profileId: 'pr-pav-p11', systemId: 'stormwater' },
+    caption: 'Purple roof paver profile 1+1.',
+    hoverDescription: 'Paver profile variant with shallow honeycomb.',
+    active: true
+  },
+  {
+    id: 'asset-profile-pr-pav-p13',
+    title: 'Purple Roof Paver (1+3)',
+    category: 'roof-profile',
+    filePath: '../images/bmp-graphic-purple-paver-1-3.png',
+    related: { bmpId: '11D', profileId: 'pr-pav-p13', systemId: 'stormwater' },
+    caption: 'Purple roof paver profile 1+3.',
+    hoverDescription: 'Paver profile variant with mid-depth honeycomb.',
     active: true
   },
   {

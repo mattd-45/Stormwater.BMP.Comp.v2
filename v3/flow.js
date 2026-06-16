@@ -81,6 +81,38 @@
     });
   }
 
+  /** Engineering-only utility bar: inside Step 6 card on results, below other steps otherwise. */
+  function mountUtilityActionsBar(stepId) {
+    const bar = byId('section-actions');
+    const engSlot = byId('engineering-actions-slot');
+    const resSlot = byId('results-actions-slot');
+    if (!bar) return;
+
+    const mode = document.body.getAttribute('data-mode') || 'planning';
+    if (mode === 'planning') {
+      if (engSlot) {
+        engSlot.hidden = true;
+        engSlot.setAttribute('aria-hidden', 'true');
+      }
+      return;
+    }
+
+    if (stepId === 'results' && resSlot) {
+      if (engSlot) {
+        engSlot.hidden = true;
+        engSlot.setAttribute('aria-hidden', 'true');
+      }
+      resSlot.appendChild(bar);
+      return;
+    }
+
+    if (engSlot) {
+      engSlot.hidden = false;
+      engSlot.removeAttribute('aria-hidden');
+      engSlot.appendChild(bar);
+    }
+  }
+
   function showStep(stepId, options) {
     const opts = options || {};
     const target = getStep(stepId).id;
@@ -106,6 +138,7 @@
     updateProgress();
     updateStepNav();
     updateCityStory();
+    mountUtilityActionsBar(target);
 
     if (!opts.preserveScroll) {
       const scrollTarget = activeSection || byId('app-main');
@@ -307,7 +340,8 @@
   global.V3Flow = {
     init: init,
     showStep: showStep,
-    updateCityStory: updateCityStory
+    updateCityStory: updateCityStory,
+    mountUtilityActionsBar: mountUtilityActionsBar
   };
 
   if (document.readyState === 'loading') {

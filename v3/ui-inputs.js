@@ -106,12 +106,154 @@
     };
   }
 
+  function getTemplateAreaSplitPct(presetKey) {
+    const split = _presetSplitParts(presetKey);
+    if (!split) {
+      return { buildingPct: 50, landscapePct: 25, pavementPct: 25 };
+    }
+    return {
+      buildingPct: split.building,
+      landscapePct: split.landscape,
+      pavementPct: split.pavement
+    };
+  }
+
+  function _isValidAreaSplitPct(pct) {
+    if (!pct || typeof pct !== 'object') return false;
+    const b = Math.round(Number(pct.buildingPct));
+    const l = Math.round(Number(pct.landscapePct));
+    const p = Math.round(Number(pct.pavementPct));
+    if ([b, l, p].some(function (n) { return isNaN(n) || n < 0 || n > 100; })) return false;
+    return b + l + p === 100;
+  }
+
+  function _deriveAreaSplitPctFromDesignAreas(site) {
+    const dm = (site && site.designModeAreas) || {};
+    const T = Math.max(0, Math.round(Number(dm.totalSiteAreaSF) || 0));
+    const b = Math.max(0, Math.round(Number(dm.totalBuildingSF) || 0));
+    const l = Math.max(0, Math.round(Number(dm.totalLandscapeSF) || 0));
+    const p = Math.max(0, Math.round(Number(dm.totalParkingSF) || 0));
+    const sum = b + l + p;
+    const denom = T > 0 ? T : sum;
+    if (denom <= 0) return null;
+    const bp = Math.round((b / denom) * 100);
+    const lp = Math.round((l / denom) * 100);
+    const pp = Math.max(0, 100 - bp - lp);
+    return { buildingPct: bp, landscapePct: lp, pavementPct: pp };
+  }
+
+  function getEffectiveAreaSplitPct(site) {
+    site = site || {};
+    if (_isValidAreaSplitPct(site.areaSplitPct)) {
+      return {
+        buildingPct: Math.round(Number(site.areaSplitPct.buildingPct)),
+        landscapePct: Math.round(Number(site.areaSplitPct.landscapePct)),
+        pavementPct: Math.round(Number(site.areaSplitPct.pavementPct))
+      };
+    }
+    const derived = _deriveAreaSplitPctFromDesignAreas(site);
+    if (derived && _isValidAreaSplitPct(derived)) return derived;
+    return getTemplateAreaSplitPct(site.presetKey || DEFAULT_SITE_PRESET);
+  }
+
+  function _areaSplitToFractions(pct) {
+    return {
+      building: pct.buildingPct / 100,
+      landscape: pct.landscapePct / 100,
+      parking: pct.pavementPct / 100
+    };
+  }
+
+  function _resetAreaSplitPctFromPreset(presetKey) {
+    const t = getTemplateAreaSplitPct(presetKey);
+    V3State.set('site.areaSplitPct', {
+      buildingPct: t.buildingPct,
+      landscapePct: t.landscapePct,
+      pavementPct: t.pavementPct
+    });
+  }
+
+  function _readAreaSplitPctFromPanelInputs() {
+    const bEl = document.getElementById('f-areaSplitBuildingPct');
+    const lEl = document.getElementById('f-areaSplitLandscapePct');
+    const pEl = document.getElementById('f-areaSplitPavementPct');
+    return {
+      buildingPct: Math.round(Number(bEl && bEl.value) || 0),
+      landscapePct: Math.round(Number(lEl && lEl.value) || 0),
+      pavementPct: Math.round(Number(pEl && pEl.value) || 0)
+    };
+  }
+
+  function _areaSplitSumFromPct(pct) {
+    return Math.round(Number(pct.buildingPct) || 0)
+      + Math.round(Number(pct.landscapePct) || 0)
+      + Math.round(Number(pct.pavementPct) || 0);
+  }
+
+  function _updateAreaSplitTotalIndicator() {
+    const el = document.getElementById('site-type-split-total');
+    if (!el) return;
+    const pct = _readAreaSplitPctFromPanelInputs();
+    const sum = _areaSplitSumFromPct(pct);
+    el.textContent = 'Total: ' + sum + '%';
+    el.classList.toggle('site-type-split-total-ok', sum === 100);
+    el.classList.toggle('site-type-split-total-warn', sum !== 100);
+  }
+
+  function syncSiteTypeSplitPanelFromState() {
+    const site = V3State.getRef().site || {};
+    const split = getEffectiveAreaSplitPct(site);
+    const bEl = document.getElementById('f-areaSplitBuildingPct');
+    const lEl = document.getElementById('f-areaSplitLandscapePct');
+    const pEl = document.getElementById('f-areaSplitPavementPct');
+    if (bEl) bEl.value = String(split.buildingPct);
+    if (lEl) lEl.value = String(split.landscapePct);
+    if (pEl) pEl.value = String(split.pavementPct);
+    _updateAreaSplitTotalIndicator();
+  }
+
+  function _writeAreaSplitPctToState(pct) {
+    V3State.set('site.areaSplitPct', {
+      buildingPct: Math.round(Number(pct.buildingPct) || 0),
+      landscapePct: Math.round(Number(pct.landscapePct) || 0),
+      pavementPct: Math.round(Number(pct.pavementPct) || 0)
+    });
+  }
+
+  function _syncDesignModeAreaFieldsFromState() {
+    const dm = (V3State.getRef().site && V3State.getRef().site.designModeAreas) || {};
+    const map = {
+      'f-totalBuildingSF': dm.totalBuildingSF,
+      'f-totalLandscapeSF': dm.totalLandscapeSF,
+      'f-totalParkingSF': dm.totalParkingSF
+    };
+    Object.keys(map).forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) el.value = map[id] != null ? String(map[id]) : '0';
+    });
+  }
+
+  function _tryRecalcDesignAreasFromSplit() {
+    const site = V3State.getRef().site || {};
+    const pct = site.areaSplitPct;
+    if (!_isValidAreaSplitPct(pct)) return;
+    const dm = site.designModeAreas || {};
+    const total = Math.max(0, Math.round(Number(dm.totalSiteAreaSF) || 0));
+    const pk = site.presetKey || DEFAULT_SITE_PRESET;
+    if (total > 0) {
+      _applyDesignAreasFromTotalAndPreset(pk, total);
+      _syncDesignModeAreaFieldsFromState();
+    }
+    if (bindMarkupControls._sync) bindMarkupControls._sync();
+  }
+
   /**
-   * Distributes total site SF into B/L/P using preset percentages, then engineering splits.
+   * Distributes total site SF into B/L/P using effective area split %, then engineering splits.
    */
   function _applyDesignAreasFromTotalAndPreset(presetKey, totalSiteSF) {
-    const fr = _presetFractions(presetKey);
-    if (!fr) return;
+    const site = V3State.getRef().site || {};
+    const pct = getEffectiveAreaSplitPct(site);
+    const fr = _areaSplitToFractions(pct);
     const T = Math.max(0, Math.round(Number(totalSiteSF) || 0));
     if (T <= 0) {
       V3State.set('site.designModeAreas.totalBuildingSF', 0);
@@ -129,6 +271,15 @@
     V3State.set('site.designModeAreas.totalLandscapeSF', l);
     V3State.set('site.designModeAreas.totalParkingSF', p);
     _distributeToEngineeringAreas(presetKey, { building: b, landscape: l, parking: p });
+  }
+
+  function _syncAreaSplitPctFromDesignModeAreas() {
+    const site = V3State.getRef().site || {};
+    const derived = _deriveAreaSplitPctFromDesignAreas(site);
+    if (derived && _isValidAreaSplitPct(derived)) {
+      _writeAreaSplitPctToState(derived);
+      syncSiteTypeSplitPanelFromState();
+    }
   }
 
   function _resolveAssetUrl(relPath) {
@@ -219,22 +370,32 @@
   }
 
   function _splitPanelHtml(presetKey) {
-    const split = _presetSplitParts(presetKey);
-    if (!split) return '';
+    const site = V3State.getRef().site || {};
+    const split = getEffectiveAreaSplitPct(site);
     const meta = _siteTypeMeta(presetKey, null);
+    const sum = split.buildingPct + split.landscapePct + split.pavementPct;
+    const totalClass = sum === 100 ? 'site-type-split-total site-type-split-total-ok' : 'site-type-split-total site-type-split-total-warn';
     return (
       '<aside class="site-type-split-panel" aria-labelledby="site-type-split-heading">' +
       '<div id="site-type-split-heading" class="site-type-split-panel-title">Selected site type</div>' +
       '<h4 class="site-type-summary-title">' + _escHtml(meta.label) + '</h4>' +
       '<p class="site-type-summary-description">' + _escHtml(meta.description) + '</p>' +
       '<ul class="site-type-split-list">' +
-      '<li><span class="site-type-split-label">Building/Roof</span>' +
-      '<span class="site-type-split-pct">' + split.building + '%</span></li>' +
-      '<li><span class="site-type-split-label">Landscape</span>' +
-      '<span class="site-type-split-pct">' + split.landscape + '%</span></li>' +
-      '<li><span class="site-type-split-label">Pavement</span>' +
-      '<span class="site-type-split-pct">' + split.pavement + '%</span></li>' +
+      '<li><label class="site-type-split-label" for="f-areaSplitBuildingPct">Building/Roof</label>' +
+      '<span class="site-type-split-pct-wrap">' +
+      '<input type="number" id="f-areaSplitBuildingPct" class="site-type-split-pct-input" min="0" max="100" step="1" value="' + split.buildingPct + '">' +
+      '<span class="site-type-split-pct-suffix">%</span></span></li>' +
+      '<li><label class="site-type-split-label" for="f-areaSplitLandscapePct">Landscape</label>' +
+      '<span class="site-type-split-pct-wrap">' +
+      '<input type="number" id="f-areaSplitLandscapePct" class="site-type-split-pct-input" min="0" max="100" step="1" value="' + split.landscapePct + '">' +
+      '<span class="site-type-split-pct-suffix">%</span></span></li>' +
+      '<li><label class="site-type-split-label" for="f-areaSplitPavementPct">Pavement</label>' +
+      '<span class="site-type-split-pct-wrap">' +
+      '<input type="number" id="f-areaSplitPavementPct" class="site-type-split-pct-input" min="0" max="100" step="1" value="' + split.pavementPct + '">' +
+      '<span class="site-type-split-pct-suffix">%</span></span></li>' +
       '</ul>' +
+      '<p id="site-type-split-total" class="' + totalClass + '" role="status">Total: ' + sum + '%</p>' +
+      '<p class="site-type-split-footnote">Must equal 100% to update site areas below.</p>' +
       '<p class="site-type-challenge-note"><strong>Likely BMP challenge:</strong> ' + _escHtml(meta.challenges) + '</p>' +
       '<p class="site-type-split-footnote">Applied to your total site area (SF) above.</p>' +
       '</aside>'
@@ -245,6 +406,7 @@
     const opts = options || {};
     const showMini = !!opts.showMini;
     const compact = !!opts.compact;
+    const heroVisual = !!opts.heroVisual;
     const meta = _siteTypeMeta(presetKey, asset);
     const splitTip = _presetSplitTooltip(presetKey);
     const titleBits = [
@@ -256,7 +418,10 @@
     const imgAlt = _escAttr(meta.label);
     const titleText = _escHtml(meta.label);
 
-    let html = '<button type="button" class="site-type-tile' + (selected ? ' selected' : '') + '" ';
+    let html = '<button type="button" class="site-type-tile'
+      + (selected ? ' selected' : '')
+      + (heroVisual ? ' site-type-tile--hero-visual' : '')
+      + '" ';
     html += 'data-preset-key="' + presetKey + '" ';
     html += 'role="radio" aria-checked="' + (selected ? 'true' : 'false') + '" ';
     html += 'title="' + titleAttr + '">';
@@ -267,14 +432,16 @@
       html += '<span class="site-type-tile-img-placeholder" aria-hidden="true"></span>';
     }
     html += '</span>';
-    html += '<span class="site-type-tile-title">' + titleText + '</span>';
-    if (!compact) {
-      html += '<span class="site-type-tile-description">' + _escHtml(meta.description) + '</span>';
-      html += _siteTypeShareHtml(presetKey);
-      html += '<span class="site-type-tile-challenge"><strong>Challenge:</strong> ' + _escHtml(meta.challenges) + '</span>';
-    }
-    if (showMini) {
-      html += '<span class="site-type-tile-split-mini">' + _escHtml(_presetSplitMini(presetKey)) + '</span>';
+    if (!heroVisual) {
+      html += '<span class="site-type-tile-title">' + titleText + '</span>';
+      if (!compact) {
+        html += '<span class="site-type-tile-description">' + _escHtml(meta.description) + '</span>';
+        html += _siteTypeShareHtml(presetKey);
+        html += '<span class="site-type-tile-challenge"><strong>Challenge:</strong> ' + _escHtml(meta.challenges) + '</span>';
+      }
+      if (showMini) {
+        html += '<span class="site-type-tile-split-mini">' + _escHtml(_presetSplitMini(presetKey)) + '</span>';
+      }
     }
     html += '</button>';
     return html;
@@ -308,7 +475,7 @@
       html += '</div>';
       html += '<div class="site-type-hero-row">';
       const heroAsset = byPreset[effectiveKey];
-      html += _siteTypeTileButtonHtml(effectiveKey, heroAsset, true, { showMini: false });
+      html += _siteTypeTileButtonHtml(effectiveKey, heroAsset, true, { heroVisual: true });
       html += _splitPanelHtml(effectiveKey);
       html += '</div>';
       html += '</div>';
@@ -329,6 +496,7 @@
   function applySitePreset(presetKey) {
     if (!presetKey || !PRESETS[presetKey]) return;
     V3State.set('site.presetKey', presetKey);
+    _resetAreaSplitPctFromPreset(presetKey);
     const dm = V3State.getRef().site && V3State.getRef().site.designModeAreas;
     const totalSF = dm && dm.totalSiteAreaSF != null ? Number(dm.totalSiteAreaSF) : 0;
     if (totalSF > 0) {
@@ -428,6 +596,22 @@
     }
   }
 
+  function bindSiteTypeSplitPct() {
+    const container = document.getElementById('site-type-tiles');
+    if (!container) return;
+
+    container.addEventListener('input', function (e) {
+      const t = e.target;
+      if (!t || !t.classList || !t.classList.contains('site-type-split-pct-input')) return;
+      const pct = _readAreaSplitPctFromPanelInputs();
+      _writeAreaSplitPctToState(pct);
+      _updateAreaSplitTotalIndicator();
+      if (_isValidAreaSplitPct(pct)) {
+        _tryRecalcDesignAreasFromSplit();
+      }
+    });
+  }
+
   function bindSiteTypeTiles() {
     const container = document.getElementById('site-type-tiles');
     if (!container) return;
@@ -455,9 +639,19 @@
   }
 
   function ensureSitePreset() {
-    const pk = V3State.getRef().site && V3State.getRef().site.presetKey;
+    const site = V3State.getRef().site || {};
+    const pk = site.presetKey;
     if (!pk) {
       applySitePreset(DEFAULT_SITE_PRESET);
+      return;
+    }
+    if (!_isValidAreaSplitPct(site.areaSplitPct)) {
+      const derived = _deriveAreaSplitPctFromDesignAreas(site);
+      if (derived && _isValidAreaSplitPct(derived)) {
+        _writeAreaSplitPctToState(derived);
+      } else {
+        _resetAreaSplitPctFromPreset(pk);
+      }
     }
   }
 
@@ -1064,6 +1258,9 @@
     _renderCityRainfallModule(project.site && project.site.cityKey, mode);
     if (bindCityAdminPanel._sync) bindCityAdminPanel._sync(project);
     _renderSiteTypeTiles((project.site && project.site.presetKey) || DEFAULT_SITE_PRESET);
+    if (_siteTypeTilesPicked) {
+      syncSiteTypeSplitPanelFromState();
+    }
 
     const totalSiteEl = document.getElementById('f-totalSiteAreaSF');
     const totalSiteSlider = document.getElementById('f-totalSiteAreaSF-slider');
@@ -1093,6 +1290,14 @@
         const mode = btn.dataset.mode;
         V3State.set('settings.mode', mode);
         _setModeUI(mode);
+        if (global.V3RunAnalysis && typeof global.V3RunAnalysis.run === 'function') {
+          const resultsPanel = document.getElementById('section-results');
+          const onResultsStep = document.body && document.body.getAttribute('data-flow-step') === 'results';
+          const panelOpen = resultsPanel && !resultsPanel.hidden;
+          if (onResultsStep || panelOpen) {
+            global.V3RunAnalysis.run();
+          }
+        }
       });
     });
   }
@@ -1112,6 +1317,11 @@
     _renderCityRainfallModule(project.site && project.site.cityKey, mode);
     _applyCityTheme(project.site && project.site.cityKey, mode);
     _syncEngineeringPlanningAssumptionWarning();
+
+    if (global.V3Flow && typeof global.V3Flow.mountUtilityActionsBar === 'function') {
+      const step = document.body.getAttribute('data-flow-step') || 'home';
+      global.V3Flow.mountUtilityActionsBar(step);
+    }
   }
 
 
@@ -1225,7 +1435,7 @@
           landscape: Math.max(0, Math.round(Number(dm.totalLandscapeSF) || 0)),
           parking: Math.max(0, Math.round(Number(dm.totalParkingSF) || 0))
         });
-        syncDOMFromState();
+        _syncAreaSplitPctFromDesignModeAreas();
         if (bindMarkupControls._sync) bindMarkupControls._sync();
       });
     }
@@ -1427,7 +1637,7 @@
 
 
   // ── Debug panel ─────────────────────────────────────────────────────
-  // Hidden by default; toggle shown in Engineering mode or when ?debug=true
+  // Hidden by default; header toggle and panel only when ?debug=true
 
   let _debugPanelOpen = false;
 
@@ -1444,11 +1654,9 @@
     const wrap = document.getElementById('debug-panel-container');
     if (!btn || !wrap) return;
 
-    const mode = (V3State.getRef().settings && V3State.getRef().settings.mode) || 'planning';
     const urlDebug = isDebugUrlParam();
-    const showToggle = mode === 'engineering' || urlDebug;
 
-    if (!showToggle) {
+    if (!urlDebug) {
       btn.hidden = true;
       btn.setAttribute('aria-hidden', 'true');
       wrap.hidden = true;
@@ -1479,6 +1687,7 @@
   }
 
   function updateDebugPanel() {
+    if (!isDebugUrlParam()) return;
     const output = document.getElementById('debug-output');
     if (!output) return;
 
@@ -1565,6 +1774,7 @@
       bindTotalSiteArea();
       bindModeToggle();
       bindSiteTypeTiles();
+      bindSiteTypeSplitPct();
       bindTargetToggles();
       bindConstraintHighlights();
       bindCityAdminPanel();

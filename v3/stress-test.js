@@ -300,6 +300,100 @@ function printSummary(rows) {
   console.log(`Summary: PASS=${pass} WARN=${warn} FAIL=${fail} TOTAL=${rows.length}`);
 }
 
+// ── buildPurpleRoofSimulatorUrl unit test ──────────────────────────────
+// Loads run-analysis.js in a minimal sandbox (pure function only — no DOM)
+// and verifies the Philadelphia example produces the expected URL params.
+
+function testBuildPurpleRoofSimulatorUrl() {
+  const ctx = vm.createContext({
+    console,
+    Math,
+    URLSearchParams: global.URLSearchParams
+  });
+  ctx.window = ctx;
+  ctx.global = ctx;
+
+  // run-analysis.js accesses CITY_DATA at render time, not load time,
+  // but stub it so the IIFE initialises cleanly.
+  ctx.CITY_DATA = {};
+  ctx.BMP_OPTIONS_DEFAULT = [];
+
+  loadScript(ctx, path.join('v3', 'run-analysis.js'));
+
+  const fn = ctx.V3RunAnalysis && ctx.V3RunAnalysis.buildPurpleRoofSimulatorUrl;
+  if (typeof fn !== 'function') throw new Error('buildPurpleRoofSimulatorUrl not exported on V3RunAnalysis');
+
+  const url = fn({
+    lat: 39.9526,
+    lon: -75.1652,
+    roofAreaSqFt: 55750,
+    contributingAreaSqFt: 1000,
+    paverAreaSqFt: 3658,
+    timeOfConcentrationMin: 6,
+    assemblyId: '10',
+    drainboxCount: 5,
+    orificeWidthIn: 24
+  });
+
+  const checks = [
+    ['base URL (.html)',  url.startsWith('https://purple-roof-simulator.com/roof-simulator.html')],
+    ['lat=39.9526',      url.includes('lat=39.9526')],
+    ['lon=-75.1652',     url.includes('lon=-75.1652')],
+    ['gr=55750',         url.includes('gr=55750')],
+    ['cf=1000',          url.includes('cf=1000')],
+    ['pv=3658',          url.includes('pv=3658')],
+    ['tc=6',             url.includes('tc=6')],
+    ['nb=5',             url.includes('nb=5')],
+    ['bw=24',            url.includes('bw=24')],
+    ['sd=4',             url.includes('sd=4')],
+    ['wd=1',             url.includes('wd=1')],
+    ['hd=2',             url.includes('hd=2')],
+    ['ds=t2',            url.includes('ds=t2')],
+    ['th=l',             url.includes('th=l')]
+  ];
+
+  let pass = 0, fail = 0;
+  checks.forEach(([label, ok]) => {
+    if (ok) { pass++; } else { fail++; console.error(`  FAIL [${label}] not found in: ${url}`); }
+  });
+  return { pass, fail, url };
+}
+
+function testDefaultPurpleRoofDrainboxCount() {
+  const ctx = vm.createContext({
+    console,
+    Math,
+    URLSearchParams: global.URLSearchParams
+  });
+  ctx.window = ctx;
+  ctx.global = ctx;
+  ctx.CITY_DATA = {};
+  ctx.BMP_OPTIONS_DEFAULT = [];
+  loadScript(ctx, path.join('v3', 'run-analysis.js'));
+
+  const fn = ctx.V3RunAnalysis && ctx.V3RunAnalysis.defaultPurpleRoofDrainboxCount;
+  if (typeof fn !== 'function') throw new Error('defaultPurpleRoofDrainboxCount not exported on V3RunAnalysis');
+
+  const checks = [
+    [0, 1],
+    [1, 1],
+    [1500, 1],
+    [1501, 2],
+    [14880, 10]
+  ];
+  let pass = 0;
+  let fail = 0;
+  checks.forEach(([sf, expected]) => {
+    const got = fn(sf);
+    if (got === expected) pass++;
+    else {
+      fail++;
+      console.error(`  FAIL drainbox default: ${sf} SF expected ${expected}, got ${got}`);
+    }
+  });
+  return { pass, fail };
+}
+
 function main() {
   const ctx = setupRuntime();
   const db = buildDatabase(ctx);
@@ -316,8 +410,30 @@ function main() {
   fs.writeFileSync(outPath, JSON.stringify(report, null, 2), 'utf8');
   console.log(`\nWrote report: ${outPath}`);
 
+  // ── buildPurpleRoofSimulatorUrl unit test ──
+  console.log('\n─── buildPurpleRoofSimulatorUrl unit test (Philadelphia) ───');
+  try {
+    const urlTest = testBuildPurpleRoofSimulatorUrl();
+    console.log(`  URL: ${urlTest.url}`);
+    console.log(`  Assertions: PASS=${urlTest.pass} FAIL=${urlTest.fail}`);
+    if (urlTest.fail > 0) process.exitCode = 1;
+  } catch (err) {
+    console.error('  ERROR: ' + (err && err.message ? err.message : String(err)));
+    process.exitCode = 1;
+  }
+
+  console.log('\n─── defaultPurpleRoofDrainboxCount unit test ───');
+  try {
+    const nbTest = testDefaultPurpleRoofDrainboxCount();
+    console.log(`  Assertions: PASS=${nbTest.pass} FAIL=${nbTest.fail}`);
+    if (nbTest.fail > 0) process.exitCode = 1;
+  } catch (err) {
+    console.error('  ERROR: ' + (err && err.message ? err.message : String(err)));
+    process.exitCode = 1;
+  }
+
   const hasFail = rows.some(r => r.status === 'FAIL');
-  process.exitCode = hasFail ? 1 : 0;
+  if (hasFail) process.exitCode = 1;
 }
 
 main();

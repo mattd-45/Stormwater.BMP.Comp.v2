@@ -169,6 +169,62 @@ const ROOF_PROFILES = [
     }
   },
 
+  {
+    id:              'pr-veg-411',
+    name:            'Purple-Roof (Vegetated) 4+1+1',
+    shortName:       'PR Veg 4+1+1',
+    profileCategory: 'purple-roof',
+    systemType:      'pr-veg-411',
+    bmpId:           '10C',
+    description:     'Vegetated Purple-Roof with 4" media, 1" mineral wool, and 1" honeycomb detention. Lighter assembly between retention-focused and 4+1+2.',
+    assumptions:     'Same layer factors as 4+1+2. Shallow honeycomb — less detention than 4+1+2.',
+
+    layers: [
+      { layerId: 'protection-mat',       depthIn: 0,   fixed: true  },
+      { layerId: 'drainage-layer',       depthIn: 0.2, fixed: true  },
+      { layerId: 'honeycomb-detention',  depthIn: 1,   fixed: false },
+      { layerId: 'mineral-wool',         depthIn: 1,   fixed: false },
+      { layerId: 'extensive-media',      depthIn: 4,   fixed: false },
+      { layerId: 'sedum-mat',            depthIn: 0,   fixed: true  }
+    ],
+
+    totalDepthIn: 6.2,
+
+    resourceLinks: {
+      specSheet:      null,
+      detailDrawing:  null,
+      installGuide:   null
+    }
+  },
+
+  {
+    id:              'pr-veg-413',
+    name:            'Purple-Roof (Vegetated) 4+1+3',
+    shortName:       'PR Veg 4+1+3',
+    profileCategory: 'purple-roof',
+    systemType:      'pr-veg-413',
+    bmpId:           '10D',
+    description:     'Vegetated Purple-Roof with 4" media, 1" mineral wool, and 3" honeycomb detention. Mid-depth detention between 4+1+2 and 4+1+4.',
+    assumptions:     'Same layer factors as 4+1+2. Honeycomb between 2" and 4" variants.',
+
+    layers: [
+      { layerId: 'protection-mat',       depthIn: 0,   fixed: true  },
+      { layerId: 'drainage-layer',       depthIn: 0.2, fixed: true  },
+      { layerId: 'honeycomb-detention',  depthIn: 3,   fixed: false },
+      { layerId: 'mineral-wool',         depthIn: 1,   fixed: false },
+      { layerId: 'extensive-media',      depthIn: 4,   fixed: false },
+      { layerId: 'sedum-mat',            depthIn: 0,   fixed: true  }
+    ],
+
+    totalDepthIn: 8.2,
+
+    resourceLinks: {
+      specSheet:      null,
+      detailDrawing:  null,
+      installGuide:   null
+    }
+  },
+
 
   // ── 4. Sponge Roof 4+2 ────────────────────────────────────────────
   //
@@ -261,6 +317,60 @@ const ROOF_PROFILES = [
     ],
 
     totalDepthIn: 7.2,
+
+    resourceLinks: {
+      specSheet:      null,
+      detailDrawing:  null,
+      installGuide:   null
+    }
+  },
+
+  {
+    id:              'pr-pav-p11',
+    name:            'Purple-Roof (Pavers) P+1+1',
+    shortName:       'PR Paver P+1+1',
+    profileCategory: 'paver-purple',
+    systemType:      'pr-pav-p11',
+    bmpId:           '11C',
+    description:     'Paver-over-Purple with 1" mineral wool and 1" honeycomb detention. Lightest paver Purple-Roof detention profile.',
+    assumptions:     'Paver weight significant. Retention from NMW only; shallow honeycomb.',
+
+    layers: [
+      { layerId: 'protection-mat',       depthIn: 0,   fixed: true  },
+      { layerId: 'drainage-layer',       depthIn: 0.2, fixed: true  },
+      { layerId: 'honeycomb-detention',  depthIn: 1,   fixed: false },
+      { layerId: 'mineral-wool',         depthIn: 1,   fixed: false },
+      { layerId: 'concrete-pavers',      depthIn: 2,   fixed: true  }
+    ],
+
+    totalDepthIn: 4.2,
+
+    resourceLinks: {
+      specSheet:      null,
+      detailDrawing:  null,
+      installGuide:   null
+    }
+  },
+
+  {
+    id:              'pr-pav-p13',
+    name:            'Purple-Roof (Pavers) P+1+3',
+    shortName:       'PR Paver P+1+3',
+    profileCategory: 'paver-purple',
+    systemType:      'pr-pav-p13',
+    bmpId:           '11D',
+    description:     'Paver-over-Purple with 1" mineral wool and 3" honeycomb detention. Mid-depth paver detention between P+1+2 and P+1+4.',
+    assumptions:     'Same layer factors as P+1+2. Honeycomb between 2" and 4" variants.',
+
+    layers: [
+      { layerId: 'protection-mat',       depthIn: 0,   fixed: true  },
+      { layerId: 'drainage-layer',       depthIn: 0.2, fixed: true  },
+      { layerId: 'honeycomb-detention',  depthIn: 3,   fixed: false },
+      { layerId: 'mineral-wool',         depthIn: 1,   fixed: false },
+      { layerId: 'concrete-pavers',      depthIn: 2,   fixed: true  }
+    ],
+
+    totalDepthIn: 6.2,
 
     resourceLinks: {
       specSheet:      null,

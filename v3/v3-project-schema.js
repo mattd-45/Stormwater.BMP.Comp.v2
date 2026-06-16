@@ -148,6 +148,17 @@ const PROJECT_SCHEMA = {
     //  Valid values: "balanced", "dense-urban", "campus", "parking-dominant", "podium", "big-box-retail"
     //  Site type is chosen via image tiles; preset distributes designModeAreas to engineeringAreas.
 
+    areaSplitPct: {
+      buildingPct: 50,
+      landscapePct: 25,
+      pavementPct: 25
+    },
+    //  type: object | required: false
+    //  engineMap: — (Planning UI only: B/L/P % of total site area; must sum to 100)
+    //  status: new
+    //  Reset to site-type template when user picks a new preset tile.
+    //  Drives designModeAreas when totalSiteAreaSF changes.
+
     siteType: 'new_development',
     //  type: string | required: false | default: 'new_development'
     //  engineMap: — (future: may affect regulation trigger thresholds)
@@ -239,7 +250,7 @@ const PROJECT_SCHEMA = {
       //  status: active
       //  Flat deck / plaza on structure (podium, parking deck top).
       //  Used by: BMP 6 (On-Structure Tank), BMP 7 (Blue Roof),
-      //  BMP 10/10B (Purple-Roof Veg), BMP 11/11B (Purple-Roof Paver)
+      //  BMP 10/10B/10C/10D (Purple-Roof Veg), BMP 11/11B/11C/11D (Purple-Roof Paver)
 
       slopedRoofArea: 15000,
       //  type: number (SF) | required: true | default: 500
@@ -247,7 +258,7 @@ const PROJECT_SCHEMA = {
       //  status: active
       //  Conventional sloped or low-slope roof area.
       //  Used by: BMP 8 (Traditional Green Roof), BMP 9 (Sponge Roof),
-      //  BMP 10/10B (Purple-Roof Veg), BMP 11/11B (Purple-Roof Paver)
+      //  BMP 10/10B/10C/10D (Purple-Roof Veg), BMP 11/11B/11C/11D (Purple-Roof Paver)
 
       paversOnStructureArea: 0,
       //  type: number (SF) | required: true | default: 0
@@ -485,13 +496,17 @@ const PROJECT_SCHEMA = {
     //  Valid values: 'totalCost', 'costPerCF', 'areaRequired', 'bmpId'
     //  v2 sorts by BMP ID order. v3 allows user to choose.
 
-    recommendationBasis: 'cheapest_package',
-    //  type: string | required: false | default: 'cheapest_package'
+    recommendationBasis: 'closest_dual_target',
+    //  type: string | required: false | default: 'closest_dual_target'
     //  engineMap: — (UI + reporting only; uses engine recommended / recommendedCombo)
     //  status: new
+    //  Planning mode always applies closest_dual_target + sortResultsBy totalCost (see
+    //  run-analysis getEffectiveResultsSettings); Engineering exposes toolbar controls.
     //  How the primary recommendation (hero) is chosen:
-    //    'cheapest_package' — Prefer engine single BMP that meets both targets; else lowest-cost
-    //      two-BMP package (recommendedCombo); else lowest-cost viable single.
+    //    'closest_dual_target' — Prefer engine single BMP that meets both targets; else
+    //      two-BMP package; else when detention is met prefer Purple-Roof vegetated 4+1+2,
+    //      then shallowest honeycomb that still meets detention; else capped min(ret%, det%).
+    //    'cheapest_package' — Same first two steps; fallback is lowest-cost viable single.
     //    'cheapest_single' — Lowest-cost viable single BMP by cost, ignoring combo package.
     //    'full_compliance_single' — Lowest-cost single BMP that meets retention + detention within
     //      tolerance (engine meetsBoth). Empty state if none.
@@ -516,6 +531,13 @@ const PROJECT_SCHEMA = {
     //  'green' = upgrade cost only (when green roof is already in scope)
     //  Tied to assumptions.greenRoofAlreadyInScope — when that is true,
     //  this should typically be 'green'.
+
+    purpleRoofHandoff: null,
+    //  type: object | null | required: false | default: null
+    //  engineMap: —
+    //  status: new
+    //  Last-confirmed Purple Roof Simulator handoff (lat/lon, areas, layers, drains).
+    //  Set when user launches the simulator from results; pre-fills the next handoff form.
 
     showDetailCards: true,
     //  type: boolean | required: false | default: true

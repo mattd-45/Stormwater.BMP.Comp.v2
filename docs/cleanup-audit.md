@@ -117,6 +117,48 @@ Latest automated result:
 - V3 stress test passed 10 of 10 scenarios.
 - `v3/v3-standalone-test.html` and `v3/admin-editor-standalone.html` rebuilt successfully.
 
+## Cleanup pass 3
+
+Date: 2026-06-04
+
+Archived remaining v2/legacy items to consolidate the project as a V3-first workspace.
+
+### Moved to `_archive/legacy/`
+
+- `legacy/index-MUSA-PC-11.html`
+- `legacy/index.BACKUP-before-fun.html`
+- `legacy/model.BACKUP-before-fun.js`
+- `legacy/README.md`
+
+The `legacy/` folder was removed after its contents were moved.
+
+### Moved to `_archive/engine-adapters-v2/`
+
+Eight old-style engine adapter files (no state prefix or underscore naming) that each had a new-style equivalent already in `engine/adapters/`:
+
+- `boston.js` (superseded by `ma-boston.js`)
+- `chicago.js` (superseded by `il-chicago.js`)
+- `nashville.js` (superseded by `tn-nashville.js`)
+- `philadelphia.js` (superseded by `pa-philadelphia.js`)
+- `san_francisco.js` (superseded by `ca-san-francisco.js`)
+- `seattle.js` (superseded by `wa-seattle.js`)
+- `toronto.js` (superseded by `on-toronto.js`)
+- `ohio_statewide.js` (superseded by `oh-statewide.js`)
+
+Kept in place: `dc.js`, `nyc.js` (no new-style equivalents exist), all new-style prefixed files, and `index.js`.
+
+### Fixed `engine/adapters/index.js`
+
+Removed the duplicate first block (lines 1–80, the older `CityAdapterBase` object pattern). Only the cleaner v3-style registry pattern remains.
+
+### Moved to `_archive/data-v2/`
+
+- `data/city-sales-data.js` — only referenced by `_archive/root-v2/index-v2.html` and `legacy/index-MUSA-PC-11.html` (also archived); not used by V3.
+
+### Moved to `_archive/misc/`
+
+- `graphics.skp` — SketchUp 3D file at project root; untracked in git; not referenced by the web app.
+
 ## Cleanup pass 2
 
 See `docs/cleanup-pass-2.md`.

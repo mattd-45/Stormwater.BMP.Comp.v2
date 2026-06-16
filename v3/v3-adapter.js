@@ -466,7 +466,7 @@ const SAMPLE_V3_PROJECT = {
   settings: {
     mode:                    'engineering',
     sortResultsBy:           'totalCost',
-    recommendationBasis:      'cheapest_package',
+    recommendationBasis:      'closest_dual_target',
     pricingOverrides:        {},
     purpleRoofPricingMode:   'green',
     showDetailCards:          true,
